@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
+<parameters>
+  <console_log_level>5</console_log_level>
+  <itop_url>https://localhost/</itop_url>
+  <itop_login>admin</itop_login>
+  <itop_password>admin</itop_password>
+  <syslog_log_level>-1</syslog_log_level>
+  <max_chunk_size>1000</max_chunk_size>
+  <vsphere_uri>192.168.10.12:443</vsphere_uri>
+  <vsphere_login>admin</vsphere_login>
+  <vsphere_password>admin</vsphere_password>
+</parameters>
