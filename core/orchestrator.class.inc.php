@@ -2,6 +2,7 @@
 class Orchestrator
 {
 	static $aCollectors = array();
+	static $aMinVersions = array('PHP' => '5.3.0', 'simplexml' => '0.1');
 	
 	static function AddCollector($fExecOrder, $sCollectorClass)
 	{
@@ -15,6 +16,59 @@ class Orchestrator
 			throw new Exception('Cannot register an abstract class ('.$sCollectorClass.') as a collector.');
 		}
 		self::$aCollectors[$sCollectorClass] = array('order' => $fExecOrder, 'class' => $sCollectorClass, 'sds_name' => '', 'sds_id' => 0);
+	}
+	
+	static public function AddRequirement($sMinRequiredVersion, $sExtension = 'PHP')
+	{
+		if (!array_key_exists($sExtension, self::$aMinVersions))
+		{
+			
+		}
+		else if (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>'))
+		{
+			 self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
+		}
+	}
+	
+	static public function CheckRequirements()
+	{
+		$bResult = true;
+		foreach(self::$aMinVersions as $sExtension => $sRequiredVersion)
+		{
+			if ($sExtension == 'PHP')
+			{
+				$sCurrentVersion = phpversion();
+				if (version_compare($sCurrentVersion, $sRequiredVersion, '<'))
+				{
+					$bResult = false;
+					Utils::Log(LOG_ERR, "The required PHP version to run this application is $sRequiredVersion. The current PHP version is only $sCurrentVersion.");
+				}
+				else
+				{
+					Utils::Log(LOG_DEBUG, "OK, the required PHP version to run this application is $sRequiredVersion. The current PHP version is $sCurrentVersion.");
+				}
+			}
+			else if (extension_loaded($sExtension))
+			{
+				$sCurrentVersion = phpversion($sExtension);
+				if (version_compare($sCurrentVersion, $sRequiredVersion, '<'))
+				{
+					$bResult = false;
+					Utils::Log(LOG_ERR, "The extension '$sExtension' (version >= $sRequiredVersion) is required to run this application. The installed version is only $sCurrentVersion.");
+				}
+				else
+				{
+					Utils::Log(LOG_DEBUG, "OK, the required extension '$sExtension' is installed (current version: $sCurrentVersion >= $sRequiredVersion).");
+				}
+				
+			}
+			else
+			{
+				$bResult = false;
+				Utils::Log(LOG_ERR, "The missing extension '$sExtension' (version >= $sRequiredVersion) is required to run this application.");
+			}
+		}
+		return $bResult;
 	}
 	
 	public function ListCollectors()

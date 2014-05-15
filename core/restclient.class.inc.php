@@ -1,6 +1,24 @@
 <?php
 class RestClient
 {
+	protected $sVersion;
+	
+	public function __construct()
+	{
+		$this->sVersion = '1.0';
+	}
+	
+	public function GetVersion()
+	{
+		return $this->sVersion;
+	}
+	
+	public function SetVersion($sVersion)
+	{
+		$this->sVersion = $sVersion;
+	}
+	
+	
 	public function Get($sClass, $keySpec)
 	{
 		$aOperation = array(
@@ -9,9 +27,18 @@ class RestClient
 			'key' => $keySpec,
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
 		);
-		return self::ExecOperation($aOperation);
+		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 	
+	public function ListOperations()
+	{
+		$aOperation = array(
+			'operation' => 'list_operations', // operation code
+			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
+		);
+		return self::ExecOperation($aOperation, $this->sVersion);
+	}
+
 	public function Create($sClass, $aFields, $sComment)
 	{
 		$aOperation = array(
@@ -21,7 +48,7 @@ class RestClient
 			'fields' => $aFields,
 			'comment' => $sComment,
 		);
-		return self::ExecOperation($aOperation);
+		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 	
 	public function Update($sClass, $keySpec, $aFields, $sComment)
@@ -34,10 +61,10 @@ class RestClient
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
 			'comment' => $sComment,
 		);
-		return self::ExecOperation($aOperation);
+		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 	
-	protected static function ExecOperation($aOperation)
+	protected static function ExecOperation($aOperation, $sVersion = '1.0')
 	{
 		/*
 		$sChangeTracking = MetaModel::GetModuleSetting('itop-rest-data-push', 'change_tracking', Dict::S('rest-data-push:change_tracking'));
@@ -56,7 +83,7 @@ class RestClient
 		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
 		$aData['json_data'] = json_encode($aOperation);
 //print_r($aOperation);
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version=1.0';
+		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
 		$response = Utils::DoPostRequest($sUrl, $aData);
 		$aResults = json_decode($response, true);
 		if (!$aResults)
@@ -65,5 +92,23 @@ class RestClient
 		}
 //print_r($aResults);
 		return $aResults;
+	}
+	
+	public static function GetNewestKnownVersion()
+	{
+		$sNewestVersion = '1.0';
+		$oC = new RestClient();
+		$aKnownVersions = array('1.0', '1.1', '1.2', '2.0');
+		foreach($aKnownVersions as $sVersion)
+		{
+			$oC->SetVersion($sVersion);
+			$aRet = $oC->ListOperations();
+			if ($aRet['code'] == 0)
+			{
+				// Supported version
+				$sNewestVersion = $sVersion;
+			}
+		}
+		return $sNewestVersion;		
 	}
 }

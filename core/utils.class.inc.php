@@ -8,6 +8,7 @@ class Utils
 	static public $iConsoleLogLevel = LOG_INFO;
 	static public $iSyslogLogLevel = LOG_NONE;
 	static protected $oConfig = null;
+	static protected $aConfigFiles = array();
 	
 	static public function ReadParameter($sParamName, $defaultValue)
 	{
@@ -43,6 +44,37 @@ class Utils
 		return $retValue;
 	}
 	
+	static public function CheckParameters($aOptionalParams)
+	{
+		global $argv;
+		
+		$aUnknownParams = array();
+		foreach($argv as $iArg => $sArg)
+		{
+			if ($iArg == 0) continue; // Skip program name
+			if (preg_match('/^--([A-Za-z0-9_]+)$/', $sArg, $aMatches))
+			{
+				// Looks like a boolean parameter
+				if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] != 'boolean'))
+				{
+					$aUnknownParams[] = $sArg;
+				}
+			}
+			else if(preg_match('/^--([A-Za-z0-9_]+)=(.*)$/', $sArg, $aMatches))
+			{
+				// Looks like a regular parameter
+				if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] == 'boolean'))
+				{
+					$aUnknownParams[] = $sArg;
+				}
+			}
+			else
+			{
+				$aUnknownParams[] = $sArg;
+			}
+		}		
+		return $aUnknownParams;
+	}
 	/**
 	 * Logs a message to the centralized log for the application, with the given priority
 	 * 
@@ -101,9 +133,18 @@ class Utils
 
 	static protected function LoadConfig()
 	{
+		self::$aConfigFiles = array();
+		self::$aConfigFiles[] = CONF_DIR.'params.distrib.xml';
 		self::$oConfig = new Parameters(CONF_DIR.'params.distrib.xml');
+		if (file_exists(APPROOT.'collectors/params.distrib.xml'))
+		{
+			self::$aConfigFiles[] = APPROOT.'collectors/params.distrib.xml';
+			$oLocalConfig = new Parameters(APPROOT.'collectors/params.distrib.xml');
+			self::$oConfig->Merge($oLocalConfig);
+		}
 		if (file_exists(CONF_DIR.'params.local.xml'))
 		{
+			self::$aConfigFiles[] =CONF_DIR.'params.local.xml';
 			$oLocalConfig = new Parameters(CONF_DIR.'params.local.xml');
 			self::$oConfig->Merge($oLocalConfig);
 		}
@@ -121,6 +162,24 @@ class Utils
 		$value = self::Substitute($value);
 
 		return $value;
+	}
+	
+	static public function DumpConfig()
+	{
+		if (self::$oConfig == null)
+		{
+			self::LoadConfig();
+		}
+		return self::$oConfig->Dump();	
+	}
+	
+	static public function GetConfigFiles()
+	{
+		if (self::$oConfig == null)
+		{
+			self::LoadConfig();
+		}
+		return self::$aConfigFiles;	
 	}
 	
 	protected function Substitute($value)

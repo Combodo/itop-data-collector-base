@@ -32,7 +32,7 @@ abstract class Collector
 	
 	public function __construct()
 	{
-		$this->sSynchroDataSourceDefinitionFile = APPROOT.'collector/'.get_class($this).'.json';
+		$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
 		$this->sVersion = null;
 		$this->iSourceId = null;
 		$this->aFields = array();
@@ -121,7 +121,7 @@ abstract class Collector
 	 */
 	protected function GetVersionFromModuleFile()
 	{
-		$aFiles = glob(APPROOT.'collector/module.*.php');
+		$aFiles = glob(APPROOT.'collectors/module.*.php');
 		$sModuleFile = null;
 		$sModuleFile = reset($aFiles);
 		if ($sModuleFile == null)

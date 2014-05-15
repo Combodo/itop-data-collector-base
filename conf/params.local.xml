@@ -4,7 +4,6 @@
   <itop_url>https://localhost/trunk</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  <console_log_level>9</console_log_level>
   <vsphere_uri>192.168.10.12:443</vsphere_uri>
   <vsphere_login>administrateur</vsphere_login>
   <vsphere_password>c8mb0doSARL</vsphere_password>

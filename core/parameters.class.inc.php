@@ -96,6 +96,15 @@ class Parameters
 		$oDoc->save($sFileName);
 	}
 
+	public function Dump()
+	{
+		$oDoc = new DOMDocument('1.0', 'UTF-8');
+		$oDoc->preserveWhiteSpace = false;
+		$oDoc->formatOutput = true;
+		$this->ToXML($oDoc, null, 'parameters');
+		return $oDoc->saveXML();
+	}
+
 	public function LoadFromFile($sParametersFile)
 	{
 		$this->sParametersFile = $sParametersFile;
