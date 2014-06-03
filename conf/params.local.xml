@@ -6,10 +6,7 @@
   <itop_password>admin</itop_password>
   <vsphere_uri>192.168.10.12:443</vsphere_uri>
   <vsphere_login>administrateur</vsphere_login>
-  <vsphere_password>c8mb0doSARL</vsphere_password>
-  <contact_to_notify>denis.flaven@combodo.com</contact_to_notify>
+  <vsphere_password>admin</vsphere_password>
+  <contact_to_notify>john.doe@demo.com</contact_to_notify>
   <synchro_user>admin</synchro_user>
-  <json_placeholders type="hash">
-    <test>Hello</test>
-  </json_placeholders>
 </parameters>

@@ -22,6 +22,7 @@
  */
 define('APPROOT', dirname(dirname(__FILE__)).'/');
 
+require_once(APPROOT.'core/parameters.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 
@@ -36,45 +37,68 @@ if ($sTaskName == '*')
 	// List all tasks defined in iTop
 	$oRestClient = new RestClient();
 	$aResult = $oRestClient->Get('SynchroDataSource', 'SELECT SynchroDataSource');
+	$sITopUrl = Utils::GetConfigurationValue('itop_url', '');
 	
 	switch(count($aResult['objects']))
 	{
 		case 0:
-		echo "There is no SynchroDataSource defined on the iTop server.\n";
+		echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
 		break;
 		
 		case 1:
-		echo "There is 1 SynchroDataSource defined on the iTop server:\n";
+		echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
 		break;
 		
 		default:
-		echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server:\n";
+		echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
 	}
-	
-	echo "+--------------------------------+----------------------------------------------------+\n";
-	echo "|            Name                |                    Description                     |\n";
-	echo "+--------------------------------+----------------------------------------------------+\n";
-	foreach($aResult['objects'] as $aValues)
+	if (count($aResult['objects']) > 0)
 	{
-		$aCurrentTaskDefinition = $aValues['fields'];
-		echo sprintf("| %-30.30s | %-50.50s |\n", $aCurrentTaskDefinition['name'], $aCurrentTaskDefinition['description']);
+		echo "+--------------------------------+----------------------------------------------------+\n";
+		echo "|            Name                |                    Description                     |\n";
+		echo "+--------------------------------+----------------------------------------------------+\n";
+		foreach($aResult['objects'] as $aValues)
+		{
+			$aCurrentTaskDefinition = $aValues['fields'];
+			echo sprintf("| %-30.30s | %-50.50s |\n", $aCurrentTaskDefinition['name'], $aCurrentTaskDefinition['description']);
+		}
+		echo "+--------------------------------+----------------------------------------------------+\n";
 	}
-	echo "+--------------------------------+----------------------------------------------------+\n";
+	$sMaxVersion = $oRestClient->GetNewestKnownVersion();
+	echo "iTop REST/API version: $sMaxVersion\n";
 }
 else
 {
 	// Generate the pretty-printed JSON representation of the specified task
 	$oRestClient = new RestClient();
-	$aResult = $oRestClient->Get('SynchroDataSource', array('name' => $sTaskName));
+	$aResult = $oRestClient->Get('SynchroDataSource', array('name' => $sTaskName), '*');
 	if ($aResult['code'] != 0)
 	{
 		echo "Sorry, an error occured while retrieving the information from iTop: {$aResult['message']} ({$aResult['code']})\n";
 	}
-	else if (is_array($aResult['objects']))
+	else if (is_array($aResult['objects']) && (count($aResult['objects']) > 0))
 	{
-		foreach($aResult['objects'] as $aValues)
+		foreach($aResult['objects'] as $sKey => $aValues)
 		{
+			if(!array_key_exists('key', $aValues))
+			{
+				// Emulate the behavior for older versions of the API
+				if(preg_match('/::([0-9]+)$/', $sKey, $aMatches))
+				{
+					$iKey = (int)$aMatches[1];
+				}
+			}
+			else
+			{
+				$iKey = (int)$aValues['key'];
+			}
 			$aCurrentTaskDefinition = $aValues['fields'];
+			RestClient::GetFullSynchroDataSource($aCurrentTaskDefinition, $iKey);
+			
+			// Replace some litterals by their usual placeholders
+			$aCurrentTaskDefinition['user_id'] = '$synchro_user$';
+			$aCurrentTaskDefinition['notify_contact_id'] = '$contact_to_notify$';
+			
 			$sDefinition = json_encode($aCurrentTaskDefinition);
 			echo Utils::JSONPrettyPrint($sDefinition)."\n";
 		}

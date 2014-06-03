@@ -22,6 +22,8 @@ define('APPROOT', dirname(__FILE__).'/');
 require_once(APPROOT.'core/parameters.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
+require_once(APPROOT.'core/lookuptable.class.inc.php');
+require_once(APPROOT.'core/mappingtable.class.inc.php');
 require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 
@@ -47,7 +49,7 @@ if (count($aUnknownParameters) > 0)
 	}
 	exit(1);
 }
-
+	
 $bResult = true;
 $bConfigureOnly = (Utils::ReadBooleanParameter('configure_only', false) == true);
 $bCollectOnly = (Utils::ReadBooleanParameter('collect_only', false) == true);
@@ -67,12 +69,12 @@ try
 	{
 		Utils::Log(LOG_ERR, "The file '".APPROOT."collectors/main.php' is missing (or unreadable).");
 	}
-	
+
 	if (!Orchestrator::CheckRequirements())
 	{
 		exit(1);
 	}
-
+	
 	$aConfig = Utils::GetConfigFiles();
 	$sConfigDebug = "The following configuration files were loaded (in this order):\n\n";
 	$idx = 1;
@@ -93,11 +95,7 @@ try
 	else
 	{
 		Utils::Log(LOG_DEBUG, $sConfigDebug);
-	}
-	
-
-	Utils::Log(LOG_DEBUG, 'iTop web services version: '.RestClient::GetNewestKnownVersion());
-	
+	}	
 	
 	$oOrchestrator = new Orchestrator();
 	$aCollectors = $oOrchestrator->ListCollectors();
@@ -109,6 +107,7 @@ try
 
 	if(!$bCollectOnly)
 	{
+		Utils::Log(LOG_DEBUG, 'iTop web services version: '.RestClient::GetNewestKnownVersion());
 		$bResult = $oOrchestrator->InitSynchroDataSources($aCollectors);
 	}
 	if ($bResult && !$bSynchroOnly && !$bConfigureOnly)

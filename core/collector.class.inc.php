@@ -29,6 +29,7 @@ abstract class Collector
 	protected $aCSVFiles;
 	protected $iFileIndex;
 	protected $sErrorMessage;
+	protected $sSeparator;
 	
 	public function __construct()
 	{
@@ -40,6 +41,7 @@ abstract class Collector
 		$this->aCSVFiles = array();
 		$this->iFileIndex = null;
 		$this->sErrorMessage = '';
+		$this->sSeparator = ';';
 		
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition))
@@ -54,7 +56,6 @@ abstract class Collector
 			Utils::Log(LOG_ERR, "Invalid Synchro Data Source definition for the collector '".$this->GetName()."' (not a JSON string)");
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
-		$this->sSourceName = $aSourceDefinition['name'];
 		foreach($aSourceDefinition['attribute_list'] as $aAttr)
 		{
 			$this->aFields[$aAttr['attcode']] = $aAttr['finalclass'];
@@ -111,6 +112,70 @@ abstract class Collector
 			$this->GetVersionFromModuleFile();	
 		}
 		return $this->sVersion;
+	}
+	
+	protected function MustProcessBeforeSynchro()
+	{
+		// Overload this method (to return true) if the collector has
+		// to reprocess the CSV file (with an access to iTop)
+		// before executing the synchro with iTop
+		return false;
+	}
+	
+	protected function InitProcessBeforeSynchro()
+	{
+		// overload this method to perform any one-time initialization which
+		// may be required before processing the CSV file line by line
+	}
+	
+	protected function ProcessLineBeforeSynchro(&$aLineData, $iLineIndex)
+	{
+		// Overload this method to process each line of the CSV file
+	}
+	
+	protected function DoProcessBeforeSynchro()
+	{
+		$this->InitProcessBeforeSynchro();
+		
+		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'.raw-*.csv'));
+		foreach($aFiles as $sDataFile)
+		{
+			Utils::Log(LOG_INFO, "Processing '$sDataFile'...");
+			$sPattern = '|'.Utils::GetDataFilePath(get_class($this).'\.raw-([0-9]+)\.csv$|');
+			if(preg_match($sPattern, $sDataFile, $aMatches))
+			{
+				$idx = $aMatches[1];
+				$sOutputFile = Utils::GetDataFilePath(get_class($this).'-'.$idx.'.csv');
+				Utils::Log(LOG_DEBUG, "Converting '$sDataFile' to '$sOutputFile'...");
+				ini_set('auto_detect_line_endings', true);
+				$hCSV = fopen($sDataFile,'r');
+				$hOutputCSV = fopen($sOutputFile, 'w');
+				if ($hCSV !== false)
+				{
+					$iLineIndex = 0;
+					while (($aData = fgetcsv($hCSV, 10000, $this->sSeparator)) !== false)
+					{
+						//process
+						$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
+						// Write the CSV data
+						fputcsv($hOutputCSV, $aData, $this->sSeparator);
+						$iLineIndex++;
+					}
+					fclose($hCSV);
+					fclose($hOutputCSV);
+					Utils::Log(LOG_INFO, "End of processing of '$sDataFile'...");
+				}
+				else
+				{
+					Utils::Log(LOG_ERR, "Failed to open '$sDataFile' for reading... file will be skipped.");
+				}
+				
+			}
+			else
+			{
+				Utils::Log(LOG_DEBUG, "'$sDataFile' does not match '$sPattern'... file will be skipped.");
+			}
+		}
 	}
 	
 	/////////////////////////////////////////////////////////////////////////
@@ -172,7 +237,7 @@ abstract class Collector
 		$bResult = true;
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition($aPlaceholders);
 		$aExpectedSourceDefinition = json_decode($sJSONSourceDefinition, true);
-		
+		$this->sSourceName = $aExpectedSourceDefinition['name'];	
 		try
 		{
 			$oRestClient = new RestClient();
@@ -197,18 +262,37 @@ abstract class Collector
 					break;
 					
 					case 1:
-					// Ok, found, is it up to date ?
-					$aData = reset($aResult['objects']);
-					$aCurrentSourceDefinition = $aData['fields'];
-					$this->iSourceId = $aData['key'];
-					if ($aExpectedSourceDefinition == $aCurrentSourceDefinition)
+					foreach($aResult['objects'] as $sKey => $aData)
 					{
-						Utils::Log(LOG_INFO, "Ok, the Synchro Data Source '{$this->sSourceName}' exists in iTop and is up to date");
-					}
-					else
-					{
-						Utils::Log(LOG_INFO, "The Synchro Data Source definition for '{$this->sSourceName}' must be updated in iTop.");
-						$bResult = $this->UpdateSynchroDataSource($aExpectedSourceDefinition, $this->GetName());
+						// Ok, found, is it up to date ?
+						$aData = reset($aResult['objects']);
+						$aCurrentSourceDefinition = $aData['fields'];
+						if(!array_key_exists('key', $aData))
+						{
+							// Emulate the behavior for older versions of the API
+							if(preg_match('/::([0-9]+)$/', $sKey, $aMatches))
+							{
+								$iKey = (int)$aMatches[1];
+							}
+						}
+						else
+						{
+							$iKey = (int)$aData['key'];
+						}
+						$this->iSourceId = $iKey;
+						RestClient::GetFullSynchroDataSource($aCurrentSourceDefinition, $this->iSourceId);
+						if ($aExpectedSourceDefinition == $aCurrentSourceDefinition)
+						{
+							Utils::Log(LOG_INFO, "Ok, the Synchro Data Source '{$this->sSourceName}' exists in iTop and is up to date");
+						}
+						else
+						{
+							Utils::Log(LOG_INFO, "The Synchro Data Source definition for '{$this->sSourceName}' must be updated in iTop.");
+							// For debugging...
+							file_put_contents(APPROOT.'data/tmp-'.get_class($this).'-orig.txt', print_r($aExpectedSourceDefinition, true));
+							file_put_contents(APPROOT.'data/tmp-'.get_class($this).'-itop.txt', print_r($aCurrentSourceDefinition, true));
+							$bResult = $this->UpdateSynchroDataSource($aExpectedSourceDefinition, $this->GetName());
+						}
 					}					
 					break;
 					
@@ -295,7 +379,14 @@ abstract class Collector
 	protected function OpenCSVFile()
 	{
 		$bResult = true;
-		$sDataFile = Utils::GetDataFilePath(get_class($this).'-'.(1+$this->iFileIndex).'.csv');
+		if ($this->MustProcessBeforeSynchro())
+		{
+			$sDataFile = Utils::GetDataFilePath(get_class($this).'.raw-'.(1+$this->iFileIndex).'.csv');
+		}
+		else
+		{
+			$sDataFile = Utils::GetDataFilePath(get_class($this).'-'.(1+$this->iFileIndex).'.csv');
+		}
 		$this->aCSVFile[$this->iFileIndex] = fopen($sDataFile, 'wb');
 		
 		if ($this->aCSVFile[$this->iFileIndex] === false)
@@ -333,10 +424,25 @@ abstract class Collector
 			$bResult = @unlink($sFile);
 			Utils::Log(LOG_DEBUG, "Erasing previous data file. unlink('$sFile') returned ".($bResult ? 'true' : 'false'));
 		}		
+		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'.raw-*.csv'));
+		foreach($aFiles as $sFile)
+		{
+			$bResult = @unlink($sFile);
+			Utils::Log(LOG_DEBUG, "Erasing previous data file. unlink('$sFile') returned ".($bResult ? 'true' : 'false'));
+		}		
 	}
 	
 	public function Synchronize($iMaxChunkSize = 0)
 	{
+		// Let a chance to the collector to alter/reprocess the CSV file
+		// before running the synchro. This is useful for performing advanced lookups
+		// in iTop, for example for some Typology with several cascading levels that
+		// the data synchronization can not handle directly
+		if ($this->MustProcessBeforeSynchro())
+		{
+			$this->DoProcessBeforeSynchro();
+		}
+		
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
 		foreach($aFiles as $sDataFile)
 		{
@@ -375,8 +481,8 @@ abstract class Collector
 				$iErrorsCount += (int)$sErrCount;
 				if ((int)$sErrCount > 0)
 				{
-					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][idx]}");
-					$this->sErrorMessage .= $aMatches[0][idx]."\n";
+					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
+					$this->sErrorMessage .= $aMatches[0][$idx]."\n";
 				}
 			}
 		}
@@ -391,7 +497,8 @@ abstract class Collector
 	//
 	// Protected methods
 	//
-	/////////////////////////////////////////////////////////////////////////	
+	/////////////////////////////////////////////////////////////////////////
+	
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
 	{
 		$oClient = new RestClient();
@@ -483,7 +590,14 @@ abstract class Collector
 				$bRet = ($aResult['code'] == 0);
 				if (!$bRet)
 				{
-					Utils::Log(LOG_ERR, "Failed to update the SynchroAttribute '{$aAttr['attcode']}'. Reason: {$aResult['message']} ({$aResult['code']})");
+					if (preg_match('/Error: No item found with criteria: sync_source_id/', $aResult['message']))
+					{
+						Utils::Log(LOG_ERR, "Failed to update the Synchro Data Source. Inconsistent data model, the attribute '{$aAttr['attcode']}' does not exist in iTop.");
+					}
+					else
+					{
+						Utils::Log(LOG_ERR, "Failed to update the SynchroAttribute '{$aAttr['attcode']}'. Reason: {$aResult['message']} ({$aResult['code']})");
+					}
 					break;
 				}
 			}

@@ -1,8 +1,23 @@
 <?php
+// Copyright (C) 2014 Combodo SARL
+//
+//   This application is free software; you can redistribute it and/or modify	
+//   it under the terms of the GNU Affero General Public License as published by
+//   the Free Software Foundation, either version 3 of the License, or
+//   (at your option) any later version.
+//
+//   iTop is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU Affero General Public License for more details.
+//
+//   You should have received a copy of the GNU Affero General Public License
+//   along with this application. If not, see <http://www.gnu.org/licenses/>
+
 class Orchestrator
 {
 	static $aCollectors = array();
-	static $aMinVersions = array('PHP' => '5.3.0', 'simplexml' => '0.1');
+	static $aMinVersions = array('PHP' => '5.3.0', 'simplexml' => '0.1', 'dom' => '1.0');
 	
 	static function AddCollector($fExecOrder, $sCollectorClass)
 	{
@@ -96,9 +111,30 @@ class Orchestrator
 			$aRes = $oRestClient->Get('Person', array('email' => $sEmailToNotify));
 			if ($aRes['code'] == 0)
 			{
-				$aObj = reset($aRes['objects']);
-				$aPlaceholders['$contact_to_notify$'] = $aObj['key'];
-				Utils::Log(LOG_INFO, "Contact to notify: '{$aObj['fields']['friendlyname']}' <{$aObj['fields']['email']}> ({$aObj['key']}).");
+				if (!is_array($aRes['objects']))
+				{
+					Utils::Log(LOG_WARNING, "Contact to notify ($sEmailToNotify) not found in iTop. Nobody will be notified of the results of the synchronization.");
+				}
+				else
+				{
+					foreach($aRes['objects'] as $sKey => $aObj)
+					{
+						if(!array_key_exists('key', $aObj))
+						{
+							// Emulate the behavior for older versions of the API
+							if(preg_match('/::([0-9]+)$/', $sKey, $aMatches))
+							{
+								$aPlaceholders['$contact_to_notify$'] = (int)$aMatches[1];
+							}
+						}
+						else
+						{
+							$aPlaceholders['$contact_to_notify$'] = (int)$aObj['key'];
+						}
+						Utils::Log(LOG_INFO, "Contact to notify: '{$aObj['fields']['friendlyname']}' <{$aObj['fields']['email']}> ({$aPlaceholders['$contact_to_notify$']}).");
+						break;
+					}
+				}
 			}
 			else
 			{
@@ -113,9 +149,23 @@ class Orchestrator
 			$aRes = $oRestClient->Get('User', array('login' => $sSynchroUser));
 			if ($aRes['code'] == 0)
 			{
-				$aObj = reset($aRes['objects']);
-				$aPlaceholders['$synchro_user$'] = $aObj['key'];
-				Utils::Log(LOG_INFO, "Synchro User: '{$aObj['fields']['friendlyname']}' ({$aObj['key']}).");
+				foreach($aRes['objects'] as $sKey => $aObj)
+				{
+					if(!array_key_exists('key', $aObj))
+					{
+						// Emulate the behavior for older versions of the API
+						if(preg_match('/::([0-9]+)$/', $sKey, $aMatches))
+						{
+							$aPlaceholders['$synchro_user$'] = (int)$aMatches[1];
+						}
+					}
+					else
+					{
+						$aPlaceholders['$synchro_user$'] = (int)$aObj['key'];
+					}
+					Utils::Log(LOG_INFO, "Synchro User: '{$aObj['fields']['friendlyname']}' <{$aObj['fields']['email']}> ({$aPlaceholders['$synchro_user$']}).");
+					break;
+				}
 			}
 			else
 			{
