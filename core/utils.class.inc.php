@@ -248,10 +248,11 @@ class Utils
 	 * @param hash $aData The data to POST as an array('param_name' => value)
 	 * @param string $sOptionnalHeaders Additional HTTP headers as a string with newlines between headers
 	 * @param hash	$aResponseHeaders An array to be filled with reponse headers: WARNING: the actual content of the array depends on the library used: cURL or fopen, test with both !! See: http://fr.php.net/manual/en/function.curl-getinfo.php
+	 * @param int $iConnectionTimeout Maximum time to wait either for the establishment of the connection OR the response data
 	 * @return string The result of the POST request
 	 * @throws Exception
 	 */ 
-	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null)
+	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $iConnectionTimeout = 120)
 	{
 		// $sOptionnalHeaders is a string containing additional HTTP headers that you would like to send in your request.
 	
@@ -276,8 +277,8 @@ class Utils
 				CURLOPT_ENCODING		=> "",       // handle all encodings
 				CURLOPT_USERAGENT		=> "spider", // who am i
 				CURLOPT_AUTOREFERER		=> true,     // set referer on redirect
-				CURLOPT_CONNECTTIMEOUT	=> 120,      // timeout on connect
-				CURLOPT_TIMEOUT			=> 120,      // timeout on response
+				CURLOPT_CONNECTTIMEOUT	=> (int)$iConnectionTimeout,      // timeout on connect
+				CURLOPT_TIMEOUT			=> (int)$iConnectionTimeout,      // timeout on response
 				CURLOPT_MAXREDIRS		=> 10,       // stop after 10 redirects
 				CURLOPT_SSL_VERIFYHOST	=> 0,   	 // Disabled SSL Cert checks
 				CURLOPT_SSL_VERIFYPEER	=> 0,   	 // Disabled SSL Cert checks
