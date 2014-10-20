@@ -26,6 +26,7 @@ require_once(APPROOT.'core/lookuptable.class.inc.php');
 require_once(APPROOT.'core/mappingtable.class.inc.php');
 require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
+require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
 
 $aOptionalParams = array('configure_only' => 'boolean', 'collect_only' => 'boolean', 'synchro_only' => 'boolean', 'dump_config_only' => 'boolean', 'console_log_level' => 'integer', 'max_chunk_size' => 'integer');
 $aUnknownParameters = Utils::CheckParameters($aOptionalParams);

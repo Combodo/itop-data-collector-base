@@ -19,6 +19,13 @@ class Orchestrator
 	static $aCollectors = array();
 	static $aMinVersions = array('PHP' => '5.3.0', 'simplexml' => '0.1', 'dom' => '1.0');
 	
+	/**
+	 * Add a collector class to be run in the specified order
+	 * @param float $fExecOrder The execution order (smaller numbers run first)
+	 * @param unknown $sCollectorClass The class name of the collector. Must be a subclass of Collector
+	 * @throws Exception
+	 * @return void
+	 */
 	static function AddCollector($fExecOrder, $sCollectorClass)
 	{
 		$oReflection = new ReflectionClass($sCollectorClass);
@@ -32,19 +39,30 @@ class Orchestrator
 		}
 		self::$aCollectors[$sCollectorClass] = array('order' => $fExecOrder, 'class' => $sCollectorClass, 'sds_name' => '', 'sds_id' => 0);
 	}
-	
+
+	/**
+	 * Specify a requirement for a minimum version: either for PHP or for a specific extension
+	 * @param string $sMinRequiredVersion The minimum version number required
+	 * @param string $sExtension The name of the extension, if not specified, then the requirement is for the PHP version itself
+	 * @return void
+	 */
 	static public function AddRequirement($sMinRequiredVersion, $sExtension = 'PHP')
 	{
 		if (!array_key_exists($sExtension, self::$aMinVersions))
 		{
-			
+			// This is the first call to add some requirements for this extension, record it as-is
 		}
 		else if (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>'))
 		{
-			 self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
+			// This requirement is stricter than the previously requested one
+			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
 		}
 	}
 	
+	/**
+	 * Check that all specified requirements are met, and log (LOG_ERR if not met, LOG_DEBUG if Ok)
+	 * @return boolean True if it's Ok, false otherwise
+	 */
 	static public function CheckRequirements()
 	{
 		$bResult = true;
@@ -85,7 +103,11 @@ class Orchestrator
 		}
 		return $bResult;
 	}
-	
+
+	/**
+	 * Returns the list of registered collectors, sorted in their execution order
+	 * @return array An array of Collector instances
+	 */
 	public function ListCollectors()
 	{
 		$aResults = array();
@@ -99,6 +121,11 @@ class Orchestrator
 		return $aResults;
 	}
 	
+	/**
+	 * Initializes the synchronization data sources in iTop, according to the collectors' JSON specifications
+	 * @param array $aCollectors The list of collectors
+	 * @return boolean True if Ok, false otherwise
+	 */
 	public function InitSynchroDataSources($aCollectors)
 	{
 		$bResult = true;
@@ -189,12 +216,19 @@ class Orchestrator
 		return $bResult;
 	}
 	
-	public function Collect($aCollectors, $iMaxChunkSize, $CollectOnly)
+	/**
+	 * Run the first pass of data collection: fetching the raw data from inventory scripts
+	 * @param array $aCollectors
+	 * @param int $iMaxChunkSize
+	 * @param boolean $bCollectOnly
+	 * @return boolean True if Ok, false otherwise
+	 */
+	public function Collect($aCollectors, $iMaxChunkSize, $bCollectOnly)
 	{
 		$bResult = true;
 		foreach($aCollectors as $oCollector)
 		{
-			$bResult = $oCollector->Collect($iMaxChunkSize, $CollectOnly);
+			$bResult = $oCollector->Collect($iMaxChunkSize, $bCollectOnly);
 			if (!$bResult)
 			{
 				break;
@@ -203,6 +237,11 @@ class Orchestrator
 		return $bResult;
 	}
 	
+	/**
+	 * Run the final pass of the collection: synchronizing the data into iTop
+	 * @param unknown $aCollectors
+	 * @return boolean
+	 */
 	public function Synchronize($aCollectors)
 	{
 		$bResult = true;
@@ -223,6 +262,12 @@ class Orchestrator
 	//
 	/////////////////////////////////////////////////////////////////////////
 	
+	/**
+	 * Helper callback for sorting the collectors using the built-in uasort function
+	 * @param array $aCollector1
+	 * @param array $aCollector2
+	 * @return number
+	 */
 	static public function CompareCollectors($aCollector1, $aCollector2)
 	{
         if ($aCollector1['order'] == $aCollector2['order'])

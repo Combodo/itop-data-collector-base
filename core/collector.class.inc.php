@@ -26,10 +26,11 @@ abstract class Collector
 	protected $iSourceId;
 	protected $aFields;
 	protected $aCSVHeaders;
-	protected $aCSVFiles;
+	protected $aCSVFile;
 	protected $iFileIndex;
 	protected $sErrorMessage;
 	protected $sSeparator;
+	protected $aSkippedAttributes;
 	
 	public function __construct()
 	{
@@ -38,10 +39,11 @@ abstract class Collector
 		$this->iSourceId = null;
 		$this->aFields = array();
 		$this->aCSVHeaders = array();
-		$this->aCSVFiles = array();
+		$this->aCSVFile = array();
 		$this->iFileIndex = null;
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
+		$this->aSkippedAttributes = array();
 		
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition))
@@ -58,7 +60,7 @@ abstract class Collector
 		}
 		foreach($aSourceDefinition['attribute_list'] as $aAttr)
 		{
-			$this->aFields[$aAttr['attcode']] = $aAttr['finalclass'];
+			$this->aFields[$aAttr['attcode']] = array( 'class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0) );
 		}
 	}
 	
@@ -82,7 +84,10 @@ abstract class Collector
 	
 	protected function Cleanup()
 	{
-		fclose($this->aCSVFile[$this->iFileIndex]);
+		if ($this->iFileIndex !== null)
+		{
+			fclose($this->aCSVFile[$this->iFileIndex]);
+		}
 	}
 	
 	public function GetSynchroDataSourceDefinition($aPlaceHolders = array())
@@ -98,6 +103,19 @@ abstract class Collector
 			$sSynchroDataSourceDefinition = false;
 		}
 		return $sSynchroDataSourceDefinition;
+	}
+	
+	/**
+	 * Determine if a given attribute can be missing in the data datamodel.
+	 * 
+	 * Overload this method to let your collector adapt to various datamodels. If an attribute is skipped,
+	 * its name is recorded in the member variable $this->aSkippedAttributes for later reference.
+	 * @param string $sAttCode
+	 * @return boolean True if the attribute can be skipped, false otherwise
+	 */
+	public function AttributeIsOptional($sAttCode)
+	{
+		return false; // By default no attribute is optional
 	}
 	
 	public function GetName()
@@ -281,7 +299,7 @@ abstract class Collector
 						}
 						$this->iSourceId = $iKey;
 						RestClient::GetFullSynchroDataSource($aCurrentSourceDefinition, $this->iSourceId);
-						if ($aExpectedSourceDefinition == $aCurrentSourceDefinition)
+						if ($this->DataSourcesAreEquivalent($aExpectedSourceDefinition, $aCurrentSourceDefinition))
 						{
 							Utils::Log(LOG_INFO, "Ok, the Synchro Data Source '{$this->sSourceName}' exists in iTop and is up to date");
 						}
@@ -315,37 +333,46 @@ abstract class Collector
 	{
 		$bResult = true;
 		Utils::Log(LOG_INFO, get_class($this)." beginning of data collection...");
-		$bResult = $this->Prepare();
-		if ($bResult)
+		try
 		{
-			$idx = 0;
-			$aColumns = array();
-			$aHeaders = null;
-			while($aRow = $this->Fetch())
+			$bResult = $this->Prepare();
+			if ($bResult)
 			{
-				if ($aHeaders == null)
+				$idx = 0;
+				$aColumns = array();
+				$aHeaders = null;
+				while($aRow = $this->Fetch())
 				{
-					// Check that the row names are consistent with the definition of the task
-					$aHeaders = array_keys($aRow);
+					if ($aHeaders == null)
+					{
+						// Check that the row names are consistent with the definition of the task
+						$aHeaders = array_keys($aRow);
+					}
+					
+					if (($idx == 0) || (($iMaxChunkSize > 0) && (($idx % $iMaxChunkSize) == 0)))
+					{
+						$this->NextCSVFile();
+						$this->AddHeader($aHeaders);
+					}
+					
+					$this->AddRow($aRow);
+					
+					$idx++;
 				}
-				
-				if (($idx == 0) || (($iMaxChunkSize > 0) && (($idx % $iMaxChunkSize) == 0)))
-				{
-					$this->NextCSVFile();
-					$this->AddHeader($aHeaders);
-				}
-				
-				$this->AddRow($aRow);
-				
-				$idx++;
+				$this->Cleanup();
+				Utils::Log(LOG_INFO,  get_class($this)." end of data collection.");
 			}
-			$this->Cleanup();
-			Utils::Log(LOG_INFO,  get_class($this)." end of data collection.");
+			else
+			{
+				Utils::Log(LOG_ERR, get_class($this)."::Prepare() returned false");
+			}
 		}
-		else
+		catch(Exception $e)
 		{
-			Utils::Log(LOG_ERR, get_class($this)."::Prepare() returned false");
+			$bResult = false;
+			Utils::Log(LOG_ERR, get_class($this)."::Collect() got an exception: ".$e->getMessage());
 		}
+		
 		return $bResult;
 	}
 	
@@ -356,14 +383,18 @@ abstract class Collector
 		{
 			if (($sHeader != 'primary_key') && !array_key_exists($sHeader, $this->aFields))
 			{
-				Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
+				if (!in_array($sHeader, $this->aSkippedAttributes))
+				{
+					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
+				}
 			}
 			else
 			{
 				$this->aCSVHeaders[] = $sHeader;
 			}
 		}
-		fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $this->aCSVHeaders)."\n"); //TODO: proper CSV encoding	
+		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $this->aCSVHeaders)."\n");
+		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
 	}
 	
 	protected function AddRow($aRow)
@@ -373,7 +404,8 @@ abstract class Collector
 		{
 			$aData[] = $aRow[$sHeader];
 		}
-		fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n"); //TODO: proper CSV encoding	
+		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");	
+		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator);
 	}
 	
 	protected function OpenCSVFile()
@@ -400,6 +432,7 @@ abstract class Collector
 		}
 		return $bResult;		
 	}
+	
 	protected function NextCSVFile()
 	{
 		if ($this->iFileIndex !== null)
@@ -477,7 +510,14 @@ abstract class Collector
 		$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $iSynchroTimeout);
 		
 		$iErrorsCount = 0;
-		if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches))
+		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches))
+		{
+			// Hmm, it seems that the HTML output contains the login form !!
+			Utils::Log(LOG_ERR, "Failed to login to iTop. Invalid (or insufficent) credentials.");
+			$this->sErrorMessage .= "Failed to login to iTop. Invalid (or insufficent) credentials.\n";
+			$iErrorsCount = 1;
+		}
+		else if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches))
 		{
 			foreach($aMatches[2] as $idx => $sErrCount)
 			{
@@ -580,34 +620,49 @@ abstract class Collector
 			
 			if ($aAttr != $aExpectedAttr)
 			{
-				// Update only the SynchroAttributes which are really different			
-				// Ignore read-only fields
-				unset($aAttr['friendlyname']);
-				$sTargetClass = $aAttr['finalclass'];
-				unset($aAttr['finalclass']);
-				// Fix booleans
-				$aAttr['update'] = ($aAttr['update'] == 1) ? "1" : "0";
-				$aAttr['reconcile'] = ($aAttr['reconcile'] == 1) ? "1" : "0";
-				
-				$aResult = $oClient->Update($sTargetClass, array( 'sync_source_id' => $this->iSourceId, 'attcode' => $aAttr['attcode']), $aAttr, $sComment);
-				$bRet = ($aResult['code'] == 0);
-				if (!$bRet)
+				if ($this->AttributeIsOptional($aAttr['attcode']))
 				{
-					if (preg_match('/Error: No item found with criteria: sync_source_id/', $aResult['message']))
+					Utils::Log(LOG_INFO, "Skipping optional attribute {$aAttr['attcode']}.");
+					$this->aSkippedAttributes[] = $aAttr['attcode']; // record that this attribute was skipped
+				}
+				else
+				{
+					// Update only the SynchroAttributes which are really different			
+					// Ignore read-only fields
+					unset($aAttr['friendlyname']);
+					$sTargetClass = $aAttr['finalclass'];
+					unset($aAttr['finalclass']);
+					// Fix booleans
+					$aAttr['update'] = ($aAttr['update'] == 1) ? "1" : "0";
+					$aAttr['reconcile'] = ($aAttr['reconcile'] == 1) ? "1" : "0";
+					
+					Utils::Log(LOG_DEBUG, "Updating attribute {$aAttr['attcode']}.");
+					$aResult = $oClient->Update($sTargetClass, array( 'sync_source_id' => $this->iSourceId, 'attcode' => $aAttr['attcode']), $aAttr, $sComment);
+					$bRet = ($aResult['code'] == 0);
+					if (!$bRet)
 					{
-						Utils::Log(LOG_ERR, "Failed to update the Synchro Data Source. Inconsistent data model, the attribute '{$aAttr['attcode']}' does not exist in iTop.");
+						if (preg_match('/Error: No item found with criteria: sync_source_id/', $aResult['message']))
+						{
+							Utils::Log(LOG_ERR, "Failed to update the Synchro Data Source. Inconsistent data model, the attribute '{$aAttr['attcode']}' does not exist in iTop.");
+						}
+						else
+						{
+							Utils::Log(LOG_ERR, "Failed to update the SynchroAttribute '{$aAttr['attcode']}'. Reason: {$aResult['message']} ({$aResult['code']})");
+						}
+						break;
 					}
-					else
-					{
-						Utils::Log(LOG_ERR, "Failed to update the SynchroAttribute '{$aAttr['attcode']}'. Reason: {$aResult['message']} ({$aResult['code']})");
-					}
-					break;
 				}
 			}
 		}
 		return $bRet;		
 	}
 	
+	/**
+	 * Find the definition of the specified attribute in 'attribute_list'
+	 * @param string $sAttCode
+	 * @param array $aExpectedAttrDef
+	 * @return array|boolean
+	 */
 	protected function FindAttr($sAttCode, $aExpectedAttrDef)
 	{
 		foreach($aExpectedAttrDef as $aAttr)
@@ -618,5 +673,98 @@ abstract class Collector
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Smart comparison of two data sources definitions, ignoring optional attributes
+	 * @param array $aDS1
+	 * @param array $aDS2
+	 */
+	protected function DataSourcesAreEquivalent($aDS1, $aDS2)
+	{
+		foreach($aDS1 as $sKey => $value)
+		{
+			switch($sKey)
+			{
+				case 'friendlyname':
+				case 'user_id_friendlyname':
+				case 'user_id_finalclass_recall':
+				case 'notify_contact_id_friendlyname':
+				case 'notify_contact_id_finalclass_recall':
+				// Ignore all read-only attributes
+				break;
+		
+				case 'attribute_list':
+				foreach($value as $sKey => $aDef)
+				{
+					$sAttCode = $aDef['attcode'];
+					$aDef2 = $this->FindAttr($sAttCode, $aDS2['attribute_list']);
+					if ($aDef2 === false)
+					{
+						if ($this->AttributeIsOptional($sAttCode))
+						{
+							// Ignore missing optional attributes
+							Utils::Log(LOG_DEBUG, "Comparison: ignoring the missing, but optional, attribute: '$sAttCode'.");
+							continue;
+						}
+						else
+						{
+							// Missing non-optional attribute
+							Utils::Log(LOG_DEBUG, "Comparison: The definition of the non-optional attribute '$sAttCode' is missing. Data sources differ.");
+							return false;
+						}
+						
+					}
+					else if ($aDef != $aDef2)
+					{
+						// Definitions are different
+						Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
+						return false;
+					}
+				}
+				
+				// Now check the other way around: are there too many attributes defined?
+				foreach($aDS2['attribute_list'] as $sKey => $aDef)
+				{
+					$sAttCode = $aDef['attcode'];
+					if(!$this->FindAttr($sAttCode, $aDS1['attribute_list']) && !$this->AttributeIsOptional($sAttCode))
+					{
+						Utils::Log(LOG_DEBUG, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ.");
+						return false;
+					}
+				}
+				break;
+				
+				default:
+				if (!array_key_exists($sKey, $aDS2) || $aDS2[$sKey] != $value)
+				{
+					// one difference is enough
+					Utils::Log(LOG_DEBUG, "Comparison: The property '$sKey' is missing or has a different value. Data sources differ.");
+					return false;
+				}
+			}
+		}
+		//Check the other way around
+		foreach($aDS2 as $sKey => $value)
+		{
+			switch($sKey)
+			{
+				case 'friendlyname':
+				case 'user_id_friendlyname':
+				case 'user_id_finalclass_recall':
+				case 'notify_contact_id_friendlyname':
+				case 'notify_contact_id_finalclass_recall':
+				// Ignore all read-only attributes
+				break;
+				
+				default:
+				if (!array_key_exists($sKey, $aDS1))
+				{
+					Utils::Log(LOG_DEBUG, "Comparison: Found an extra property '$sKey' in iTop. Data sources differ.");
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }

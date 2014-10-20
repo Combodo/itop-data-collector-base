@@ -20,7 +20,11 @@
 class MappingTable
 {
 	protected $aMappingTable;
-	
+
+	/**
+	 * Creates a new MappingTable
+	 * @param string $sConfigEntryName Name of the XML tag (in the params file) under which the configuration of the mapping table is stored
+	 */
 	public function __construct($sConfigEntryName)
 	{
 		// Read the "extended mapping" from the configuration
@@ -38,7 +42,12 @@ class MappingTable
 			);
 		}
 	}
-	
+	/**
+	 * Normalizes a value through the mapping table
+	 * @param string $sRawValue The value to normalize
+	 * @param string $defaultValue Default value if no match is found in the mapping table
+	 * @return string The normalized value. Can be null if no match is found and no default value was supplied.
+	 */
 	public function MapValue($sRawValue, $defaultValue = null)
 	{
 		$value = null;
