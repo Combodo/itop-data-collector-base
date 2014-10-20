@@ -45,6 +45,16 @@ class RestClient
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 	
+	public function CheckCredentials($sUser, $sPassword)
+	{
+		$aOperation = array(
+			'operation' => 'core/check_credentials', // operation code
+			'user' => $sUser,
+			'password' => $sPassword,
+		);
+		return self::ExecOperation($aOperation, $this->sVersion);
+	}
+	
 	public function ListOperations()
 	{
 		$aOperation = array(
@@ -149,6 +159,7 @@ class RestClient
 		$oRestClient = new RestClient();
 		foreach($aAttributes as $sFinalClass => $aAttCodes)
 		{
+			Utils::Log(LOG_DEBUG, "RestClient::Get SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
 			$aResult = $oRestClient->Get($sFinalClass, "SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
 			if($aResult['code'] != 0)
 			{
