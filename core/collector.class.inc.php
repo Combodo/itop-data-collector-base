@@ -196,6 +196,15 @@ abstract class Collector
 		}
 	}
 	
+	/**
+	 * Overload this method if the data collected is in a different character set
+	 * @return string The name of the character set in which the collected data are encoded
+	 */
+	protected function GetCharset()
+	{
+		return 'UTF-8';
+	}
+	
 	/////////////////////////////////////////////////////////////////////////
 	
 	/**
@@ -487,10 +496,25 @@ abstract class Collector
 				'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 				'data_source_id' => $this->iSourceId,
 				'synchronize' => '0',
+				'no_stop_on_import_error' => 1,
+				'output' => 'retcode',
 				'csvdata' => file_get_contents($sDataFile),
+				'charset' => $this->GetCharset(),
 			);
 			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php';
 			$sResult = Utils::DoPostRequest($sUrl, $aData);
+			
+			// Read the status code from the last line
+			$aLines = explode("\n", trim(strip_tags($sResult)));
+			$sLastLine = array_pop($aLines);
+			if ($sLastLine != '0')
+			{
+				// hmm something went wrong
+				Utils::Log(LOG_ERR, "Failed to import the data from '$sDataFile' into iTop. $sLastLine line(s) had errors.");
+				Utils::Log(LOG_ERR, trim(strip_tags($sResult)));
+				return false;
+			}
+			
 		}
 		// Synchronize... also by chunks...
 		Utils::Log(LOG_INFO, "Starting synchronization of the data source '{$this->sSourceName}'...");
@@ -715,7 +739,7 @@ abstract class Collector
 						}
 						
 					}
-					else if ($aDef != $aDef2)
+					else if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode)))
 					{
 						// Definitions are different
 						Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
@@ -738,9 +762,12 @@ abstract class Collector
 				default:
 				if (!array_key_exists($sKey, $aDS2) || $aDS2[$sKey] != $value)
 				{
-					// one difference is enough
-					Utils::Log(LOG_DEBUG, "Comparison: The property '$sKey' is missing or has a different value. Data sources differ.");
-					return false;
+					if ($sKey != 'database_table_name')
+					{
+						// one meaningful difference is enough
+						Utils::Log(LOG_DEBUG, "Comparison: The property '$sKey' is missing or has a different value. Data sources differ.");
+						return false;
+					}
 				}
 			}
 		}

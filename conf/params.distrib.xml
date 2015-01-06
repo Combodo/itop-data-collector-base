@@ -33,4 +33,6 @@
   
   <!-- Maximum number of elements to process in one iteration (for upload and synchro in iTop) -->
   <max_chunk_size>1000</max_chunk_size>
+  <!-- Timeout for waiting for the execution of one data synchro task (in seconds) -->
+  <itop_synchro_timeout>600</itop_synchro_timeout>
 </parameters>
