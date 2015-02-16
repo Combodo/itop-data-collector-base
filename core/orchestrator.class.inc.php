@@ -245,12 +245,26 @@ class Orchestrator
 	public function Synchronize($aCollectors)
 	{
 		$bResult = true;
+		$sStopOnError = Utils::GetConfigurationValue('stop_on_synchro_error', 'no');
+		if (($sStopOnError != 'yes') && ($sStopOnError != 'no'))
+		{
+			Utils::Log(LOG_WARNING, "Unexpected value '$sStopOnError' for the parameter 'stop_on_synchro_error'. Will NOT stop on error. The expected values for this parameter are 'yes' or 'no'.");
+		}
+		$bStopOnError = ($sStopOnError == 'yes');
 		foreach($aCollectors as $oCollector)
 		{
 			$bResult = $oCollector->Synchronize();
 			if (!$bResult)
 			{
-				break;
+				if ($bStopOnError)
+				{
+					break;
+				}
+				else
+				{
+					// Do not report the error (it impacts the return code of the process)
+					$bResult = true;
+				}
 			}
 		}
 		return $bResult;
