@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
+<parameters>
+  <itop_url>https://localhost/</itop_url>
+  <itop_login>admin</itop_login>
+  <itop_password>admin</itop_password>
+  
+  <!-- console_log_level: level of logging to console (std output)
+  -1 : none, nothing will be logged to the console
+   0 : System wide emergency errors only (LOG_EMERG)
+   1 : Alert errors (LOG_ALERT)
+   2 : Critical errors (LOG_CRIT)
+   3 : Application level errors (LOG_ERR)
+   4 : Warnings
+   5 : Notice
+   6 : Information
+   7 : Debug traces
+   -->
+  <console_log_level>6</console_log_level>
+  
+  <!-- syslog_log_level: level of logging to Syslog
+  -1 : none, nothing will be logged to syslog
+   0 : System wide emergency errors (LOG_EMERG)
+   1 : Alert errors (LOG_ALERT)
+   2 : Critical errors (LOG_CRIT)
+   3 : Application level errors (LOG_ERR)
+   4 : Warnings
+   5 : Notice
+   6 : Information
+   7 : Debug traces
+   -->
+  <syslog_log_level>-1</syslog_log_level>
+  
+  <!-- Maximum number of elements to process in one iteration (for upload and synchro in iTop) -->
+  <max_chunk_size>1000</max_chunk_size>
+  <!-- Timeout for waiting for the execution of one data synchro task (in seconds) -->
+  <itop_synchro_timeout>600</itop_synchro_timeout>
+  <!-- Whether or not to stop when an error occurs during a synchronization -->
+  <stop_on_synchro_error>no</stop_on_synchro_error>
+</parameters>
