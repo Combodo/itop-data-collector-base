@@ -35,4 +35,6 @@
   <max_chunk_size>1000</max_chunk_size>
   <!-- Timeout for waiting for the execution of one data synchro task (in seconds) -->
   <itop_synchro_timeout>600</itop_synchro_timeout>
+  <!-- Whether or not to stop when an error occurs during a synchronization -->
+  <stop_on_synchro_error>no</stop_on_synchro_error>
 </parameters>
