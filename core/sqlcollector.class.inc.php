@@ -162,6 +162,32 @@ abstract class SQLCollector extends Collector
 	}
 	
 	/**
+	 * Determine if a given attribute is allowed to be missing in the data datamodel.
+	 * 
+	 * The implementation is based on a predefined parameter named from the
+	 * class of the collector and containing the array 'IgnoredAttributes'
+	 * 
+	 * Example: here is the configuration to "ignore" the attribute 'location_id' for the class MySQLCollector:
+	 * <MySQLCollector>
+	 *   <IgnoredAttributes type="array">
+	 *   	<attribute>location_id</attribute>
+	 *   </IgnoredAttributes>
+	 * </MySQLCollector> 
+	 * @param string $sAttCode
+	 * @return boolean True if the attribute can be skipped, false otherwise
+	 */
+	public function AttributeIsOptional($sAttCode)
+	{
+		$aCollectorParams = Utils::GetConfigurationValue(get_class($this), array());
+		if (array_key_exists('IgnoredAttributes', $aCollectorParams))
+		{
+		if (in_array($sAttCode, $aCollectorParams['IgnoredAttributes'])) return true;
+		}
+	
+		return parent::AttributeIsOptional($sAttCode);
+	}
+	
+	/**
 	 * Check if the keys of the supplied hash array match the expected fields
 	 * @param array $aData
 	 * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings 

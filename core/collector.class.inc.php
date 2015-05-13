@@ -15,6 +15,13 @@
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
 /**
+ * Special kind of exception to tell the collector to ignore the row of data being processed
+ */
+class IgnoredRowException extends Exception
+{
+	
+}
+/**
  * Base class for all collectors
  *
  */
@@ -149,6 +156,9 @@ abstract class Collector
 	protected function ProcessLineBeforeSynchro(&$aLineData, $iLineIndex)
 	{
 		// Overload this method to process each line of the CSV file
+		// Should you need to "reject" the line from the ouput, throw an exception of class IgnoredRowException
+		// Example:
+		// throw new IgnoredRowException('Explain why the line is rejected - visible in the debug output');
 	}
 	
 	protected function DoProcessBeforeSynchro()
@@ -174,9 +184,17 @@ abstract class Collector
 					while (($aData = fgetcsv($hCSV, 10000, $this->sSeparator)) !== false)
 					{
 						//process
-						$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
-						// Write the CSV data
-						fputcsv($hOutputCSV, $aData, $this->sSeparator);
+						try
+						{
+							$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
+							// Write the CSV data
+							fputcsv($hOutputCSV, $aData, $this->sSeparator);
+						}
+						catch(IgnoredRowException $e)
+						{
+							// Skip this line
+							Utils::Log(LOG_DEBUG, "Ignoring the line $iLineIndex. Reason: ".$e->getMessage());
+						}
 						$iLineIndex++;
 					}
 					fclose($hCSV);

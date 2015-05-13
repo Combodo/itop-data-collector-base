@@ -86,9 +86,11 @@ class LookupTable
 	 * @param array $aLookupFields The list of fields used for the mapping key
 	 * @param string $sDestField The name of field (i.e. column) to populate with the id of the iTop object
 	 * @param int $iLineIndex The index of the line (0 = first line of the CSV file)
+	 * @return bool true if the mapping succeeded, false otherwise
 	 */
 	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex)
 	{
+		$bRet = true;
 		if ($iLineIndex == 0)
 		{
 			$this->InitLineMappings($aLineData, array_merge($aLookupFields, array($sDestField)));
@@ -111,7 +113,8 @@ class LookupTable
 			$sLookupKey = implode('_', $aLookupKey);
 			if (!array_key_exists($sLookupKey, $this->aData))
 			{
-				Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");				
+				Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+				$bRet = false;
 			}
 			else
 			{
@@ -126,6 +129,7 @@ class LookupTable
 				}
 			}
 		}
+		return $bRet;
 	}
 	
 	/**
