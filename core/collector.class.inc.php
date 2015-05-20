@@ -169,7 +169,8 @@ abstract class Collector
 		foreach($aFiles as $sDataFile)
 		{
 			Utils::Log(LOG_INFO, "Processing '$sDataFile'...");
-			$sPattern = '|'.Utils::GetDataFilePath(get_class($this).'\.raw-([0-9]+)\.csv$|');
+			// Warning backslashes inside the file path (like C:\ on Windows) must be escaped (i.e. \ => \\), but inside a PHP string \ is written '\\' so \\ becomes '\\\\' !!
+			$sPattern = '|'.str_replace('\\', '\\\\', Utils::GetDataFilePath(get_class($this))).'\\.raw-([0-9]+)\\.csv$|';
 			if(preg_match($sPattern, $sDataFile, $aMatches))
 			{
 				$idx = $aMatches[1];

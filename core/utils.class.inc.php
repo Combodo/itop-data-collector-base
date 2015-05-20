@@ -197,7 +197,7 @@ class Utils
 		return self::$aConfigFiles;	
 	}
 	
-	protected function Substitute($value)
+	static protected function Substitute($value)
 	{
 		if (is_array($value))
 		{
@@ -226,11 +226,6 @@ class Utils
 		}
 
 		return $value;		
-	}
-
-	static public  function CreateTemporaryFile()
-	{
-		
 	}
 	
 	static public  function GetDataFilePath($sFileName)
