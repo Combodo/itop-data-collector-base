@@ -113,9 +113,10 @@ abstract class SQLCollector extends Collector
         $sLogin = Utils::GetConfigurationValue('sql_login', 'root');
         $sPassword = Utils::GetConfigurationValue('sql_password', '');
         
-        $sConnectionString = $sEngine.':dbname='.$sDatabase.";host=".$sHost;
+        $sConnectionStringFormat = Utils::GetConfigurationValue('sql_connection_string', '%1$s:dbname=%2$s;host=%3$s');
+        $sConnectionString = sprintf($sConnectionStringFormat, $sEngine, $sDatabase, $sHost);
 		
-        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Connection string: $sConnectionString.");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Connection string: '$sConnectionString'");
         
 		try
 		{

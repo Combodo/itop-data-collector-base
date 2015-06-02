@@ -177,9 +177,20 @@ abstract class Collector
 				$sOutputFile = Utils::GetDataFilePath(get_class($this).'-'.$idx.'.csv');
 				Utils::Log(LOG_DEBUG, "Converting '$sDataFile' to '$sOutputFile'...");
 				ini_set('auto_detect_line_endings', true);
+				
 				$hCSV = fopen($sDataFile,'r');
+				if ($hCSV === false)
+				{
+					Utils::Log(LOG_ERR, "Failed to open '$sDataFile' for reading... file will be skipped.");
+				}
+				
 				$hOutputCSV = fopen($sOutputFile, 'w');
-				if ($hCSV !== false)
+				if ($hOutputCSV === false)
+				{
+					Utils::Log(LOG_ERR, "Failed to open '$sOutputFile' for writing... file will be skipped.");
+				}
+				
+				if (($hCSV !== false) && ($hOutputCSV !== false))
 				{
 					$iLineIndex = 0;
 					while (($aData = fgetcsv($hCSV, 10000, $this->sSeparator)) !== false)
@@ -202,11 +213,6 @@ abstract class Collector
 					fclose($hOutputCSV);
 					Utils::Log(LOG_INFO, "End of processing of '$sDataFile'...");
 				}
-				else
-				{
-					Utils::Log(LOG_ERR, "Failed to open '$sDataFile' for reading... file will be skipped.");
-				}
-				
 			}
 			else
 			{
