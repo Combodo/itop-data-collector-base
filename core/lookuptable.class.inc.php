@@ -39,7 +39,7 @@ class LookupTable
 		}
 		$sClass = $aMatches[1];
 		$oRestClient = new RestClient();
-		$aRes = $oRestClient->Get($sClass, $sOQL);
+		$aRes = $oRestClient->Get($sClass, $sOQL, implode(',', $aKeyFields));
 		$aOSVersionToId = array();
 		if ($aRes['code'] == 0)
 		{
