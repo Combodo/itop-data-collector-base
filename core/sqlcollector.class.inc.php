@@ -227,3 +227,59 @@ abstract class SQLCollector extends Collector
 		return $aRet;
 	}
 }
+
+/**
+ * Specific extension for MySQL in order to make sure that the collected data are in UTF-8
+ *
+ * The minimum implementation for such a collector consists in:
+ * - creating a class derived from MySQLCollector
+ * - configuring a SQL query as <name_of_the_collector_class>_query
+ * - configuring the SQL connection parameters:
+ * sql_engine: Which PDO DB driver to use (defaults to mysql)
+ * sql_host: name/IP address of the database server (defaults to localhost)
+ * sql_login: Login to use to connect to the database
+ * sql_password: Password to connect to the database
+ * sql_database: Name of the database to use for running the query
+ */
+abstract class MySQLCollector extends SQLCollector
+{
+	/**
+	 * Establish the connection to the database, based on the configuration parameters.
+	 * By default all collectors derived from SQLCollector will share the same connection
+	 * parameters (same DB server, login, DB name...).
+	 * Moreover, forces the connection to use utf8 using the SET NAMES SQL command.
+	 * If you don't want this behavior, overload this method in your connector.
+	 */
+	protected function Connect()
+	{
+		$bRet = parent::Connect();
+		if ($bRet)
+		{
+			try
+			{
+				$this->oStatement =  $this->oDB->prepare("SET NAMES 'utf8'");
+				if ($this->oStatement === false)
+				{
+					$aInfo = $this->oDB->errorInfo();
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+					return false;
+				}
+				
+				$bRet = $this->oStatement->execute();
+				if ($this->oStatement->errorCode() !== '00000')
+				{
+					$aInfo = $this->oStatement->errorInfo();
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+					return false;
+				}
+			}
+			catch (PDOException $e)
+			{
+				Utils::Log(LOG_ERR, "[".get_class($this)."] SQL query: \"SET NAMES 'utf8'\" failed: ".$e->getMessage());
+				$this->oDB = null;
+				return false;
+			}			
+		}
+		return $bRet;
+	}
+}
