@@ -89,27 +89,38 @@ class RestClient
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 	
+	public function GetRelatedObjects($sClass, $sKey, $sRelation, $bRedundancy = false, $iDepth = 99)
+	{
+		$aOperation = array(
+			'operation' => 'core/get_related', // operation code
+			'class' => $sClass,
+			'key' => $sKey,
+			'relation' => $sRelation,
+			'depth' => $iDepth,
+			'redundancy' => $bRedundancy,
+		);
+		return self::ExecOperation($aOperation, $this->sVersion);
+	}
+	
 	protected static function ExecOperation($aOperation, $sVersion = '1.0')
 	{
-		/*
-		$sChangeTracking = MetaModel::GetModuleSetting('itop-rest-data-push', 'change_tracking', Dict::S('rest-data-push:change_tracking'));
-		if ($sChangeTracking == '')
-		{
-			$aOperation['comment'] = UserRights::GetUserFriendlyName();
-		}
-		else
-		{
-			$aOperation['comment'] = sprintf($sChangeTracking, UserRights::GetUserFriendlyName());
-		}
-		*/
-		
 		$aData = array();
 		$aData['auth_user'] = Utils::GetConfigurationValue('itop_login', '');
 		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
 		$aData['json_data'] = json_encode($aOperation);
 //print_r($aOperation);
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
-		$response = Utils::DoPostRequest($sUrl, $aData);
+		$aHeaders = array();
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+		$aCurlOptions = array();
+		foreach($aRawCurlOptions as $key => $value)
+		{
+			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int) $key;
+			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
+			$aCurlOptions[$iKey] = $iValue;
+		}
+		$response = Utils::DoPostRequest($sUrl, $aData, null, $aHeaders, $aCurlOptions);
 		$aResults = json_decode($response, true);
 		if (!$aResults)
 		{

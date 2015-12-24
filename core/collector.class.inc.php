@@ -527,7 +527,23 @@ abstract class Collector
 				'charset' => $this->GetCharset(),
 			);
 			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php';
-			$sResult = Utils::DoPostRequest($sUrl, $aData);
+    		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run	
+
+	    	$aResponseHeaders = null;
+
+			$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+			$aCurlOptions = array();
+			foreach($aRawCurlOptions as $key => $value)
+			{
+				// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+				$iKey = (!is_numeric($key)) ? constant((string)$key) : (int) $key;
+				$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
+				$aCurlOptions[$iKey] = $iValue;
+			}
+		    $aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
+            $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
+
+			$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
 			
 			// Read the status code from the last line
 			$aLines = explode("\n", trim(strip_tags($sResult)));
@@ -556,7 +572,20 @@ abstract class Collector
 		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 		
 		$aResponseHeaders = null;
-		$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $iSynchroTimeout);
+
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+		$aCurlOptions = array();
+		foreach($aRawCurlOptions as $key => $value)
+		{
+			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int) $key;
+			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
+			$aCurlOptions[$iKey] = $iValue;
+		}
+		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
+        $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
+
+		$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
 		
 		$iErrorsCount = 0;
 		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches))

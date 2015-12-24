@@ -238,16 +238,16 @@ class Utils
 	 * Source: http://netevil.org/blog/2006/nov/http-post-from-php-without-curl
 	 *         originaly named after do_post_request
 	 * Does not require cUrl but requires openssl for performing https POSTs.
-	 * 
+	 *
 	 * @param string $sUrl The URL to POST the data to
 	 * @param hash $aData The data to POST as an array('param_name' => value)
 	 * @param string $sOptionnalHeaders Additional HTTP headers as a string with newlines between headers
 	 * @param hash	$aResponseHeaders An array to be filled with reponse headers: WARNING: the actual content of the array depends on the library used: cURL or fopen, test with both !! See: http://fr.php.net/manual/en/function.curl-getinfo.php
-	 * @param int $iConnectionTimeout Maximum time to wait either for the establishment of the connection OR the response data
+	 * @param hash $aCurlOptions An (optional) array of options to pass to curl_init. The format is 'option_code' => 'value'. These values have precedence over the default ones
 	 * @return string The result of the POST request
 	 * @throws Exception
-	 */ 
-	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $iConnectionTimeout = 120)
+	 */
+	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = array())
 	{
 		// $sOptionnalHeaders is a string containing additional HTTP headers that you would like to send in your request.
 	
@@ -256,15 +256,19 @@ class Utils
 			// If cURL is available, let's use it, since it provides a greater control over the various HTTP/SSL options
 			// For instance fopen does not allow to work around the bug: http://stackoverflow.com/questions/18191672/php-curl-ssl-routinesssl23-get-server-helloreason1112
 			// by setting the SSLVERSION to 3 as done below.
-			$aHeaders = explode("\n", $sOptionnalHeaders);
 			$aHTTPHeaders = array();
-			foreach($aHeaders as $sHeaderString)
+			if ($sOptionnalHeaders !== null)
 			{
-				if(preg_match('/^([^:]): (.+)$/', $sHeaderString, $aMatches))
+				$aHeaders = explode("\n", $sOptionnalHeaders);
+				foreach($aHeaders as $sHeaderString)
 				{
-					$aHTTPHeaders[$aMatches[1]] = $aMatches[2];
+					if(preg_match('/^([^:]): (.+)$/', $sHeaderString, $aMatches))
+					{
+						$aHTTPHeaders[$aMatches[1]] = $aMatches[2];
+					}
 				}
 			}
+			// Default options, can be overloaded/extended with the 4th parameter of this method, see above $aCurlOptions
 			$aOptions = array(
 				CURLOPT_RETURNTRANSFER	=> true,     // return the content of the request
 				CURLOPT_HEADER			=> false,    // don't return the headers in the output
@@ -272,19 +276,21 @@ class Utils
 				CURLOPT_ENCODING		=> "",       // handle all encodings
 				CURLOPT_USERAGENT		=> "spider", // who am i
 				CURLOPT_AUTOREFERER		=> true,     // set referer on redirect
-				CURLOPT_CONNECTTIMEOUT	=> (int)$iConnectionTimeout,      // timeout on connect
-				CURLOPT_TIMEOUT			=> (int)$iConnectionTimeout,      // timeout on response
+				CURLOPT_CONNECTTIMEOUT	=> 120,      // timeout on connect
+				CURLOPT_TIMEOUT			=> 120,      // timeout on response
 				CURLOPT_MAXREDIRS		=> 10,       // stop after 10 redirects
 				CURLOPT_SSL_VERIFYHOST	=> 0,   	 // Disabled SSL Cert checks
 				CURLOPT_SSL_VERIFYPEER	=> 0,   	 // Disabled SSL Cert checks
-				CURLOPT_SSLVERSION		=> 3,		 // MUST to prevent a strange SSL error: http://stackoverflow.com/questions/18191672/php-curl-ssl-routinesssl23-get-server-helloreason1112
+				// SSLV3 (CURL_SSLVERSION_SSLv3 = 3) is now considered as obsolete/dangerous: http://disablessl3.com/#why
+				// but it used to be a MUST to prevent a strange SSL error: http://stackoverflow.com/questions/18191672/php-curl-ssl-routinesssl23-get-server-helloreason1112
+				// CURLOPT_SSLVERSION		=> 3,
 				CURLOPT_POST			=> count($aData),
 				CURLOPT_POSTFIELDS		=> http_build_query($aData),
 				CURLOPT_HTTPHEADER		=> $aHTTPHeaders,
 			);
-			
+			$aAllOptions = $aCurlOptions + $aOptions;
 			$ch = curl_init($sUrl);
-			curl_setopt_array($ch, $aOptions);
+			curl_setopt_array($ch, $aAllOptions);
 			$response = curl_exec($ch);
 			$iErr = curl_errno($ch);
 			$sErrMsg = curl_error( $ch );
@@ -307,19 +313,19 @@ class Utils
 		else
 		{
 			// cURL is not available let's try with streams and fopen...
-			
+				
 			$sData = http_build_query($aData);
 			$aParams = array('http' => array(
-									'method' => 'POST',
-									'content' => $sData,
-									'header'=> "Content-type: application/x-www-form-urlencoded\r\nContent-Length: ".strlen($sData)."\r\n",
-									));
+				'method' => 'POST',
+				'content' => $sData,
+				'header'=> "Content-type: application/x-www-form-urlencoded\r\nContent-Length: ".strlen($sData)."\r\n",
+			));
 			if ($sOptionnalHeaders !== null)
 			{
 				$aParams['http']['header'] .= $sOptionnalHeaders;
 			}
 			$ctx = stream_context_create($aParams);
-		
+	
 			$fp = @fopen($sUrl, 'rb', false, $ctx);
 			if (!$fp)
 			{
