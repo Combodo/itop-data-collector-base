@@ -53,7 +53,7 @@ class MappingTable
 		$value = null;
 		foreach($this->aMappingTable as $aMapping)
 		{
-			if (preg_match($aMapping['pattern'].'i', $sRawValue, $aMatches)) // 'i' for case insensitive matching
+			if (preg_match($aMapping['pattern'].'iu', $sRawValue, $aMatches)) // 'i' for case insensitive matching, 'u' for utf-8 characters
 			{
 				$value = vsprintf($aMapping['replacement'], $aMatches); // found a suitable match
 				break;
