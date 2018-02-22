@@ -1,5 +1,5 @@
 <?php
-// Copyright (C) 2014 Combodo SARL
+// Copyright (C) 2014-2018 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify	
 //   it under the terms of the GNU Affero General Public License as published by
@@ -19,6 +19,14 @@
  */
 class MappingTable
 {
+	/**
+	 * @var string The name of the configuration entry from which the configuratin was loaded
+	 */
+	protected $sConfigEntryName;
+	
+	/**
+	 * @var string[][]
+	 */
 	protected $aMappingTable;
 
 	/**
@@ -29,6 +37,7 @@ class MappingTable
 	{
 		// Read the "extended mapping" from the configuration
 		// The mapping is expressed as an array of strings in the following format: <delimiter><regexpr_body><delimiter><replacement>
+		$this->sConfigEntryName = $sConfigEntryName;
 		$aRawMapping = Utils::GetConfigurationValue($sConfigEntryName, array());
 		foreach($aRawMapping as $sExtendedPattern)
 		{
@@ -56,6 +65,7 @@ class MappingTable
 			if (preg_match($aMapping['pattern'].'iu', $sRawValue, $aMatches)) // 'i' for case insensitive matching, 'u' for utf-8 characters
 			{
 				$value = vsprintf($aMapping['replacement'], $aMatches); // found a suitable match
+				Utils::Log(LOG_DEBUG, "MappingTable[{$this->sConfigEntryName}]: input value '$sRawValue' matches '{$aMapping['pattern']}'. Output value is '$value'");
 				break;
 			}
 		}
