@@ -301,7 +301,8 @@ abstract class Collector
 			}
 			else 
 			{
-				switch(count($aResult['objects']))
+			    $iCount = ($aResult['objects'] !== null ) ? count($aResult['objects']) : 0;
+			    switch($iCount)
 				{
 					case 0:
 					// not found, need to create the Source
