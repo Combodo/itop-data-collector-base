@@ -140,6 +140,12 @@ abstract class SQLCollector extends Collector
 	{
 		if ($aData = $this->oStatement->fetch(PDO::FETCH_ASSOC))
 		{
+		    foreach($this->aSkippedAttributes as $sCode)
+		    {
+		        echo $sCode."\n";
+		        unset($aData[$sCode]);
+		    }
+		    
 			if ($this->idx == 0)
 			{
 				$aChecks = $this->CheckSQLColumn($aData);

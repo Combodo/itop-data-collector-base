@@ -1,0 +1,7 @@
+conf/params.local.xml
+collectors
+.buildpath
+.project
+.settings/
+data/
+

@@ -1,5 +1,5 @@
 <?php
-// Copyright (C) 2014 Combodo SARL
+// Copyright (C) 2014-2018 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify	
 //   it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ class LookupTable
 {
 	protected $aData;
 	protected $aFieldsPos;
+	protected $bCaseSensitive;
 
 	/**
 	 * Initialization of a LookupTable, based on an OQL query in iTop
@@ -28,10 +29,11 @@ class LookupTable
 	 * @param array $aKeyFields The fields of the object to use in the lookup key 
 	 * @throws Exception
 	 */
-	public function __construct($sOQL, $aKeyFields)
+	public function __construct($sOQL, $aKeyFields, $bCaseSensitive = true)
 	{
 		$this->aData =array();
 		$this->aFieldsPos =array();
+		$this->bCaseSensitive = $bCaseSensitive;
 		
 		if(!preg_match('/^SELECT ([^ ]+)/', $sOQL, $aMatches))
 		{
@@ -59,6 +61,17 @@ class LookupTable
 					}
 				}
 				$sMappingKey = implode($aMappingKeys, '_');
+				if (!$this->bCaseSensitive)
+				{
+				    if (function_exists('mb_strtolower'))
+				    {
+				        $sMappingKey = mb_strtolower($sMappingKey);
+				    }
+				    else
+				    {
+				        $sMappingKey = strtolower($sMappingKey);
+				    }
+				}
 				if(!array_key_exists('key', $aObj))
 				{
 					// Emulate the behavior for older versions of the REST API
@@ -111,6 +124,17 @@ class LookupTable
 				}
 			}
 			$sLookupKey = implode('_', $aLookupKey);
+			if (!$this->bCaseSensitive)
+			{
+			    if (function_exists('mb_strtolower'))
+			    {
+			        $sLookupKey = mb_strtolower($sLookupKey);
+			    }
+			    else
+			    {
+			        $sLookupKey = strtolower($sLookupKey);
+			    }
+			}
 			if (!array_key_exists($sLookupKey, $this->aData))
 			{
 				Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");

@@ -139,6 +139,12 @@ abstract class Collector
 		return $this->sVersion;
 	}
 	
+	/**
+	 * Overload this method (to return true) if the collector has
+	 * to reprocess the CSV file (with an access to iTop)
+	 * before executing the synchro with iTop
+	 * @return bool
+	 */
 	protected function MustProcessBeforeSynchro()
 	{
 		// Overload this method (to return true) if the collector has
@@ -147,18 +153,28 @@ abstract class Collector
 		return false;
 	}
 	
+	/**
+	 * Overload this method to perform any one-time initialization which
+	 * may be required before processing the CSV file line by line
+	 * @return void
+	*/
 	protected function InitProcessBeforeSynchro()
 	{
-		// overload this method to perform any one-time initialization which
-		// may be required before processing the CSV file line by line
 	}
 	
+	/**
+	 * Overload this method to process each line of the CSV file
+	 * Should you need to "reject" the line from the ouput, throw an exception of class IgnoredRowException
+	 * Example:
+	 * throw new IgnoredRowException('Explain why the line is rejected - visible in the debug output');
+	 * 
+	 * @param array $aLineData
+	 * @param int $iLineIndex
+	 * @throws IgnoredRowException
+	 * @return void
+	 */
 	protected function ProcessLineBeforeSynchro(&$aLineData, $iLineIndex)
 	{
-		// Overload this method to process each line of the CSV file
-		// Should you need to "reject" the line from the ouput, throw an exception of class IgnoredRowException
-		// Example:
-		// throw new IgnoredRowException('Explain why the line is rejected - visible in the debug output');
 	}
 	
 	protected function DoProcessBeforeSynchro()
