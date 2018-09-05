@@ -142,7 +142,6 @@ abstract class SQLCollector extends Collector
 		{
 		    foreach($this->aSkippedAttributes as $sCode)
 		    {
-		        echo $sCode."\n";
 		        unset($aData[$sCode]);
 		    }
 		    
