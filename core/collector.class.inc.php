@@ -648,6 +648,7 @@ abstract class Collector
 		unset($aSourceDefinition['user_id_finalclass_recall']);
 		unset($aSourceDefinition['notify_contact_id_friendlyname']);
 		unset($aSourceDefinition['notify_contact_id_finalclass_recall']);
+		unset($aSourceDefinition['notify_contact_id_obsolescence_flag']);
 		// SynchroAttributes will be processed one by one, below
 		$aSynchroAttr = $aSourceDefinition['attribute_list'];
 		unset($aSourceDefinition['attribute_list']);
@@ -684,6 +685,7 @@ abstract class Collector
 		unset($aSourceDefinition['user_id_finalclass_recall']);
 		unset($aSourceDefinition['notify_contact_id_friendlyname']);
 		unset($aSourceDefinition['notify_contact_id_finalclass_recall']);
+		unset($aSourceDefinition['notify_contact_id_obsolescence_flag']);
 		// SynchroAttributes will be processed one by one, below
 		$aSynchroAttr = $aSourceDefinition['attribute_list'];
 		unset($aSourceDefinition['attribute_list']);
@@ -786,6 +788,7 @@ abstract class Collector
 				case 'user_id_finalclass_recall':
 				case 'notify_contact_id_friendlyname':
 				case 'notify_contact_id_finalclass_recall':
+				case 'notify_contact_id_obsolescence_flag':    
 				// Ignore all read-only attributes
 				break;
 		
@@ -852,6 +855,7 @@ abstract class Collector
 				case 'user_id_finalclass_recall':
 				case 'notify_contact_id_friendlyname':
 				case 'notify_contact_id_finalclass_recall':
+				case 'notify_contact_id_obsolescence_flag':
 				// Ignore all read-only attributes
 				break;
 				
