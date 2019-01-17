@@ -3,5 +3,5 @@ collectors
 .buildpath
 .project
 .settings/
-data/
-
+/data/
+!/data/readme.txt
