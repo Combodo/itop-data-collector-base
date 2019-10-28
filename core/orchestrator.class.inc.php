@@ -204,7 +204,8 @@ class Orchestrator
 		{
 			$aPlaceholders['$'.$sKey.'$'] = $sValue;
 		}
-		
+
+		/** @var \Collector $oCollector */
 		foreach($aCollectors as $oCollector)
 		{
 			$bResult = $oCollector->InitSynchroDataSource($aPlaceholders);

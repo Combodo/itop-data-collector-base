@@ -19,8 +19,13 @@
  */
 class IgnoredRowException extends Exception
 {
-	
 }
+class InvalidConfigException extends Exception
+{
+}
+
+
+
 /**
  * Base class for all collectors
  *
@@ -300,12 +305,20 @@ abstract class Collector
 			$this->sVersion = "1.0.0";
 		}
 	}
+
 	public function InitSynchroDataSource($aPlaceholders)
 	{
 		$bResult = true;
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition($aPlaceholders);
 		$aExpectedSourceDefinition = json_decode($sJSONSourceDefinition, true);
-		$this->sSourceName = $aExpectedSourceDefinition['name'];	
+
+		$sDatabaseTableName = $aExpectedSourceDefinition['database_table_name'];
+		if (!preg_match(self::TABLENAME_PATTERN, $sDatabaseTableName)) {
+			throw new InvalidConfigException("\Collector::InitSynchroDataSource : invalid characters in database_table_name, " .
+				"current value is '$sDatabaseTableName'");
+		}
+
+		$this->sSourceName = $aExpectedSourceDefinition['name'];
 		try
 		{
 			$oRestClient = new RestClient();
