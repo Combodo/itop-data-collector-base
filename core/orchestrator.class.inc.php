@@ -22,7 +22,7 @@ class Orchestrator
 	/**
 	 * Add a collector class to be run in the specified order
 	 * @param float $fExecOrder The execution order (smaller numbers run first)
-	 * @param unknown $sCollectorClass The class name of the collector. Must be a subclass of Collector
+	 * @param string $sCollectorClass The class name of the collector. Must be a subclass of {@link Collector}
 	 * @throws Exception
 	 * @return void
 	 */
@@ -120,11 +120,14 @@ class Orchestrator
 		}
 		return $aResults;
 	}
-	
+
 	/**
 	 * Initializes the synchronization data sources in iTop, according to the collectors' JSON specifications
-	 * @param array $aCollectors The list of collectors
+	 *
+	 * @param string[] $aCollectors list of classes implementing {@link Collector}
+	 *
 	 * @return boolean True if Ok, false otherwise
+	 * @throws \InvalidConfigException
 	 */
 	public function InitSynchroDataSources($aCollectors)
 	{
@@ -219,7 +222,7 @@ class Orchestrator
 	
 	/**
 	 * Run the first pass of data collection: fetching the raw data from inventory scripts
-	 * @param array $aCollectors
+	 * @param string[] $aCollectors list of classes implementing {@link Collector}
 	 * @param int $iMaxChunkSize
 	 * @param boolean $bCollectOnly
 	 * @return boolean True if Ok, false otherwise
@@ -227,6 +230,7 @@ class Orchestrator
 	public function Collect($aCollectors, $iMaxChunkSize, $bCollectOnly)
 	{
 		$bResult = true;
+		/** @var \Collector $oCollector */
 		foreach($aCollectors as $oCollector)
 		{
 			$bResult = $oCollector->Collect($iMaxChunkSize, $bCollectOnly);
@@ -240,7 +244,7 @@ class Orchestrator
 	
 	/**
 	 * Run the final pass of the collection: synchronizing the data into iTop
-	 * @param unknown $aCollectors
+	 * @param string[] $aCollectors list of classes implementing {@link Collector}
 	 * @return boolean
 	 */
 	public function Synchronize($aCollectors)
@@ -252,6 +256,7 @@ class Orchestrator
 			Utils::Log(LOG_WARNING, "Unexpected value '$sStopOnError' for the parameter 'stop_on_synchro_error'. Will NOT stop on error. The expected values for this parameter are 'yes' or 'no'.");
 		}
 		$bStopOnError = ($sStopOnError == 'yes');
+		/** @var \Collector $oCollector */
 		foreach($aCollectors as $oCollector)
 		{
 			$bResult = $oCollector->Synchronize();

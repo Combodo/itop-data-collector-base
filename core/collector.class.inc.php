@@ -32,6 +32,10 @@ class InvalidConfigException extends Exception
  */
 abstract class Collector
 {
+	/**
+	 * @var string TABLENAME_PATTERN used to validate data synchro table name
+	 * @see N°2417
+	 */
 	const TABLENAME_PATTERN = '/^[A-Za-z0-9_]*$/';
 
 	protected $sSynchroDataSourceDefinitionFile;
