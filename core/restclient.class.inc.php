@@ -116,8 +116,9 @@ class RestClient
 		foreach($aRawCurlOptions as $key => $value)
 		{
 			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int) $key;
-			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
+			// Make sure that the actual constant exists to prevent warnings/errors in case of typo or when php-curl is not loaded
+			$iKey = ((!is_numeric($key)) && defined((string)$key)) ? constant((string)$key) : (int) $key;
+			$iValue = ((!is_numeric($value)) && defined((string)$value))  ? constant((string)$value) : (int) $value;
 			$aCurlOptions[$iKey] = $iValue;
 		}
 		$response = Utils::DoPostRequest($sUrl, $aData, null, $aHeaders, $aCurlOptions);
