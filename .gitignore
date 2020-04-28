@@ -1,7 +1,3 @@
-conf/params.local.xml
-collectors
-.buildpath
-.project
-.settings/
-/data/**
-!/data/readme.txt
+.idea/*
+composer.lock
+vendor/*

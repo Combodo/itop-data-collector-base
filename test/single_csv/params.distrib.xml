@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default values for parameters. Do NOT alter this file, copy its content to conf/params.local.xml and edit it instead -->
+<parameters>
+  <console_log_level>6</console_log_level>
+  <iTopPersonCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_csv>
+  <iTopUserCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopUserCsvCollector_csv>
+</parameters>
