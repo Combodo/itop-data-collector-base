@@ -1,7 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Default values for parameters. Do NOT alter this file, copy its content to conf/params.local.xml and edit it instead -->
+<!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
 <parameters>
-  <console_log_level>6</console_log_level>
-  <iTopPersonCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_csv>
-  <iTopUserCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopUserCsvCollector_csv>
+  <itop_url>http://localhost/</itop_url>
+  <itop_login>admin</itop_login>
+  <itop_password>admin</itop_password>
+  <!-- Timeout for waiting for the execution of one data synchro task (in seconds) -->
+  <itop_synchro_timeout>600</itop_synchro_timeout>
+  <!-- Whether or not to stop when an error occurs during a synchronization -->
+  <stop_on_synchro_error>no</stop_on_synchro_error>
+  <!-- When using cUrl to connect to the iTop Webservices the cUrl options can be specified below
+  The syntax is:
+  <NAME_OF_THE_OPTION1>VALUE_OF_THE_OPTION1</NAME_OF_THE_OPTION1>
+  <NAME_OF_THE_OPTION2>VALUE_OF_THE_OPTION2</NAME_OF_THE_OPTION2>
+  etc...
+
+  Where NAME_OF_THE_OPTIONx and VALUE_OF_THE_OPTIONx are either:
+  - The numeric value of the option
+  - or the string representation of the corresponding PHP "define" (case sensitive)
+
+  The four examples below are equivalent:
+   <CURLOPT_SSLVERSION>CURL_SSLVERSION_TLSv1_2</CURLOPT_SSLVERSION>
+  or
+   <CURLOPT_SSLVERSION>6</CURLOPT_SSLVERSION>
+  or
+   <32>CURL_SSLVERSION_TLSv1_2</32>
+  or
+   <32>6</32>
+
+  Since in PHP we have:
+  define ('CURLOPT_SSLVERSION', 32);
+  define ('CURL_SSLVERSION_TLSv1_2', 6);
+
+  Note: because the recommandation about which is the best SSL/TLS version
+        to use varies over time (as security bugs are found in the procotols)
+        it is BETTER NOT TO force any SSL/TLS version at all and let the
+        system decide which version to use.
+
+	However if the web server running iTop requires a specific TLS/SSL
+        version you can use the configuration to force it anyway...
+        but be prepared to revisit this setting regularly.
+  -->
+  <curl_options>
+    <CURLOPT_SSL_VERIFYHOST>0</CURLOPT_SSL_VERIFYHOST>
+    <CURLOPT_SSL_VERIFYPEER>1</CURLOPT_SSL_VERIFYPEER>
+  </curl_options>
 </parameters>

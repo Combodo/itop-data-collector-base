@@ -24,7 +24,9 @@ class Utils
 	static public $iSyslogLogLevel = LOG_NONE;
 	static protected $oConfig = null;
 	static protected $aConfigFiles = array();
-	
+
+    static protected $mocked_logger;
+
 	static public function ReadParameter($sParamName, $defaultValue)
 	{
 		global $argv;
@@ -99,6 +101,15 @@ class Utils
 	 */
 	static public function Log($iPriority, $sMessage)
 	{
+        //testing only LOG_ERR
+        if (self::$mocked_logger)
+        {
+            if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR)
+            {
+                self::$mocked_logger->Log($iPriority, $sMessage);
+            }
+        }
+
 		switch($iPriority)
 		{
 			case LOG_EMERG:
@@ -132,8 +143,8 @@ class Utils
 			$sPrio = 'Debug';
 			break;
 		}
-		
-		if ($iPriority <= self::$iConsoleLogLevel)
+
+        if ($iPriority <= self::$iConsoleLogLevel)
 		{
 			echo "$sPrio - $sMessage\n";
 		}
@@ -145,6 +156,11 @@ class Utils
 			closelog();
 		}
 	}
+
+	static public function mock_log($mocked_logger)
+    {
+        self::$mocked_logger = $mocked_logger;
+    }
 
 	static protected function LoadConfig()
 	{
@@ -425,4 +441,19 @@ class Utils
 	
 	    return $result;
 	}
+}
+
+class UtilsLogger
+{
+
+    /**
+     * UtilsLogger constructor.
+     */
+    public function __construct()
+    {
+    }
+
+    public function Log($iPriority, $sMessage)
+    {
+    }
 }

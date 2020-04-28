@@ -1,6 +1,6 @@
 {
-	"name": "$prefix$Synchro LDAP Person",
-	"description": "Synchronization of persons from LDAP Directory",
+	"name": "$prefix$Synchro CSV Person",
+	"description": "Synchronization of persons from CSV",
 	"status": "$synchro_status$",
 	"user_id": "$synchro_user$",
 	"notify_contact_id": "$contact_to_notify$",

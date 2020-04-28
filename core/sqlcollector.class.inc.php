@@ -79,7 +79,7 @@ abstract class SQLCollector extends Collector
 			return false;
 		}
 		
-		$bRet = $this->oStatement->execute();
+		$this->oStatement->execute();
 		if ($this->oStatement->errorCode() !== '00000')
 		{
 			$aInfo = $this->oStatement->errorInfo();
