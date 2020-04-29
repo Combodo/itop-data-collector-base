@@ -8,11 +8,11 @@
 	"database_table_name": "$persons_data_table$",
 	"scope_restriction": "",
 	"full_load_periodicity": "$full_load_interval$",
-	"reconciliation_policy": "use_attributes",
+	"reconciliation_policy": "use_primary_key",
 	"action_on_zero": "create",
 	"action_on_one": "update",
 	"action_on_multiple": "error",
-	"delete_policy": "delete",
+	"delete_policy": "ignore",
 	"delete_policy_update": "",
 	"delete_policy_retention": "0",
 	"attribute_list": [
@@ -142,5 +142,6 @@
 	],
 	"user_delete_policy": "nobody",
 	"url_icon": "",
-	"url_application": ""
+	"url_application": "",
+	"notify_contact_id_obsolescence_flag": ""
 }

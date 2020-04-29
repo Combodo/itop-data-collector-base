@@ -210,10 +210,14 @@ class Orchestrator
 			}
 		}
 		$aOtherPlaceholders = Utils::GetConfigurationValue('json_placeholders', array());
-		foreach($aOtherPlaceholders as $sKey => $sValue)
-		{
-			$aPlaceholders['$'.$sKey.'$'] = $sValue;
-		}
+
+        if (is_array($aOtherPlaceholders) && sizeof($aOtherPlaceholders) !== 0)
+        {
+		    foreach($aOtherPlaceholders as $sKey => $sValue)
+            {
+                $aPlaceholders['$'.$sKey.'$'] = $sValue;
+            }
+        }
 
 		/** @var \Collector $oCollector */
 		foreach($aCollectors as $oCollector)
