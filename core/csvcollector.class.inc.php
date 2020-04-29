@@ -22,8 +22,9 @@ Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
  *
  * The minimum implementation for such a collector consists in:
  * - creating a class derived from CSVCollector
+ * - configuring a CLI command <name_of_the_collector_class>_command : executed before reading CSV file
  * - configuring a CSV file path as <name_of_the_collector_class>_csv
- * sql_engine: Which PDO DB driver to use (defaults to mysql)
+ * - configuring a CSV encoding as <name_of_the_collector_class>_encoding
  */
 abstract class CSVCollector extends Collector
 {
@@ -39,7 +40,6 @@ abstract class CSVCollector extends Collector
 	public function __construct()
 	{
 		parent::__construct();
-
 	}
 
 	/**
