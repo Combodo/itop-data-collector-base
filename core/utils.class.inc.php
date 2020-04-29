@@ -164,7 +164,7 @@ class Utils
         self::$mocked_logger = $mocked_logger;
     }
 
-	static protected function LoadConfig()
+	static public function LoadConfig()
 	{
 		self::$aConfigFiles = array();
 		self::$aConfigFiles[] = CONF_DIR.'params.distrib.xml';

@@ -3,6 +3,7 @@
 <parameters>
   <console_log_level>6</console_log_level>
   <iTopPersonCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_csv>
+  <iTopPersonCsvCollector_command>sed -i -e 's|isaac|ISAAC|g' collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_command>
 
   <synchro_user>admin</synchro_user>
   <contact_to_notify></contact_to_notify>

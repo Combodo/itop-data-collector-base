@@ -29,7 +29,9 @@ abstract class CSVCollector extends Collector
 {
     protected $csv_lines = array();
     protected $csv_separator ;
+    protected $csv_encoding ;
     protected $columns;
+    protected $csv_clicommand;
 
     /**
 	 * Initalization
@@ -57,6 +59,22 @@ abstract class CSVCollector extends Collector
         }
         Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->csv_separator . "]");
 
+        $this->csv_encoding = Utils::GetConfigurationValue(get_class($this)."_encoding", '');
+        if ($this->csv_encoding == '')
+        {
+            // Try all lowercase
+            $this->csv_encoding = Utils::GetConfigurationValue(strtolower(get_class($this))."_encoding", 'UTF-8');
+        }
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->csv_encoding . "]");
+
+        $this->csv_clicommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
+        if ($this->csv_clicommand == '')
+        {
+            // Try all lowercase
+            $this->csv_clicommand = Utils::GetConfigurationValue(strtolower(get_class($this))."_command", '');
+        }
+        Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->csv_clicommand . "]");
+
         // Read the SQL query from the configuration
         $csvFilePath = APPROOT . Utils::GetConfigurationValue(get_class($this)."_csv", '');
         if ($csvFilePath == '')
@@ -83,6 +101,11 @@ abstract class CSVCollector extends Collector
             return false;
         }
 
+        if (!empty($this->csv_clicommand))
+        {
+            $this->Exec($this->csv_clicommand);
+        }
+
         $handle = fopen($csvFilePath, "r");
         if (!$handle) {
             Utils::Log(LOG_ERR, "[" . get_class($this) . "] Handle issue with file $csvFilePath");
@@ -90,12 +113,48 @@ abstract class CSVCollector extends Collector
         }
 
         while (($line = fgets($handle)) !== false) {
-            $this->csv_lines[] = rtrim($line, "\n");
+            $this->csv_lines[] = rtrim(iconv($this->csv_encoding,$this->GetCharset(), $line), "\n");
         }
 
         fclose($handle);
         $this->idx = 0;
 		return $bRet;
+    }
+
+    /**
+     * Executes a command and returns an array with exit code, stdout and stderr content
+     *
+     * @param string $cmd - Command to execute
+     *
+     * @return string[] - Array with keys: 'code' - exit code, 'out' - stdout, 'err' - stderr
+     * @throws \Exception
+     */
+    function Exec($cmd) {
+        $iBeginTime = time();
+        $workdir = APPROOT;
+        $descriptorspec = array(
+            0 => array("pipe", "r"),  // stdin
+            1 => array("pipe", "w"),  // stdout
+            2 => array("pipe", "w"),  // stderr
+        );
+        $process = proc_open($cmd, $descriptorspec, $pipes, $workdir, null);
+
+        $stdout = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        $stderr = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+
+        $code = proc_close($process);
+
+        $iElapsed = time() - $iBeginTime;
+        Utils::Log(LOG_INFO, "Command: $cmd. Workdir: $workdir");
+        if (0 === $code) {
+            Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $stdout");
+            return $stdout;
+        } else {
+            throw new Exception("Command failed : $cmd \n\t\t=== with status:$code \n\t\t=== stderr:$stderr \n\t\t=== stdout: $stdout");
+        }
     }
 
     /**

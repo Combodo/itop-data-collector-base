@@ -33,6 +33,11 @@ class TestCsvCollector extends TestCase
 
     private function copy($pattern)
     {
+        if (! is_dir(TestCsvCollector::$COLLECTOR_PATH))
+        {
+            mkdir(TestCsvCollector::$COLLECTOR_PATH);
+        }
+
         $files = glob($pattern);
         foreach ($files as $file)
         {
@@ -43,19 +48,40 @@ class TestCsvCollector extends TestCase
         }
     }
 
-    public function testOrgCollector()
+    /**
+     * @param bool $additional_dir
+     * @dataProvider OrgCollectorProvider
+     */
+    public function testOrgCollector($additional_dir=false)
     {
         $this->copy("./single_csv/*");
+        $this->copy("./single_csv/".$additional_dir."/*");
 
         require_once TestCsvCollector::$COLLECTOR_PATH . "iTopPersonCsvCollector.class.inc.php";
 
-        $this->mocked_logger->expects($this->exactly(0))
-            ->method("Log");
+        /*$this->mocked_logger->expects($this->exactly(0))
+            ->method("Log");*/
 
         $orgCollector = new \iTopPersonCsvCollector();
-        $orgCollector->Collect();
-        $this->assertTrue(true);
+        \Utils::LoadConfig();
+
+        $this->assertTrue($orgCollector->Collect());
+
+        $expected_content = file_get_contents(TestCsvCollector::$COLLECTOR_PATH ."expected_generated.csv");
+
+        $this->assertEquals($expected_content, file_get_contents(APPROOT . "/data/iTopPersonCsvCollector-1.csv"));
     }
+
+    public function OrgCollectorProvider()
+    {
+        return array(
+            /*"nominal" => array("nominal"),
+            "charset_ISO" => array("charset_ISO"),
+            "separator" => array("separator"),*/
+            "clicommand" => array("clicommand"),
+        );
+    }
+
 
     /**
      * @param $error_file
@@ -94,7 +120,7 @@ class TestCsvCollector extends TestCase
             "wrong number of line" => array("wrongnumber_columns_inaline.csv", "[iTopPersonCsvCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa", 'iTopPersonCsvCollector::Collect() got an exception: Invalid CSV file.'),
             "no primary key" => array("no_primarykey.csv", "[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing from the csv.", 'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.'),
             "no email" => array("no_email.csv", "[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing from the csv.", "iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file."),
-            "OK" => array("../iTopPersonCsvCollector.csv", "")
+            "OK" => array("../nominal/iTopPersonCsvCollector.csv", "")
         );
     }
 
