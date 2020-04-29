@@ -4,6 +4,7 @@
   <console_log_level>6</console_log_level>
   <iTopPersonCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_csv>
 
+  <console_log_dateformat>||Y-m-d H:i:s||</console_log_dateformat>
   <synchro_user>admin</synchro_user>
   <contact_to_notify></contact_to_notify>
   <full_load_interval></full_load_interval>

@@ -17,7 +17,13 @@
    7 : Debug traces
    -->
   <console_log_level>6</console_log_level>
-  
+
+  <!--
+    dateformat: logging date format
+    Example: [Y-m-d H:i:s] => will produce a log like "[2020-04-29 14:36:16]	[Info]	......"
+  -->
+  <console_log_dateformat>[Y-m-d H:i:s]</console_log_dateformat>
+
   <!-- syslog_log_level: level of logging to Syslog
   -1 : none, nothing will be logged to syslog
    0 : System wide emergency errors (LOG_EMERG)
@@ -30,7 +36,7 @@
    7 : Debug traces
    -->
   <syslog_log_level>-1</syslog_log_level>
-  
+
   <!-- Maximum number of elements to process in one iteration (for upload and synchro in iTop) -->
   <max_chunk_size>1000</max_chunk_size>
   <!-- Timeout for waiting for the execution of one data synchro task (in seconds) -->
