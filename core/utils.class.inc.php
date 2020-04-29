@@ -317,7 +317,7 @@ class Utils
 			$aHeaders = curl_getinfo( $ch );
 			if ($iErr !== 0)
 			{
-				throw new Exception("Problem opening URL: $sUrl, $sErrMsg");
+				throw new IOException("Problem opening URL: $sUrl, $sErrMsg");
 			}
 			if (is_array($aResponseHeaders))
 			{
@@ -352,21 +352,21 @@ class Utils
 				global $php_errormsg;
 				if (isset($php_errormsg))
 				{
-					throw new Exception("Wrong URL: $sUrl, $php_errormsg");
+					throw new IOException("Wrong URL: $sUrl, $php_errormsg");
 				}
 				elseif ((strtolower(substr($sUrl, 0, 5)) == 'https') && !extension_loaded('openssl'))
 				{
-					throw new Exception("Cannot connect to $sUrl: missing module 'openssl'");
+					throw new IOException("Cannot connect to $sUrl: missing module 'openssl'");
 				}
 				else
 				{
-					throw new Exception("Wrong URL: $sUrl");
+					throw new IOException("Wrong URL: $sUrl");
 				}
 			}
 			$response = @stream_get_contents($fp);
 			if ($response === false)
 			{
-				throw new Exception("Problem reading data from $sUrl, $php_errormsg");
+				throw new IOException("Problem reading data from $sUrl, $php_errormsg");
 			}
 			if (is_array($aResponseHeaders))
 			{
