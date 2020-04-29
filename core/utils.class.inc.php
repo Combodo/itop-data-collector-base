@@ -148,7 +148,9 @@ class Utils
 
         if ($iPriority <= self::$iConsoleLogLevel)
 		{
-			echo "$sPrio - $sMessage\n";
+            $txt = date("[Y-m-d H:i:s]")."\t[".$sPrio."]\t".$sMessage."\n";
+
+            echo $txt;
 		}
 		
 		if ($iPriority <= self::$iSyslogLogLevel)
