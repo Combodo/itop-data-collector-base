@@ -148,8 +148,8 @@ class Utils
 
         if ($iPriority <= self::$iConsoleLogLevel)
 		{
-            $txt = date("[Y-m-d H:i:s]")."\t[".$sPrio."]\t".$sMessage."\n";
-
+            $log_date_format = self::GetConfigurationValue("console_log_dateformat", "[Y-m-d H:i:s]");
+            $txt = date($log_date_format)."\t[".$sPrio."]\t".$sMessage."\n";
             echo $txt;
 		}
 		
