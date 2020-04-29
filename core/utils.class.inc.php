@@ -32,32 +32,31 @@ class Utils
 		global $argv;
 		
 		$retValue = $defaultValue;
-		foreach($argv as $iArg => $sArg)
-		{
-			if (preg_match('/^--'.$sParamName.'=(.*)$/', $sArg, $aMatches))
-			{
-				$retValue = $aMatches[1];
-			}
-		}
+        if ($argv != false && sizeof($argv) !== 0) {
+            foreach ($argv as $iArg => $sArg) {
+                if (preg_match('/^--' . $sParamName . '=(.*)$/', $sArg, $aMatches)) {
+                    $retValue = $aMatches[1];
+                }
+            }
+        }
 		return $retValue;
 	}
 	
 	static public function ReadBooleanParameter($sParamName, $defaultValue)
-	{
-		global $argv;
-		
-		$retValue = $defaultValue;
-		foreach($argv as $iArg => $sArg)
-		{
-			if (preg_match('/^--'.$sParamName.'$/', $sArg, $aMatches))
-			{
-				$retValue = true;
-			}
-			else if(preg_match('/^--'.$sParamName.'=(.*)$/', $sArg, $aMatches))
-			{
-				$retValue = ($aMatches[1] != 0);
-			}
-		}
+    {
+        global $argv;
+
+        $retValue = $defaultValue;
+        if ($argv != false && sizeof($argv) !== 0)
+        {
+            foreach ($argv as $iArg => $sArg) {
+                if (preg_match('/^--' . $sParamName . '$/', $sArg, $aMatches)) {
+                    $retValue = true;
+                } else if (preg_match('/^--' . $sParamName . '=(.*)$/', $sArg, $aMatches)) {
+                    $retValue = ($aMatches[1] != 0);
+                }
+            }
+        }
 		return $retValue;
 	}
 	
@@ -66,30 +65,33 @@ class Utils
 		global $argv;
 		
 		$aUnknownParams = array();
-		foreach($argv as $iArg => $sArg)
-		{
-			if ($iArg == 0) continue; // Skip program name
-			if (preg_match('/^--([A-Za-z0-9_]+)$/', $sArg, $aMatches))
-			{
-				// Looks like a boolean parameter
-				if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] != 'boolean'))
-				{
-					$aUnknownParams[] = $sArg;
-				}
-			}
-			else if(preg_match('/^--([A-Za-z0-9_]+)=(.*)$/', $sArg, $aMatches))
-			{
-				// Looks like a regular parameter
-				if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] == 'boolean'))
-				{
-					$aUnknownParams[] = $sArg;
-				}
-			}
-			else
-			{
-				$aUnknownParams[] = $sArg;
-			}
-		}		
+		if ($argv !=false && sizeof($argv) !== 0)
+        {
+            foreach($argv as $iArg => $sArg)
+            {
+                if ($iArg == 0) continue; // Skip program name
+                if (preg_match('/^--([A-Za-z0-9_]+)$/', $sArg, $aMatches))
+                {
+                    // Looks like a boolean parameter
+                    if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] != 'boolean'))
+                    {
+                        $aUnknownParams[] = $sArg;
+                    }
+                }
+                else if(preg_match('/^--([A-Za-z0-9_]+)=(.*)$/', $sArg, $aMatches))
+                {
+                    // Looks like a regular parameter
+                    if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] == 'boolean'))
+                    {
+                        $aUnknownParams[] = $sArg;
+                    }
+                }
+                else
+                {
+                    $aUnknownParams[] = $sArg;
+                }
+            }
+        }
 		return $aUnknownParams;
 	}
 	/**
