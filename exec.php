@@ -29,12 +29,17 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 
-$aOptionalParams = array('configure_only' => 'boolean', 'collect_only' => 'boolean', 'synchro_only' => 'boolean', 'dump_config_only' => 'boolean', 'console_log_level' => 'integer', 'max_chunk_size' => 'integer');
+$aOptionalParams = array('configure_only' => 'boolean', 'collect_only' => 'boolean', 'synchro_only' => 'boolean', 'dump_config_only' => 'boolean', 'console_log_level' => 'integer', 'max_chunk_size' => 'integer', 'help' => 'boolean');
+$bHelp = (Utils::ReadBooleanParameter('help', false) == true);
 $aUnknownParameters = Utils::CheckParameters($aOptionalParams);
-if (count($aUnknownParameters) > 0)
+if ($bHelp || count($aUnknownParameters) > 0)
 {
-	Utils::Log(LOG_ERR, "Unknown parameter(s): ".implode(' ', $aUnknownParameters));
-	echo "Usage:\n";
+	if (!$bHelp)
+    {
+        Utils::Log(LOG_ERR, "Unknown parameter(s): ".implode(' ', $aUnknownParameters));
+    }
+
+    echo "Usage:\n";
 	echo 'php '.basename($argv[0]);
 	foreach($aOptionalParams as $sParam => $sType)
 	{
