@@ -32,7 +32,8 @@ class Utils
 		global $argv;
 		
 		$retValue = $defaultValue;
-        if ($argv != false && sizeof($argv) !== 0) {
+        if (is_array($argv))
+        {
             foreach ($argv as $iArg => $sArg) {
                 if (preg_match('/^--' . $sParamName . '=(.*)$/', $sArg, $aMatches)) {
                     $retValue = $aMatches[1];
@@ -47,7 +48,7 @@ class Utils
         global $argv;
 
         $retValue = $defaultValue;
-        if ($argv != false && sizeof($argv) !== 0)
+        if (is_array($argv))
         {
             foreach ($argv as $iArg => $sArg) {
                 if (preg_match('/^--' . $sParamName . '$/', $sArg, $aMatches)) {
@@ -65,7 +66,7 @@ class Utils
 		global $argv;
 		
 		$aUnknownParams = array();
-		if ($argv !=false && sizeof($argv) !== 0)
+        if (is_array($argv))
         {
             foreach($argv as $iArg => $sArg)
             {
@@ -349,10 +350,10 @@ class Utils
 			$fp = @fopen($sUrl, 'rb', false, $ctx);
 			if (!$fp)
 			{
-				global $php_errormsg;
-				if (isset($php_errormsg))
+				$error_arr = error_get_last();
+				if (is_array($error_arr))
 				{
-					throw new IOException("Wrong URL: $sUrl, $php_errormsg");
+					throw new IOException("Wrong URL: $sUrl, Error: ". json_encode($error_arr));
 				}
 				elseif ((strtolower(substr($sUrl, 0, 5)) == 'https') && !extension_loaded('openssl'))
 				{

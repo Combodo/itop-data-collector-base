@@ -211,7 +211,7 @@ class Orchestrator
 		}
 		$aOtherPlaceholders = Utils::GetConfigurationValue('json_placeholders', array());
 
-        if (is_array($aOtherPlaceholders) && sizeof($aOtherPlaceholders) !== 0)
+        if (is_array($aOtherPlaceholders))
         {
 		    foreach($aOtherPlaceholders as $sKey => $sValue)
             {
