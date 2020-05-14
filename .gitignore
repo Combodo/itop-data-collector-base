@@ -1,5 +1,6 @@
 .idea/*
 composer.lock
 vendor/*
-data/*
 collectors/*
+data/*.csv
+data/*.txt
