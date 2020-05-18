@@ -76,11 +76,11 @@ abstract class CSVCollector extends Collector
         Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->csv_clicommand . "]");
 
         // Read the SQL query from the configuration
-        $csvFilePath = APPROOT . Utils::GetConfigurationValue(get_class($this)."_csv", '');
+        $csvFilePath = Utils::GetConfigurationValue(get_class($this)."_csv", '');
         if ($csvFilePath == '')
         {
             // Try all lowercase
-            $csvFilePath = APPROOT . Utils::GetConfigurationValue(strtolower(get_class($this))."_csv", '');
+            $csvFilePath = Utils::GetConfigurationValue(strtolower(get_class($this))."_csv", '');
         }
         if ($csvFilePath == '')
         {
@@ -91,8 +91,12 @@ abstract class CSVCollector extends Collector
 
         if (!is_file($csvFilePath))
         {
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot find CSV file $csvFilePath");
-            return false;
+            Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file not found in [". $csvFilePath . "]");
+            $csvFilePath = APPROOT . $csvFilePath;
+            if (!is_file($csvFilePath)) {
+                Utils::Log(LOG_ERR, "[" . get_class($this) . "] Cannot find CSV file $csvFilePath");
+                return false;
+            }
         }
 
         if (!is_readable($csvFilePath))
@@ -205,7 +209,7 @@ abstract class CSVCollector extends Collector
             return false;
         }
 
-        /** NextLineObject**/ $next_line_arr = $this->get_next_line($this->idx);
+        /** NextLineObject**/ $next_line_arr = $this->get_next_line();
 
         if (! $this->columns)
         {
@@ -226,7 +230,7 @@ abstract class CSVCollector extends Collector
             $this->idx++;
         }
 
-        /** NextLineObject**/ $next_line_arr = $this->get_next_line($this->idx);
+        /** NextLineObject**/ $next_line_arr = $this->get_next_line();
         $column_size = sizeof($this->columns);
         $line_size = sizeof($next_line_arr->getValues());
         if ($column_size !== $line_size)
@@ -253,7 +257,7 @@ abstract class CSVCollector extends Collector
     }
 
     /**
-     * @return array
+     * @return NextLineObject
      */
     public function get_next_line()
     {
