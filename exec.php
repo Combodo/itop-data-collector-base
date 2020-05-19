@@ -54,6 +54,7 @@ if ($bHelp || count($aUnknownParameters) > 0)
 			break;
 		}
 	}
+	echo "\n";
 	exit(1);
 }
 	

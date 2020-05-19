@@ -72,6 +72,7 @@ class TestCsvCollector extends TestCase
     /**
      * @param bool $additional_dir
      * @dataProvider OrgCollectorProvider
+     * @throws \Exception
      */
     public function testOrgCollector($additional_dir=false)
     {
@@ -142,6 +143,9 @@ class TestCsvCollector extends TestCase
 
     /**
      * @param $error_file
+     * @param $error_msg
+     * @param bool $exception_msg
+     * @throws \Exception
      * @dataProvider ErrorFileProvider
      */
     public function testCsvErrors($error_file, $error_msg, $exception_msg=false)
