@@ -1,6 +1,9 @@
 .idea/*
 composer.lock
 vendor/*
-collectors/*
+collectors
 data/*.csv
 data/*.txt
+.buildpath
+.project
+.settings/*
