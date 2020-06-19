@@ -22,18 +22,22 @@ class LookupTable
 	protected $aData;
 	protected $aFieldsPos;
 	protected $bCaseSensitive;
+	protected $bIgnoreMappingErrors;
 
 	/**
 	 * Initialization of a LookupTable, based on an OQL query in iTop
 	 * @param string $sOQL The OQL query for the objects to integrate in the LookupTable. Format: SELECT <class>[ WHERE ...]
-	 * @param array $aKeyFields The fields of the object to use in the lookup key 
+	 * @param array $aKeyFields The fields of the object to use in the lookup key
+	 * @param bool $bCaseSensitive Is the mapping case sensitive ?
+	 * @param bool $bIgnoreMappingErrors Are mapping errors considered as "normal"? (e.g. when using the lookup table for filtering the data)
 	 * @throws Exception
 	 */
-	public function __construct($sOQL, $aKeyFields, $bCaseSensitive = true)
+	public function __construct($sOQL, $aKeyFields, $bCaseSensitive = true, $bIgnoreMappingErrors = false)
 	{
 		$this->aData =array();
 		$this->aFieldsPos =array();
 		$this->bCaseSensitive = $bCaseSensitive;
+		$this->bIgnoreMappingErrors = $bIgnoreMappingErrors;
 		
 		if(!preg_match('/^SELECT ([^ ]+)/', $sOQL, $aMatches))
 		{
@@ -137,7 +141,15 @@ class LookupTable
 			}
 			if (!array_key_exists($sLookupKey, $this->aData))
 			{
-				Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+			    if ($this->bIgnoreMappingErrors)
+			    {
+			        // Mapping *errors* are expected, just report them in debug mode 
+			        Utils::Log(LOG_DEBUG, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+			    }
+			    else
+			    {
+				    Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+			    }
 				$bRet = false;
 			}
 			else
@@ -149,7 +161,7 @@ class LookupTable
 				}
 				else
 				{
-					Utils::Log(LOG_WARNING, "'$sDestField' is not a valid colmun name in the CSV file. Mapping will be ignored.");
+					Utils::Log(LOG_WARNING, "'$sDestField' is not a valid column name in the CSV file. Mapping will be ignored.");
 				}
 			}
 		}
