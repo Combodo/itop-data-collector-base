@@ -1,4 +1,4 @@
-@Library('itop-test-infra@infralibrary') _
+@Library('itop-test-infra@burp') _
 
 def infra = new Infra()
 
