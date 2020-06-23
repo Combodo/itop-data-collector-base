@@ -1,4 +1,4 @@
-@Library('itop-test-infra@infralibrary') import *
+@Library('itop-test-infra@infralibrary') _
 
 def infra = new Infra()
 
