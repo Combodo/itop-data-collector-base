@@ -310,18 +310,50 @@ abstract class Collector
 			$this->sVersion = "1.0.0";
 		}
 	}
+	
+	/**
+	 * Inspects the definition of the Synchro Data Source to find inconsistencies
+	 * @param mixed[] $aExpectedSourceDefinition
+	 * @throws Exception
+	 * @return void
+	 */
+	protected function CheckDataSourceDefinition($aExpectedSourceDefinition)
+	{
+	    Utils::Log(LOG_DEBUG, "Checking the configuration of the data source '{$aExpectedSourceDefinition['name']}'...");
+	    
+	    // Check that there is at least 1 reconciliation key
+	    $bReconciliationKeyFound = false;
+	    foreach($aExpectedSourceDefinition['attribute_list'] as $aAttributeDef)
+	    {
+	        if ($aAttributeDef['reconcile'] == '1')
+	        {
+	            $bReconciliationKeyFound = true;
+	            break;
+	        }
+	    }
+	    if (!$bReconciliationKeyFound)
+	    {
+	        throw new InvalidConfigException("Collector::CheckDataSourceDefinition: Missing reconciliation key for data source '{$aExpectedSourceDefinition['name']}'. " .
+	           "At least one attribute in 'attribute_list' must have the flag 'reconcile' set to '1'.");
+	    }
+	    
+	    // Check the database table name for invalid characters
+	    $sDatabaseTableName = $aExpectedSourceDefinition['database_table_name'];
+	    if (!preg_match(self::TABLENAME_PATTERN, $sDatabaseTableName))
+	    {
+	        throw new InvalidConfigException("Collector::CheckDataSourceDefinition: '{$aExpectedSourceDefinition['name']}' invalid characters in database_table_name, ".
+	            "current value is '$sDatabaseTableName'");
+	    }
+	    
+	    Utils::Log(LOG_DEBUG, "The configuration of the data source '{$aExpectedSourceDefinition['name']}' looks correct.");
+	}
 
 	public function InitSynchroDataSource($aPlaceholders)
 	{
 		$bResult = true;
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition($aPlaceholders);
 		$aExpectedSourceDefinition = json_decode($sJSONSourceDefinition, true);
-
-		$sDatabaseTableName = $aExpectedSourceDefinition['database_table_name'];
-		if (!preg_match(self::TABLENAME_PATTERN, $sDatabaseTableName)) {
-			throw new InvalidConfigException("\Collector::InitSynchroDataSource : invalid characters in database_table_name, " .
-				"current value is '$sDatabaseTableName'");
-		}
+		$this->CheckDataSourceDefinition($aExpectedSourceDefinition);
 
 		$this->sSourceName = $aExpectedSourceDefinition['name'];
 		try
