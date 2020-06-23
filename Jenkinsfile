@@ -1,6 +1,6 @@
 @Library('itop-test-infra@infralibrary')
 
-def infra = new org.foo.Infra()
+def infra = new Infra()
 
 node {
   checkout scm
