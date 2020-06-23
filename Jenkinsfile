@@ -5,7 +5,7 @@ def infra
 node {
   checkout scm
 
-  infra = load '/var/lib/jenkins/workspace/itop-test-infra_infralibrary/src/infra.groovy'
+  infra = load '/var/lib/jenkins/workspace/itop-test-infra_infralibrary@2/src/infra.groovy'
 
   infra.call()
 }
