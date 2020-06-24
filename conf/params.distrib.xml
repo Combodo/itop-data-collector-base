@@ -40,9 +40,9 @@
   <!-- data_path: location where to store the temporary data (.raw and .csv files).
   Make sure that you change this value if you run several instances of the collector
   from the same location (with different configuration files).
-  You can use the placeholder $APPROOT$ to build a path relative to the location of the collector itself
+  You can use the placeholder %APPROOT% to build a path relative to the location of the collector itself
    -->
-  <data_path>$APPROOT$/data</data_path>
+  <data_path>%APPROOT%/data</data_path>
 
   <!-- Maximum number of elements to process in one iteration (for upload and synchro in iTop) -->
   <max_chunk_size>1000</max_chunk_size>

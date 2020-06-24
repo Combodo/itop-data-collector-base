@@ -296,8 +296,8 @@ class Utils
 	 */
 	static public  function GetDataFilePath($sFileName)
 	{
-	    $sPath = static::GetConfigurationValue('data-path', '$APPROOT$/data/');
-	    $sPath = str_replace('$APPROOT$', APPROOT, $sPath); // substitute the $APPROOT$ placeholder with its actual value
+	    $sPath = static::GetConfigurationValue('data_path', '%APPROOT%/data/');
+	    $sPath = str_replace('%APPROOT%', APPROOT, $sPath); // substitute the %APPROOT% placeholder with its actual value
 	    $sPath = rtrim($sPath, '/').'/'; // Make that the path ends with exactly one /
 	    if (!file_exists($sPath))
 	    {
