@@ -2,6 +2,7 @@
   <testsuites>
     <testsuite name="testsU">
       <file>./csvcollector_test.inc.php</file>
+      <file>./jsoncollector_test.inc.php</file>
     </testsuite>
   </testsuites>
 </phpunit>

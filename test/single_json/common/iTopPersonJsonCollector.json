@@ -1,0 +1,183 @@
+{
+	"name": "Persons from JSON",
+	"description": "",
+	"status": "implementation",
+	"user_id": "$synchro_user$",
+	"notify_contact_id": "$contact_to_notify$",
+	"scope_class": "Person",
+	"database_table_name": "synchro_data_person_1",
+	"scope_restriction": "",
+	"full_load_periodicity": "0",
+	"reconciliation_policy": "use_attributes",
+	"action_on_zero": "create",
+	"action_on_one": "update",
+	"action_on_multiple": "error",
+	"delete_policy": "ignore",
+	"delete_policy_update": "",
+	"delete_policy_retention": "0",
+	"attribute_list": [
+		{
+			"attcode": "cis_list",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"row_separator": "|",
+			"attribute_separator": ";",
+			"value_separator": ":",
+			"attribute_qualifier": "'",
+			"finalclass": "SynchroAttLinkSet",
+			"friendlyname": "cis_list"
+		},
+		{
+			"attcode": "civility",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "civility"
+		},
+		{
+			"attcode": "email",
+			"update": "1",
+			"reconcile": "1",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "email"
+		},
+		{
+			"attcode": "employee_number",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "employee_number"
+		},
+		{
+			"attcode": "first_name",
+			"update": "1",
+			"reconcile": "1",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "first_name"
+		},
+		{
+			"attcode": "function",
+			"update": "1",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "function"
+		},
+		{
+			"attcode": "location_id",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"reconciliation_attcode": "",
+			"finalclass": "SynchroAttExtKey",
+			"friendlyname": "location_id"
+		},
+		{
+			"attcode": "manager_id",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"reconciliation_attcode": "",
+			"finalclass": "SynchroAttExtKey",
+			"friendlyname": "manager_id"
+		},
+		{
+			"attcode": "mobile_phone",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "mobile_phone"
+		},
+		{
+			"attcode": "name",
+			"update": "1",
+			"reconcile": "1",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "name"
+		},
+		{
+			"attcode": "notify",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "notify"
+		},
+		{
+			"attcode": "org_id",
+			"update": "1",
+			"reconcile": "1",
+			"update_policy": "master_locked",
+			"reconciliation_attcode": "",
+			"finalclass": "SynchroAttExtKey",
+			"friendlyname": "org_id"
+		},
+		{
+			"attcode": "phone",
+			"update": "1",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "phone"
+		},
+		{
+			"attcode": "picture",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "picture"
+		},
+		{
+			"attcode": "projects_list",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"row_separator": "|",
+			"attribute_separator": ";",
+			"value_separator": ":",
+			"attribute_qualifier": "'",
+			"finalclass": "SynchroAttLinkSet",
+			"friendlyname": "projects_list"
+		},
+		{
+			"attcode": "status",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "status"
+		},
+		{
+			"attcode": "team_list",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"row_separator": "|",
+			"attribute_separator": ";",
+			"value_separator": ":",
+			"attribute_qualifier": "'",
+			"finalclass": "SynchroAttLinkSet",
+			"friendlyname": "team_list"
+		},
+		{
+			"attcode": "vip",
+			"update": "0",
+			"reconcile": "0",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "vip"
+		}
+	],
+	"user_delete_policy": "nobody",
+	"url_icon": "",
+	"url_application": "",
+	"notify_contact_id_obsolescence_flag": ""
+}

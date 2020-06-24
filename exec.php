@@ -28,6 +28,7 @@ require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
 require_once(APPROOT.'core/csvcollector.class.inc.php');
+require_once(APPROOT.'core/jsoncollectorclass.inc.php');
 
 $aOptionalParams = array('configure_only' => 'boolean', 'collect_only' => 'boolean', 'synchro_only' => 'boolean', 'dump_config_only' => 'boolean', 'console_log_level' => 'integer', 'max_chunk_size' => 'integer', 'help' => 'boolean');
 $bHelp = (Utils::ReadBooleanParameter('help', false) == true);

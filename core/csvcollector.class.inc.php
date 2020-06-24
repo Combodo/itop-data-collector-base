@@ -117,7 +117,7 @@ abstract class CSVCollector extends Collector
         }
 
         while (($line = fgets($handle)) !== false) {
-            $this->csv_lines[] = rtrim(iconv($this->csv_encoding,$this->GetCharset(), $line), "\n");
+            $this->csv_lines[] = rtrim(iconv($this->csv_encoding,$this->GetCharset(), $line), "\n\r");
         }
 
         fclose($handle);
