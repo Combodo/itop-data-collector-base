@@ -11,7 +11,7 @@ pipeline {
     stage('phpunit tests') {
       steps {
         script {
-              sh 'mkdir logs/phpunit_results.xml'
+              sh 'mkdir logs'
               sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
           }
       }
