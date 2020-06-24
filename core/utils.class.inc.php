@@ -95,6 +95,7 @@ class Utils
         }
 		return $aUnknownParams;
 	}
+
 	/**
 	 * Logs a message to the centralized log for the application, with the given priority
 	 * 
