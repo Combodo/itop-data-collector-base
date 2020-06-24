@@ -181,18 +181,14 @@ class Utils
 		self::$oConfig = new Parameters(CONF_DIR.'params.distrib.xml');
 		if (file_exists(APPROOT.'collectors/params.distrib.xml'))
 		{
-			self::$aConfigFiles[] = APPROOT.'collectors/params.distrib.xml';
-			$oLocalConfig = new Parameters(APPROOT.'collectors/params.distrib.xml');
-			self::$oConfig->Merge($oLocalConfig);
+		    self::MergeConfFile(APPROOT.'collectors/params.distrib.xml');
 		}
 		if ($sCustomConfigFile !== null)
 		{
 		    // A custom config file was supplied on the command line
 		    if (file_exists($sCustomConfigFile))
 		    {
-		        self::$aConfigFiles[] = $sCustomConfigFile;
-		        $oLocalConfig = new Parameters($sCustomConfigFile);
-    		    self::$oConfig->Merge($oLocalConfig);
+                self::MergeConfFile($sCustomConfigFile);
 		    }
 		    else
 		    {
@@ -201,12 +197,17 @@ class Utils
 		}
 		else if (file_exists(CONF_DIR.'params.local.xml'))
 		{
-			self::$aConfigFiles[] = CONF_DIR.'params.local.xml';
-			$oLocalConfig = new Parameters(CONF_DIR.'params.local.xml');
-			self::$oConfig->Merge($oLocalConfig);
+            self::MergeConfFile(CONF_DIR.'params.local.xml');
 		}
 		return self::$oConfig;
 	}
+
+    static private function MergeConfFile($sFilePath)
+    {
+        self::$aConfigFiles[] = $sFilePath;
+        $oLocalConfig = new Parameters($sFilePath);
+        self::$oConfig->Merge($oLocalConfig);
+    }
 	
 	/**
 	 * Get the value of a configuration parameter
