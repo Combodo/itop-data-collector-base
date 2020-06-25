@@ -14,7 +14,7 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
-require_once(APPROOT.'collectors/iTopPersonJsonCollector.php');
+require_once(APPROOT.'collectors/ITopPersonJsonCollector.php');
 
 
 // Register the collectors (one collector class per data synchro task to run)

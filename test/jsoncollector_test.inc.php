@@ -130,7 +130,7 @@ class TestJsonCollector extends TestCase
         $this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$additional_dir);
 
         require_once TestJsonCollector::$COLLECTOR_PATH . "ITopPersonJsonCollector.class.inc.php";
-        $orgCollector = new \iTopPersonJsonCollector();
+        $orgCollector = new \ITopPersonJsonCollector();
         \Utils::LoadConfig();
 
         if ($exception_msg3) {
