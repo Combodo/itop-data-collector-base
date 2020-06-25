@@ -134,7 +134,7 @@ class TestJsonCollector extends TestCase
         \Utils::LoadConfig();
 
         if ($exception_msg3) {
-            $this->mocked_logger->expects($this->exactly(2))
+            $this->mocked_logger->expects($this->exactly(3))
                 ->method("Log")
                 ->withConsecutive(array(LOG_ERR, $error_msg), array(LOG_ERR, $exception_msg), array(LOG_ERR, $exception_msg3));
         }
@@ -167,7 +167,7 @@ class TestJsonCollector extends TestCase
         return array(
             "error_json_1" => array("error_json_1","[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.","ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file."),
             "error_json_2" => array("error_json_2","ITopPersonJsonCollector::Collect() got an exception: Undefined index: blop",""),
-            "error_json_3" => array("error_json_3",'[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'\collectors\dataTest.json\'. Reason: Syntax error',"ITopPersonJsonCollector::Prepare() returned false"),
+            "error_json_3" => array("error_json_3",'[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'/collectors/dataTest.json\'. Reason: Syntax error',"ITopPersonJsonCollector::Prepare() returned false"),
         );
     }
 }
