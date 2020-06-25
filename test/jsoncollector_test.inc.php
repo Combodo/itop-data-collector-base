@@ -68,7 +68,18 @@ class TestJsonCollector extends TestCase
             }
         }
     }
+    /*
+     * @param string $initDir initial directory of file params.distrib.xml
+     */
+    private function replaceTranslateRelativePathInParam($initDir)
+    {
+        $sContent = str_replace("APPROOT", APPROOT, file_get_contents(APPROOT . $initDir."/params.distrib.xml"));
+        print_r($sContent);
+        $oHandle = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
+        fwrite($oHandle, $sContent);
+        fclose($oHandle);
 
+    }
     /**
      * @param bool $additional_dir
      * @dataProvider OrgCollectorProvider
@@ -78,6 +89,7 @@ class TestJsonCollector extends TestCase
     {
         $this->copy(APPROOT . "/test/single_json/common/*");
         $this->copy(APPROOT . "/test/single_json/".$additional_dir."/*");
+        $this->replaceTranslateRelativePathInParam("/test/single_json/".$additional_dir);
 
         require_once TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.class.inc.php";
 
@@ -110,16 +122,23 @@ class TestJsonCollector extends TestCase
      * @throws \Exception
      * @dataProvider ErrorFileProvider
      */
-    public function testJsonErrors($additional_dir, $error_msg, $exception_msg=false)
+    public function testJsonErrors($additional_dir, $error_msg, $exception_msg=false, $exception_msg3=false)
     {
         $this->copy(APPROOT . "/test/single_json/common/*");
         $this->copy(APPROOT . "/test/single_json/json_error/".$additional_dir."/*");
+
+        $this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$additional_dir);
 
         require_once TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.class.inc.php";
         $orgCollector = new \iTopPersonJsonCollector();
         \Utils::LoadConfig();
 
-        if ($exception_msg) {
+        if ($exception_msg3) {
+            $this->mocked_logger->expects($this->exactly(2))
+                ->method("Log")
+                ->withConsecutive(array(LOG_ERR, $error_msg), array(LOG_ERR, $exception_msg), array(LOG_ERR, $exception_msg3));
+        }
+        elseif ($exception_msg) {
             $this->mocked_logger->expects($this->exactly(2))
                 ->method("Log")
                 ->withConsecutive(array(LOG_ERR, $error_msg), array(LOG_ERR, $exception_msg));
@@ -146,9 +165,9 @@ class TestJsonCollector extends TestCase
     public function ErrorFileProvider()
     {
         return array(
-            "format_json_1" => array("format_json_1","[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.","ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file."),
-            "format_json_2" => array("format_json_2","ITopPersonJsonCollector::Collect() got an exception: Undefined index: blop",""),
-            "format_json_3" => array("format_json_3",'[ITopPersonJsonCollector] Failed to translate data from JSON file: \'C:\gitRepo\iTopCollector\itop-data-collector-base\collectors\dataTest.json\'. Reason: Syntax error',"ITopPersonJsonCollector::Prepare() returned false"),
+            "error_json_1" => array("error_json_1","[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.","ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file."),
+            "error_json_2" => array("error_json_2","ITopPersonJsonCollector::Collect() got an exception: Undefined index: blop",""),
+            "error_json_3" => array("error_json_3",'[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'\collectors\dataTest.json\'. Reason: Syntax error',"ITopPersonJsonCollector::Prepare() returned false"),
         );
     }
 }

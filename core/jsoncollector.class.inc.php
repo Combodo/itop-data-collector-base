@@ -283,7 +283,7 @@ abstract class JsonCollector extends Collector
         }
         $isTrueUrl = true;
         if ($this->sURL == '') {
-            Utils::Log(LOG_INFO, "Ll");
+            Utils::Log(LOG_INFO, "URL way");
             $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonway", '');
             if ($this->sURL == '') {
                 // Try all lowercase
@@ -294,6 +294,7 @@ abstract class JsonCollector extends Collector
                 $isTrueUrl = false;
             }
         }
+        Utils::Log(LOG_INFO, "URL:".$this->sURL);
         return $isTrueUrl;
     }
 }
