@@ -97,62 +97,26 @@ class TestJsonCollector extends TestCase
    public function OrgCollectorProvider()
     {
         return array(
-            "rest" => array("rest"),
-            "url" => array("url"),
+            "format_json_1" => array("format_json_1"),
+            "format_json_2" => array("format_json_2"),
+            "format_json_3" => array("format_json_3"),
         );
     }
 
-    public function testAbsolutePath()
-    {
-        $this->copy(APPROOT . "/test/single_json/common/*");
-        $sTargetDir = tempnam(sys_get_temp_dir(), 'build-');
-        @unlink($sTargetDir);
-        mkdir($sTargetDir);
-        $sTargetDir = realpath($sTargetDir);
-        $sContent = str_replace("TMPDIR", $sTargetDir, file_get_contents(APPROOT . "/test/single_json/absolute_path/params.distrib.xml"));
-        $oHandle = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
-        fwrite($oHandle, $sContent);
-        fclose($oHandle);
-
-        $sJsonFile = dirname(__FILE__) . "/single_json/absolute_path/dataTest.json";
-        if (is_file($sJsonFile))
-        {
-            copy($sJsonFile, $sTargetDir . "/iTopPersonJsonCollector.csv");
-        }
-        else
-        {
-            throw new \Exception("Cannot find $sJsonFile file");
-        }
-
-        require_once TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.class.inc.php";
-
-        $this->mocked_logger->expects($this->exactly(0))
-            ->method("Log");
-
-        $orgCollector = new \ITopPersonJsonCollector();
-        \Utils::LoadConfig();
-
-        $this->assertTrue($orgCollector->Collect());
-
-        $expected_content = file_get_contents(dirname(__FILE__) . "/single_json/common/expected_generated.csv");
-
-        $this->assertEquals($expected_content, file_get_contents(APPROOT . "/data/iTopPersonJsonCollector-1.csv"));
-    }
-
     /**
-     * @param $error_file
+     * @param $additional_dir
      * @param $error_msg
      * @param bool $exception_msg
      * @throws \Exception
      * @dataProvider ErrorFileProvider
      */
-    public function testJsonErrors($error_file, $error_msg, $exception_msg=false)
+    public function testJsonErrors($additional_dir, $error_msg, $exception_msg=false)
     {
         $this->copy(APPROOT . "/test/single_json/common/*");
-        copy(APPROOT . "/test/single_json/json_errors/$error_file", TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.csv");
+        $this->copy(APPROOT . "/test/single_json/json_error/".$additional_dir."/*");
 
         require_once TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.class.inc.php";
-        $orgCollector = new \iTopPersonJsonoCollector();
+        $orgCollector = new \iTopPersonJsonCollector();
         \Utils::LoadConfig();
 
         if ($exception_msg) {
@@ -160,27 +124,31 @@ class TestJsonCollector extends TestCase
                 ->method("Log")
                 ->withConsecutive(array(LOG_ERR, $error_msg), array(LOG_ERR, $exception_msg));
         }
-        else{
+        elseif ($error_msg) {
+            $this->mocked_logger->expects($this->exactly(1))
+                ->method("Log")
+                ->withConsecutive(array(LOG_ERR, $error_msg));
+        }
+        else {
             $this->mocked_logger->expects($this->exactly(0))
                 ->method("Log");
         }
         try{
             $res = $orgCollector->Collect();
 
-            $this->assertEquals($exception_msg ? false : true, $res);
+            $this->assertEquals($error_msg ? false : true, $res);
         }
         catch(Exception $e){
-            $this->assertEquals($exception_msg, $e->getMessage());
+             $this->assertEquals($exception_msg, $e->getMessage());
         }
     }
 
     public function ErrorFileProvider()
     {
         return array(
-            "wrong number of line" => array("wrongnumber_columns_inaline.json", "[iTopPersonJsonCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa", 'iTopPersonJsonCollector::Collect() got an exception: Invalid JSON file.'),
-            "no primary key" => array("no_primarykey.csv", "[iTopPersonJsonCollector] The mandatory column \"primary_key\" is missing from the json.", 'iTopPersonJsonCollector::Collect() got an exception: Missing columns in the JSON file.'),
-            "no email" => array("no_email.csv", "[iTopPersonJsonCollector] The column \"email\", used for reconciliation, is missing from the json.", "iTopPersonJsonCollector::Collect() got an exception: Missing columns in the JSON file."),
-            "OK" => array("../nominal/iTopPersonJsonCollector.csv", "")
+            "format_json_1" => array("format_json_1","[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.","ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file."),
+            "format_json_2" => array("format_json_2","ITopPersonJsonCollector::Collect() got an exception: Undefined index: blop",""),
+            "format_json_3" => array("format_json_3",'[ITopPersonJsonCollector] Failed to translate data from JSON file: \'C:\gitRepo\iTopCollector\itop-data-collector-base\collectors\dataTest.json\'. Reason: Syntax error',"ITopPersonJsonCollector::Prepare() returned false"),
         );
     }
 }

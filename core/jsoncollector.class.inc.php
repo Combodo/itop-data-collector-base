@@ -46,62 +46,17 @@ abstract class JsonCollector extends Collector
         $bRet = parent::Prepare();
         if (!$bRet) return false;
 
-        // Read the SQL query from the configuration
-        $this->sURL = Utils::GetConfigurationValue(get_class($this)."_jsonurl", '');
-        if ($this->sURL == '')
-        {
-            // Try all lowercase
-            $this->sURL = Utils::GetConfigurationValue(strtolower(get_class($this))."_jsonurl", '');
-        }
-        $isTrueUrl=true;
-        if ($this->sURL == '') {
-            Utils::Log(LOG_INFO, "Ll");
-            $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonway", '');
-            if ($this->sURL == '')
-            {
-                // Try all lowercase
-                $this->sURL = Utils::GetConfigurationValue(strtolower(get_class($this))."_jsonway", '');
-            }
-            if ($this->sURL != '')
-            {
-                Utils::Log(LOG_INFO, "false");
-                $isTrueUrl=false;
-            }
-        }
+        $isTrueUrl = $this->GetUrl();
+        Utils::Log(LOG_DEBUG,"sURL". $this->sURL);
+
         if ($this->sURL == '')
         {
             // No query at all !!
             Utils::Log(LOG_ERR, "[".get_class($this)."] no json URL or way configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_jsonurl' or '".strtolower(get_class($this))."_jsonway' in the configuration file.");
             return false;
         }
-        if ($isTrueUrl) {
-            $aDataGet = Utils::GetConfigurationValue(strtolower(get_class($this)) . '_jsonpost', array());
-            Utils::Log(LOG_INFO, "Uploading data file " . json_encode($aDataGet));
-            $iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
-            $aResponseHeaders = null;
-
-            $aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
-            $aCurlOptions = array();
-            foreach ($aRawCurlOptions as $key => $value) {
-                // Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-                $iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
-                $iValue = (!is_numeric($value)) ? constant((string)$value) : (int)$value;
-                $aCurlOptions[$iKey] = $iValue;
-            }
-            $aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
-            $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
-
-            //logs
-            Utils::Log(LOG_INFO, "synchro url: " . $this->sURL);
-            Utils::Log(LOG_INFO, "synchro aDataGet: " . json_encode($aDataGet));
-            $this->oFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, null, $aResponseHeaders, $aCurlOptions);
-            Utils::Log(LOG_INFO, "synchro oFileJson: " . $this->oFileJson);
-        }
-        else
-        {
-            $this->oFileJson = file_get_contents($this->sURL);
-        }
+        $this->GetJsonFile($isTrueUrl);
         /*************************************/
         if ($this->oFileJson === false)
         {
@@ -112,8 +67,8 @@ abstract class JsonCollector extends Collector
         $this->aJson = json_decode($this->oFileJson, true);
         if ($this->aJson == null)
         {
-            $aInfo = $this->oFileJson->errorInfo();
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to translate data from JSON file: '$this->sURL'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+            $aInfo = json_last_error();
+            Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to translate data from JSON file: '$this->sURL'. Reason: ".json_last_error_msg());
             return false;
         }
         $aWay=explode ( '/' , Utils::GetConfigurationValue(strtolower(get_class($this))."_way", ''));
@@ -278,5 +233,67 @@ abstract class JsonCollector extends Collector
 
         }
         return $aRet;
+    }
+
+    /**
+     * @param $isTrueUrl
+     * @return |null
+     * @throws Exception
+     */
+    public function GetJsonFile($isTrueUrl)
+    {
+        Utils::Log(LOG_INFO, "GetJsonFile isTrueUrl=".$isTrueUrl);
+        Utils::Log(LOG_INFO, "GetJsonFile URL=".$this->sURL);
+        if ($isTrueUrl) {
+            $aDataGet = Utils::GetConfigurationValue(strtolower(get_class($this)) . '_jsonpost', array());
+            Utils::Log(LOG_INFO, "Uploading data file " . json_encode($aDataGet));
+            $iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
+
+            $aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+            $aCurlOptions = array();
+            foreach ($aRawCurlOptions as $key => $value) {
+                // Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+                $iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
+                $iValue = (!is_numeric($value)) ? constant((string)$value) : (int)$value;
+                $aCurlOptions[$iKey] = $iValue;
+            }
+            $aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
+            $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
+
+            //logs
+            Utils::Log(LOG_INFO, "synchro url: " . $this->sURL);
+            Utils::Log(LOG_INFO, "synchro aDataGet: " . json_encode($aDataGet));
+            $this->oFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, null, $aResponseHeaders, $aCurlOptions);
+            Utils::Log(LOG_INFO, "synchro oFileJson: " . $this->oFileJson);
+        } else {
+            $this->oFileJson = file_get_contents($this->sURL);
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function GetUrl()
+    {
+// Read the URL from the configuration
+        $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonurl", '');
+        if ($this->sURL == '') {
+            // Try all lowercase
+            $this->sURL = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_jsonurl", '');
+        }
+        $isTrueUrl = true;
+        if ($this->sURL == '') {
+            Utils::Log(LOG_INFO, "Ll");
+            $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonway", '');
+            if ($this->sURL == '') {
+                // Try all lowercase
+                $this->sURL = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_jsonway", '');
+            }
+            if ($this->sURL != '') {
+                Utils::Log(LOG_INFO, "false");
+                $isTrueUrl = false;
+            }
+        }
+        return $isTrueUrl;
     }
 }
