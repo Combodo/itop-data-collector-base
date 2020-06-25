@@ -103,7 +103,7 @@ class TestJsonCollector extends TestCase
 
         $expected_content = file_get_contents(TestJsonCollector::$COLLECTOR_PATH ."expected_generated.csv");
 
-        $this->assertEquals($expected_content, file_get_contents(APPROOT . "/data/iTopPersonJsonCollector-1.csv"));
+        $this->assertEquals($expected_content, file_get_contents(APPROOT . "/data/ITopPersonJsonCollector-1.csv"));
     }
 
    public function OrgCollectorProvider()
