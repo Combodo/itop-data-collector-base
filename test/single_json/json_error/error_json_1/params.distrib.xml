@@ -27,6 +27,6 @@
 		<users_data_table></users_data_table>
 		 -->
 		<prefix>$prefix$</prefix>
-		<persons_data_table>synchro_data_person</persons_data_table>
+		<persons_data_table>synchro_data_person_1</persons_data_table>
 	</json_placeholders>
 </parameters>
