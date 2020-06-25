@@ -91,7 +91,7 @@ class TestJsonCollector extends TestCase
         $this->copy(APPROOT . "/test/single_json/".$additional_dir."/*");
         $this->replaceTranslateRelativePathInParam("/test/single_json/".$additional_dir);
 
-        require_once TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.class.inc.php";
+        require_once TestJsonCollector::$COLLECTOR_PATH . "ITopPersonJsonCollector.class.inc.php";
 
         $this->mocked_logger->expects($this->exactly(0))
             ->method("Log");
@@ -129,7 +129,7 @@ class TestJsonCollector extends TestCase
 
         $this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$additional_dir);
 
-        require_once TestJsonCollector::$COLLECTOR_PATH . "iTopPersonJsonCollector.class.inc.php";
+        require_once TestJsonCollector::$COLLECTOR_PATH . "ITopPersonJsonCollector.class.inc.php";
         $orgCollector = new \iTopPersonJsonCollector();
         \Utils::LoadConfig();
 
