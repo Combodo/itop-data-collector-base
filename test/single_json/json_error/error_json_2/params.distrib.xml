@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml in the conf folder instead -->
 <parameters>
-	<itoppersonjsoncollector_jsonway>APPROOT/collectors/dataTest.json</itoppersonjsoncollector_jsonway>
+	<itoppersonjsoncollector_jsonfile>APPROOT/collectors/dataTest.json</itoppersonjsoncollector_jsonfile>
 	<itoppersonjsoncollector_way>objects/*/blop</itoppersonjsoncollector_way>
-	<itoppersonjsoncollector_list>array</itoppersonjsoncollector_list>
 	<itoppersonjsoncollector_fields>
 		<primary_key>key</primary_key>
 		<name>name</name>

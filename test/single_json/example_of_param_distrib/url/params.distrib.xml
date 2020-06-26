@@ -3,7 +3,6 @@
 <parameters>
 	<itoppersonjsoncollector_jsonurl>https://localhost/itopextension/itop-data-collector-json/dataTest.json</itoppersonjsoncollector_jsonurl>
 	<itoppersonjsoncollector_way>objects</itoppersonjsoncollector_way>
-	<itoppersonjsoncollector_list>array</itoppersonjsoncollector_list>
 	<itoppersonjsoncollector_fields>
 		<primary_key>key</primary_key>
 		<name>name</name>

@@ -9,7 +9,6 @@
 		<version>1.3</version>
 	</itoppersonjsoncollector_jsonpost>
 	<itoppersonjsoncollector_way>objects/*/fields</itoppersonjsoncollector_way>
-	<itoppersonjsoncollector_list>array</itoppersonjsoncollector_list>
 	<itoppersonjsoncollector_fields>
 		<primary_key>id</primary_key>
 		<name>name</name>

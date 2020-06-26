@@ -20,9 +20,9 @@ abstract class JsonCollector extends Collector
     protected $oFileJson;
     protected $aJson;
     protected $sURL;
-    protected $bTT;
     protected $aJsonKey;
     protected $aFieldsKey;
+    protected $json_clicommand;
 
     /**
      * Initalization
@@ -33,7 +33,6 @@ abstract class JsonCollector extends Collector
         $this->oFileJson = null;
         $this->sURL = null;
         $this->aJson = null;
-        $this->bTT = false;
         $this->aFieldsKey = null;
     }
 
@@ -46,14 +45,28 @@ abstract class JsonCollector extends Collector
         $bRet = parent::Prepare();
         if (!$bRet) return false;
 
+        $this->json_clicommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
+        if ($this->json_clicommand == '')
+        {
+            // Try all lowercase
+            $this->json_clicommand = Utils::GetConfigurationValue(strtolower(get_class($this))."_command", '');
+        }
+        Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->json_clicommand . "]");
+
         $isTrueUrl = $this->GetUrl();
         Utils::Log(LOG_DEBUG,"sURL". $this->sURL);
 
         if ($this->sURL == '')
         {
             // No query at all !!
-            Utils::Log(LOG_ERR, "[".get_class($this)."] no json URL or way configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_jsonurl' or '".strtolower(get_class($this))."_jsonway' in the configuration file.");
+            Utils::Log(LOG_ERR, "[".get_class($this)."] no json URL or way configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_jsonurl' or '".strtolower(get_class($this))."_jsonfile' in the configuration file.");
             return false;
+        }
+
+        //execute cmd before get the json
+        if (!empty($this->json_clicommand))
+        {
+            $this->Exec($this->json_clicommand);
         }
 
         $this->GetJsonFile($isTrueUrl);
@@ -284,10 +297,10 @@ abstract class JsonCollector extends Collector
         $isTrueUrl = true;
         if ($this->sURL == '') {
             Utils::Log(LOG_INFO, "URL way");
-            $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonway", '');
+            $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonfile", '');
             if ($this->sURL == '') {
                 // Try all lowercase
-                $this->sURL = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_jsonway", '');
+                $this->sURL = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_jsonfile", '');
             }
             if ($this->sURL != '') {
                 Utils::Log(LOG_INFO, "false");
