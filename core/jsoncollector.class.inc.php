@@ -143,7 +143,7 @@ abstract class JsonCollector extends Collector
         $this->aJson = json_decode($this->oFileJson, true);
         if ($this->aJson == null) {
             $aInfo = json_last_error();
-            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Failed to translate data from JSON file: '$this->sURL'. Reason: " . json_last_error_msg());
+            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Failed to translate data from JSON file: '". $this->sURL . $this->sPath ."'. Reason: " . json_last_error_msg());
             return false;
         }
         
