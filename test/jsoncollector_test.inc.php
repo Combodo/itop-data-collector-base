@@ -14,29 +14,29 @@ require_once(APPROOT.'core/ioexception.class.inc.php');
 
 class TestJsonCollector extends TestCase
 {
-    private static $COLLECTOR_PATH = APPROOT . "/collectors/";
-    private $mocked_logger;
+    private static $sCollectorPath = APPROOT . "/collectors/";
+    private $oMockedLogger;
 
     public function setUp()
     {
         parent::setUp();
 
-        $collector_files = glob(TestJsonCollector::$COLLECTOR_PATH . "*");
-        foreach ($collector_files as $file)
+        $aCollectorFiles = glob(TestJsonCollector::$sCollectorPath . "*");
+        foreach ($aCollectorFiles as $file)
         {
             unlink($file);
         }
 
-        $this->mocked_logger = $this->createMock("UtilsLogger");
-        \Utils::mock_log($this->mocked_logger);
+        $this->oMockedLogger = $this->createMock("UtilsLogger");
+        \Utils::mock_log($this->oMockedLogger);
 
     }
 
     public function tearDown()
     {
         parent::tearDown();
-        $collector_files = glob(TestJsonCollector::$COLLECTOR_PATH . "*");
-        foreach ($collector_files as $file)
+        $aCollectorFiles = glob(TestJsonCollector::$sCollectorPath . "*");
+        foreach ($aCollectorFiles as $file)
         {
             unlink($file);
         }
@@ -48,22 +48,22 @@ class TestJsonCollector extends TestCase
         $this->assertTrue(is_a(new \IOException(""), "IOException"));
     }
 
-    private function copy($pattern)
+    private function copy($sPattern)
     {
-        if (! is_dir(TestJsonCollector::$COLLECTOR_PATH))
+        if (! is_dir(TestJsonCollector::$sCollectorPath))
         {
-            mkdir(TestJsonCollector::$COLLECTOR_PATH);
+            mkdir(TestJsonCollector::$sCollectorPath);
         }
 
-        $files = glob($pattern);
-        foreach ($files as $file)
+        $aFiles = glob($sPattern);
+        foreach ($aFiles as $file)
         {
             if (is_file($file))
             {
-                $bRes = copy($file, TestJsonCollector::$COLLECTOR_PATH . basename($file));
+                $bRes = copy($file, TestJsonCollector::$sCollectorPath . basename($file));
                 if (!$bRes)
                 {
-                    throw new \Exception("Failed copying $file to " . TestJsonCollector::$COLLECTOR_PATH . basename($file));
+                    throw new \Exception("Failed copying $file to " . TestJsonCollector::COLLECTOR_PATH . basename($file));
                 }
             }
         }
@@ -75,25 +75,25 @@ class TestJsonCollector extends TestCase
     {
         $sContent = str_replace("APPROOT", APPROOT, file_get_contents(APPROOT . $initDir."/params.distrib.xml"));
         print_r($sContent);
-        $oHandle = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
-        fwrite($oHandle, $sContent);
-        fclose($oHandle);
+        $hHandle  = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
+        fwrite($hHandle , $sContent);
+        fclose($hHandle );
 
     }
     /**
-     * @param bool $additional_dir
+     * @param bool $bAdditionalDir
      * @dataProvider OrgCollectorProvider
      * @throws \Exception
      */
-    public function testOrgCollector($additional_dir=false)
+    public function testOrgCollector($sAdditionalDir='')
     {
         $this->copy(APPROOT . "/test/single_json/common/*");
-        $this->copy(APPROOT . "/test/single_json/".$additional_dir."/*");
-        $this->replaceTranslateRelativePathInParam("/test/single_json/".$additional_dir);
+        $this->copy(APPROOT . "/test/single_json/".$sAdditionalDir."/*");
+        $this->replaceTranslateRelativePathInParam("/test/single_json/".$sAdditionalDir);
 
-        require_once TestJsonCollector::$COLLECTOR_PATH . "ITopPersonJsonCollector.class.inc.php";
+        require_once TestJsonCollector::$sCollectorPath . "ITopPersonJsonCollector.class.inc.php";
 
-        $this->mocked_logger->expects($this->exactly(0))
+        $this->oMockedLogger->expects($this->exactly(0))
             ->method("Log");
 
         $orgCollector = new \ITopPersonJsonCollector();
@@ -101,9 +101,9 @@ class TestJsonCollector extends TestCase
 
         $this->assertTrue($orgCollector->Collect());
 
-        $expected_content = file_get_contents(TestJsonCollector::$COLLECTOR_PATH ."expected_generated.csv");
+        $sExpected_content = file_get_contents(TestJsonCollector::$sCollectorPath ."expected_generated.csv");
 
-        $this->assertEquals($expected_content, file_get_contents(APPROOT . "/data/ITopPersonJsonCollector-1.csv"));
+        $this->assertEquals($sExpected_content, file_get_contents(APPROOT . "/data/ITopPersonJsonCollector-1.csv"));
     }
 
    public function OrgCollectorProvider()
@@ -122,43 +122,43 @@ class TestJsonCollector extends TestCase
      * @throws \Exception
      * @dataProvider ErrorFileProvider
      */
-    public function testJsonErrors($additional_dir, $error_msg, $exception_msg=false, $exception_msg3=false)
+    public function testJsonErrors($sAdditionalDir, $sError_msg, $sException_msg=false, $sException_msg3=false)
     {
         $this->copy(APPROOT . "/test/single_json/common/*");
-        $this->copy(APPROOT . "/test/single_json/json_error/".$additional_dir."/*");
+        $this->copy(APPROOT . "/test/single_json/json_error/".$sAdditionalDir."/*");
 
-        $this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$additional_dir);
+        $this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$sAdditionalDir);
 
-        require_once TestJsonCollector::$COLLECTOR_PATH . "ITopPersonJsonCollector.class.inc.php";
-        $orgCollector = new \ITopPersonJsonCollector();
+        require_once TestJsonCollector::$sCollectorPath . "ITopPersonJsonCollector.class.inc.php";
+        $oOrgCollector = new \ITopPersonJsonCollector();
         \Utils::LoadConfig();
 
-        if ($exception_msg3) {
-            $this->mocked_logger->expects($this->exactly(3))
+        if ($sException_msg3) {
+            $this->oMockedLogger->expects($this->exactly(3))
                 ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $error_msg), array(LOG_ERR, $exception_msg), array(LOG_ERR, $exception_msg3));
+                ->withConsecutive(array(LOG_ERR, $sError_msg), array(LOG_ERR, $sException_msg), array(LOG_ERR, $sException_msg3));
         }
-        elseif ($exception_msg) {
-            $this->mocked_logger->expects($this->exactly(2))
+        elseif ($sException_msg) {
+            $this->oMockedLogger->expects($this->exactly(2))
                 ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $error_msg), array(LOG_ERR, $exception_msg));
+                ->withConsecutive(array(LOG_ERR, $sError_msg), array(LOG_ERR, $sException_msg));
         }
-        elseif ($error_msg) {
-            $this->mocked_logger->expects($this->exactly(1))
+        elseif ($sError_msg) {
+            $this->oMockedLogger->expects($this->exactly(1))
                 ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $error_msg));
+                ->withConsecutive(array(LOG_ERR, $sError_msg));
         }
         else {
-            $this->mocked_logger->expects($this->exactly(0))
+            $this->oMockedLogger->expects($this->exactly(0))
                 ->method("Log");
         }
         try{
-            $res = $orgCollector->Collect();
+            $bResult = $oOrgCollector->Collect();
 
-            $this->assertEquals($error_msg ? false : true, $res);
+            $this->assertEquals($sError_msg ? false : true, $bResult);
         }
         catch(Exception $e){
-             $this->assertEquals($exception_msg, $e->getMessage());
+             $this->assertEquals($sException_msg, $e->getMessage());
         }
     }
 

@@ -28,11 +28,11 @@ Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
  */
 abstract class CSVCollector extends Collector
 {
-    protected $csv_lines = array();
-    protected $csv_separator ;
-    protected $csv_encoding ;
-    protected $columns;
-    protected $csv_clicommand;
+    protected $aCsvLines = array();
+    protected $sCsvSeparator ;
+    protected $sCsvEncoding ;
+    protected $aColumns;
+    protected $sCsvCliCommand;
 
     /**
 	 * Initalization
@@ -51,29 +51,29 @@ abstract class CSVCollector extends Collector
 		$bRet = parent::Prepare();
 
         // Read the SQL query from the configuration
-        $this->csv_separator = Utils::GetConfigurationValue(get_class($this)."_separator", '');
-        if ($this->csv_separator == '')
+        $this->sCsvSeparator = Utils::GetConfigurationValue(get_class($this)."_separator", '');
+        if ($this->sCsvSeparator == '')
         {
             // Try all lowercase
-            $this->csv_separator = Utils::GetConfigurationValue(strtolower(get_class($this))."_separator", ';');
+            $this->sCsvSeparator = Utils::GetConfigurationValue(strtolower(get_class($this))."_separator", ';');
         }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->csv_separator . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->sCsvSeparator . "]");
 
-        $this->csv_encoding = Utils::GetConfigurationValue(get_class($this)."_encoding", '');
-        if ($this->csv_encoding == '')
+        $this->sCsvEncoding = Utils::GetConfigurationValue(get_class($this)."_encoding", '');
+        if ($this->sCsvEncoding == '')
         {
             // Try all lowercase
-            $this->csv_encoding = Utils::GetConfigurationValue(strtolower(get_class($this))."_encoding", 'UTF-8');
+            $this->sCsvEncoding = Utils::GetConfigurationValue(strtolower(get_class($this))."_encoding", 'UTF-8');
         }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->csv_encoding . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->sCsvEncoding . "]");
 
-        $this->csv_clicommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
-        if ($this->csv_clicommand == '')
+        $this->sCsvCliCommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
+        if ($this->sCsvCliCommand == '')
         {
             // Try all lowercase
-            $this->csv_clicommand = Utils::GetConfigurationValue(strtolower(get_class($this))."_command", '');
+            $this->sCsvCliCommand = Utils::GetConfigurationValue(strtolower(get_class($this))."_command", '');
         }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->csv_clicommand . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->sCsvCliCommand . "]");
 
         // Read the SQL query from the configuration
         $csvFilePath = Utils::GetConfigurationValue(get_class($this)."_csv", '');
@@ -105,22 +105,22 @@ abstract class CSVCollector extends Collector
             return false;
         }
 
-        if (!empty($this->csv_clicommand))
+        if (!empty($this->sCsvCliCommand))
         {
-            $this->Exec($this->csv_clicommand);
+            $this->Exec($this->sCsvCliCommand);
         }
 
-        $handle = fopen($csvFilePath, "r");
-        if (!$handle) {
+        $hHandle = fopen($csvFilePath, "r");
+        if (!$hHandle) {
             Utils::Log(LOG_ERR, "[" . get_class($this) . "] Handle issue with file $csvFilePath");
             return false;
         }
 
-        while (($line = fgets($handle)) !== false) {
-            $this->csv_lines[] = rtrim(iconv($this->csv_encoding,$this->GetCharset(), $line), "\n\r");
+        while (($sLine = fgets($hHandle)) !== false) {
+            $this->aCsvLines[] = rtrim(iconv($this->sCsvEncoding,$this->GetCharset(), $sLine), "\n\r");
         }
 
-        fclose($handle);
+        fclose($hHandle);
         $this->idx = 0;
 		return $bRet;
     }
@@ -204,14 +204,14 @@ abstract class CSVCollector extends Collector
      */
     public function Fetch()
     {
-        if ($this->idx >= sizeof($this->csv_lines))
+        if ($this->idx >= sizeof($this->aCsvLines))
         {
             return false;
         }
 
         /** NextLineObject**/ $next_line_arr = $this->get_next_line();
 
-        if (! $this->columns)
+        if (! $this->aColumns)
         {
             $aChecks = $this->CheckSQLCsvHeaders($next_line_arr->getValues());
             foreach($aChecks['errors'] as $sError)
@@ -226,12 +226,12 @@ abstract class CSVCollector extends Collector
             {
                 throw new Exception("Missing columns in the CSV file.");
             }
-            $this->columns = array_merge($next_line_arr->getValues());
+            $this->aColumns = array_merge($next_line_arr->getValues());
             $this->idx++;
         }
 
         /** NextLineObject**/ $next_line_arr = $this->get_next_line();
-        $column_size = sizeof($this->columns);
+        $column_size = sizeof($this->aColumns);
         $line_size = sizeof($next_line_arr->getValues());
         if ($column_size !== $line_size)
         {
@@ -244,7 +244,7 @@ abstract class CSVCollector extends Collector
         $i=0;
         foreach ($next_line_arr->getValues() as $val)
         {
-            $column = $this->columns[$i];
+            $column = $this->aColumns[$i];
             if (!array_key_exists($column, $this->aSkippedAttributes))
             {
                 $aData[$column] = $val;
@@ -261,8 +261,8 @@ abstract class CSVCollector extends Collector
      */
     public function get_next_line()
     {
-        $csv_line = $this->csv_lines[$this->idx];
-        $aValues = explode($this->csv_separator, $csv_line);
+        $csv_line = $this->aCsvLines[$this->idx];
+        $aValues = explode($this->sCsvSeparator, $csv_line);
         return new NextLineObject($csv_line, $aValues);
     }
 }

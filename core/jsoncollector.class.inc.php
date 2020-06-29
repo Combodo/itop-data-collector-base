@@ -38,7 +38,8 @@ abstract class JsonCollector extends Collector
     protected $sPath;
     protected $aJsonKey;
     protected $aFieldsKey;
-    protected $json_clicommand;
+    protected $sJson_CliCommand;
+    protected $iIdx;
 
     /**
      * Initalization
@@ -50,6 +51,7 @@ abstract class JsonCollector extends Collector
         $this->sURL = null;
         $this->aJson = null;
         $this->aFieldsKey = null;
+        $this->iIdx=0;
     }
 
     /**
@@ -62,12 +64,12 @@ abstract class JsonCollector extends Collector
         if (!$bRet) return false;
 
         //**** step 1 : get all parameters from config file
-        $this->json_clicommand = Utils::GetConfigurationValue(get_class($this) . "_command", '');
-        if ($this->json_clicommand == '') {
+        $this->sJson_CliCommand = Utils::GetConfigurationValue(get_class($this) . "_command", '');
+        if ($this->sJson_CliCommand == '') {
             // Try all lowercase
-            $this->json_clicommand = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_command", '');
+            $this->sJson_CliCommand = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_command", '');
         }
-        Utils::Log(LOG_INFO, "[" . get_class($this) . "] CLI command used is [" . $this->json_clicommand . "]");
+        Utils::Log(LOG_INFO, "[" . get_class($this) . "] CLI command used is [" . $this->sJson_CliCommand . "]");
 
         // Read the URL or Path from the configuration
         $this->sURL = Utils::GetConfigurationValue(get_class($this) . "_jsonurl", '');
@@ -102,8 +104,8 @@ abstract class JsonCollector extends Collector
         
         //**** step 2 : get json file
         //execute cmd before get the json
-        if (!empty($this->json_clicommand)) {
-            $this->Exec($this->json_clicommand);
+        if (!empty($this->sJson_CliCommand)) {
+            $this->Exec($this->sJson_CliCommand);
         }
 
         //get Json file
@@ -182,7 +184,7 @@ abstract class JsonCollector extends Collector
         Utils::Log(LOG_DEBUG, "aJsonKey: " . json_encode($this->aJsonKey));
         Utils::Log(LOG_DEBUG, "nb of elements:" . count($this->aJson));
 
-        $this->idx = 0;
+        $this->iIdx = 0;
         return true;
     }
 
@@ -193,13 +195,13 @@ abstract class JsonCollector extends Collector
      */
     public function Fetch()
     {
-        if ($this->idx < count($this->aJson)) {
-            $aData = $this->aJson[$this->aJsonKey[$this->idx]];
+        if ($this->iIdx < count($this->aJson)) {
+            $aData = $this->aJson[$this->aJsonKey[$this->iIdx]];
             Utils::Log(LOG_DEBUG, '$aData: ' . json_encode($aData));
 
             $aCurlOptions = array();
             foreach ($aData as $key => $value) {
-                if ($this->idx == 0) {
+                if ($this->iIdx == 0) {
                     Utils::Log(LOG_DEBUG, $key . ":" . array_search($key, $this->aFieldsKey));
                 }
                 $aCurlOptions[array_search($key, $this->aFieldsKey)] = $value;
@@ -211,7 +213,7 @@ abstract class JsonCollector extends Collector
                 unset($aCurlOptions[$sCode]);
             }
 
-            if ($this->idx == 0) {
+            if ($this->iIdx == 0) {
                 $aChecks = $this->CheckJSONData($aCurlOptions);
                 foreach ($aChecks['errors'] as $sError) {
                     Utils::Log(LOG_ERR, "[" . get_class($this) . "] $sError");
@@ -223,7 +225,7 @@ abstract class JsonCollector extends Collector
                     throw new Exception("Missing columns in the Json file.");
                 }
             }
-            $this->idx++;
+            $this->iIdx++;
             return $aCurlOptions;
         }
         return false;
