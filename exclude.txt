@@ -4,3 +4,5 @@
 #
 .gitignore
 test
+composer.json
+Jenkinsfile
