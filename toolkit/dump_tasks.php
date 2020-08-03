@@ -23,6 +23,7 @@
 define('APPROOT', dirname(dirname(__FILE__)).'/');
 
 require_once(APPROOT.'core/parameters.class.inc.php');
+require_once(APPROOT.'core/ioexception.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 
