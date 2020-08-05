@@ -14,7 +14,8 @@ You are welcome to create pull requests on any of those subjects:
 * 🌐 translation / i18n / l10n
 
 If you want to implement a **new feature**, please [create a corresponding ticket](https://sourceforge.net/p/itop/tickets/new/) for review.   
-If you ever want to begin implementation, do so in a fork, and add a link to the corresponding commits in the ticket.
+If you ever want to begin implementation, do so in a fork, and add a link to the corresponding commits in the ticket. Try to address most
+ of the module's users needs !
 
 For all **security related subjects**, please see our [security policy](SECURITY.md).
 
