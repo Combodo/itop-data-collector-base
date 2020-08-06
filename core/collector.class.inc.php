@@ -271,6 +271,7 @@ abstract class Collector
 		{
 			// No module found, use a default value...
 			$this->sVersion = '1.0.0';
+			return;
 		}
 		
 		try
