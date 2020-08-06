@@ -48,7 +48,7 @@ A [dedicated page](https://www.itophub.io/wiki/page?id=latest%3Acustomization%3A
 2. Create a branch in this fork, based on the develop branch
 3. Code !
 
-Do create a dedicated branch for each modification you want to propose : if you don't it will be very hard to merge back your work !
+Do create a dedicated branch for each modification you want to propose : if you don't do it will be very hard to merge back your work !
 
 
 ### 🎨 PHP styleguide
