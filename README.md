@@ -2,7 +2,11 @@
 
 ## About
 
-This code is meant to be used with [iTop](https://github.com/Combodo/iTop).
+iTop data collectors are simple PHP command line applications to collect data from a external application and load/synchronize the information into iTop using the data synchronization mechanism built into iTop.
+
+This module is a small framework for creating your own data collectors for iTop.
+
+For more information about this module have a look at the [documentation](https://www.itophub.io/wiki/page?id=extensions%3Aitop-data-collector-base).
 
 ## Download
 
