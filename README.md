@@ -2,7 +2,8 @@
 
 ## About
 
-iTop data collectors are simple PHP command line applications to collect data from a external application and load/synchronize the information into iTop using the data synchronization mechanism built into iTop.
+iTop data collectors are simple PHP command line applications to collect data from an external application and load/synchronize the
+ information into iTop using the data synchronization mechanism built into iTop.
 
 This module is a small framework for creating your own data collectors for iTop.
 
