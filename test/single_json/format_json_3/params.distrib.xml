@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml in the conf folder instead -->
 <parameters>
-	<itoppersonjsoncollector_jsonfile>APPROOT/collectors/dataTest.json</itoppersonjsoncollector_jsonfile>
-	<itoppersonjsoncollector_way>objects/Person/blop</itoppersonjsoncollector_way>
-	<itoppersonjsoncollector_fields>
-		<primary_key>key</primary_key>
-		<name>name</name>
-		<status>status</status>
-		<first_name>first_nameyo</first_name>
-		<email>email</email>
-		<phone>phone</phone>
-		<mobile_phone>mobile</mobile_phone>
-		<function>function</function>
-		<employee_number>employeenumber</employee_number>
-		<org_id>org_id</org_id>
-	</itoppersonjsoncollector_fields>
-	<itoppersonjsoncollector_defaults>
-		<org_id>Demo</org_id>
-		<status>active</status>
-	</itoppersonjsoncollector_defaults>
+	<itoppersonjsoncollector>
+		<jsonfile>APPROOT/collectors/dataTest.json</jsonfile>
+		<path>objects/Person/blop</path>
+		<fields>
+			<primary_key>key</primary_key>
+			<name>name</name>
+			<status>status</status>
+			<first_name>first_nameyo</first_name>
+			<email>email</email>
+			<phone>phone</phone>
+			<mobile_phone>mobile</mobile_phone>
+			<function>function</function>
+			<employee_number>employeenumber</employee_number>
+			<org_id>org_id</org_id>
+		</fields>
+	</itoppersonjsoncollector>
 	<json_placeholders>
 		<!-- For compatibility with the version 1.1.x of the collector, define the data table names as following:
 		<prefix></prefix>

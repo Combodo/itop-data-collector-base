@@ -271,25 +271,27 @@ abstract class Collector
 		{
 			// No module found, use a default value...
 			$this->sVersion = '1.0.0';
+            Utils::Log(LOG_WARNING, "Please create a 'module.*.php' file in 'collectors' folder in order to define the version of collectors");
 		}
-		
-		try
+		else
 		{
-			$sModuleFileContents = file_get_contents($sModuleFile);
-			$sModuleFileContents = str_replace(array('<?php', '?>'), '', $sModuleFileContents);
-			$sModuleFileContents = str_replace('SetupWebPage::AddModule(', '$this->InitVersionCallback(', $sModuleFileContents);
-			$bRet = eval($sModuleFileContents);
-			
-			if ($bRet === false)
-			{
-				Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
-			}
-		}
-		catch(Exception $e)
-		{
-			// Continue...
-			Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: ".$e->getMessage());
-		}		
+            try
+            {
+                $sModuleFileContents = file_get_contents($sModuleFile);
+                $sModuleFileContents = str_replace(array('<?php', '?>'), '', $sModuleFileContents);
+                $sModuleFileContents = str_replace('SetupWebPage::AddModule(', '$this->InitVersionCallback(', $sModuleFileContents);
+                $bRet = eval($sModuleFileContents);
+
+                if ($bRet === false) {
+                    Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
+                }
+            }
+            catch (Exception $e)
+            {
+                // Continue...
+                Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: " . $e->getMessage());
+            }
+        }
 	}
 	
 	/**

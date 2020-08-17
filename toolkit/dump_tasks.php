@@ -98,7 +98,13 @@ else
 			// Replace some litterals by their usual placeholders
 			$aCurrentTaskDefinition['user_id'] = '$synchro_user$';
 			$aCurrentTaskDefinition['notify_contact_id'] = '$contact_to_notify$';
-			
+
+
+            if( isset($aCurrentTaskDefinition['database_table_name']))
+            {
+                $aCurrentTaskDefinition['database_table_name'] = "";
+            }
+
 			$sDefinition = json_encode($aCurrentTaskDefinition);
 			echo Utils::JSONPrettyPrint($sDefinition)."\n";
 		}

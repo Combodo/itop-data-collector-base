@@ -17,6 +17,7 @@
 define('LOG_NONE', -1);
 
 define('CONF_DIR', APPROOT.'conf/');
+require_once(APPROOT.'core/ioexception.class.inc.php');
 
 class Utils
 {
@@ -25,7 +26,7 @@ class Utils
 	static protected $oConfig = null;
 	static protected $aConfigFiles = array();
 
-    static protected $mocked_logger;
+    static protected $oMockedLogger;
 
 	static public function ReadParameter($sParamName, $defaultValue)
 	{
@@ -106,11 +107,11 @@ class Utils
 	static public function Log($iPriority, $sMessage)
 	{
         //testing only LOG_ERR
-        if (self::$mocked_logger)
+        if (self::$oMockedLogger)
         {
             if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR)
             {
-                self::$mocked_logger->Log($iPriority, $sMessage);
+                self::$oMockedLogger->Log($iPriority, $sMessage);
             }
         }
 
@@ -163,9 +164,9 @@ class Utils
 		}
 	}
 
-	static public function mock_log($mocked_logger)
+	static public function MockLog($oMockedLogger)
     {
-        self::$mocked_logger = $mocked_logger;
+        self::$oMockedLogger = $oMockedLogger;
     }
 
 	static public function LoadConfig()
@@ -275,7 +276,7 @@ class Utils
 	
 		if (function_exists('curl_init'))
 		{
-			// If cURL is available, let's use it, since it provides a greater control over the various HTTP/SSL options
+            // If cURL is available, let's use it, since it provides a greater control over the various HTTP/SSL options
 			// For instance fopen does not allow to work around the bug: http://stackoverflow.com/questions/18191672/php-curl-ssl-routinesssl23-get-server-helloreason1112
 			// by setting the SSLVERSION to 3 as done below.
 			$aHTTPHeaders = array();
@@ -317,10 +318,15 @@ class Utils
 			$iErr = curl_errno($ch);
 			$sErrMsg = curl_error( $ch );
 			$aHeaders = curl_getinfo( $ch );
-			if ($iErr !== 0)
+            Utils::Log(LOG_DEBUG, 'aHeaders'.json_encode($aHeaders));
+            if ($iErr !== 0)
 			{
 				throw new IOException("Problem opening URL: $sUrl, $sErrMsg");
 			}
+            if ( isset($aHeaders["http_code"]) && $aHeaders["http_code"] >= 400 )
+            {
+                throw new IOException("Problem opening URL: $sUrl. Code HTTP: ".$aHeaders["http_code"]);
+            }
 			if (is_array($aResponseHeaders))
 			{
 				$aHeaders = curl_getinfo($ch);
@@ -335,8 +341,7 @@ class Utils
 		else
 		{
 			// cURL is not available let's try with streams and fopen...
-				
-			$sData = http_build_query($aData);
+            $sData = http_build_query($aData);
 			$aParams = array('http' => array(
 				'method' => 'POST',
 				'content' => $sData,

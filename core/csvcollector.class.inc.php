@@ -76,32 +76,32 @@ abstract class CSVCollector extends Collector
         Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->sCsvCliCommand . "]");
 
         // Read the SQL query from the configuration
-        $csvFilePath = Utils::GetConfigurationValue(get_class($this)."_csv", '');
-        if ($csvFilePath == '')
+        $sCsvFilePath = Utils::GetConfigurationValue(get_class($this)."_csv", '');
+        if ($sCsvFilePath == '')
         {
             // Try all lowercase
-            $csvFilePath = Utils::GetConfigurationValue(strtolower(get_class($this))."_csv", '');
+            $sCsvFilePath = Utils::GetConfigurationValue(strtolower(get_class($this))."_csv", '');
         }
-        if ($csvFilePath == '')
+        if ($sCsvFilePath == '')
         {
             // No query at all !!
             Utils::Log(LOG_ERR, "[".get_class($this)."] no CSV file configured! Cannot collect data. The csv was expected to be configured as '".strtolower(get_class($this))."_csv' in the configuration file.");
             return false;
         }
 
-        if (!is_file($csvFilePath))
+        if (!is_file($sCsvFilePath))
         {
-            Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file not found in [". $csvFilePath . "]");
-            $csvFilePath = APPROOT . $csvFilePath;
-            if (!is_file($csvFilePath)) {
-                Utils::Log(LOG_ERR, "[" . get_class($this) . "] Cannot find CSV file $csvFilePath");
+            Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file not found in [". $sCsvFilePath . "]");
+            $sCsvFilePath = APPROOT . $sCsvFilePath;
+            if (!is_file($sCsvFilePath)) {
+                Utils::Log(LOG_ERR, "[" . get_class($this) . "] Cannot find CSV file $sCsvFilePath");
                 return false;
             }
         }
 
-        if (!is_readable($csvFilePath))
+        if (!is_readable($sCsvFilePath))
         {
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot read CSV file $csvFilePath");
+            Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot read CSV file $sCsvFilePath");
             return false;
         }
 
@@ -110,9 +110,9 @@ abstract class CSVCollector extends Collector
             $this->Exec($this->sCsvCliCommand);
         }
 
-        $hHandle = fopen($csvFilePath, "r");
+        $hHandle = fopen($sCsvFilePath, "r");
         if (!$hHandle) {
-            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Handle issue with file $csvFilePath");
+            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Handle issue with file $sCsvFilePath");
             return false;
         }
 
@@ -121,7 +121,7 @@ abstract class CSVCollector extends Collector
         }
 
         fclose($hHandle);
-        $this->idx = 0;
+        $this->iIdx = 0;
 		return $bRet;
     }
 
@@ -133,31 +133,31 @@ abstract class CSVCollector extends Collector
      * @return string[] - Array with keys: 'code' - exit code, 'out' - stdout, 'err' - stderr
      * @throws \Exception
      */
-    function Exec($cmd) {
+    function Exec($sCmd) {
         $iBeginTime = time();
-        $workdir = APPROOT;
-        $descriptorspec = array(
+        $sWorkDir = APPROOT;
+        $aDescriptorSpec = array(
             0 => array("pipe", "r"),  // stdin
             1 => array("pipe", "w"),  // stdout
             2 => array("pipe", "w"),  // stderr
         );
-        $process = proc_open($cmd, $descriptorspec, $pipes, $workdir, null);
+        $rProcess = proc_open($sCmd, $aDescriptorSpec, $aPipes, $sWorkDir, null);
 
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
+        $sStdOut = stream_get_contents($aPipes[1]);
+        fclose($aPipes[1]);
 
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
+        $sStdErr = stream_get_contents($aPipes[2]);
+        fclose($aPipes[2]);
 
-        $code = proc_close($process);
+        $iCode = proc_close($rProcess);
 
         $iElapsed = time() - $iBeginTime;
-        Utils::Log(LOG_INFO, "Command: $cmd. Workdir: $workdir");
-        if (0 === $code) {
-            Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $stdout");
-            return $stdout;
+        Utils::Log(LOG_INFO, "Command: $sCmd. Workdir: $sWorkDir");
+        if (0 === $iCode) {
+            Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $sStdOut");
+            return $sStdOut;
         } else {
-            throw new Exception("Command failed : $cmd \n\t\t=== with status:$code \n\t\t=== stderr:$stderr \n\t\t=== stdout: $stdout");
+            throw new Exception("Command failed : $sCmd \n\t\t=== with status:$iCode \n\t\t=== stderr:$sStdErr \n\t\t=== stdout: $sStdOut");
         }
     }
 
@@ -204,16 +204,16 @@ abstract class CSVCollector extends Collector
      */
     public function Fetch()
     {
-        if ($this->idx >= sizeof($this->aCsvLines))
+        if ($this->iIdx >= sizeof($this->aCsvLines))
         {
             return false;
         }
 
-        /** NextLineObject**/ $next_line_arr = $this->get_next_line();
+        /** NextLineObject**/ $oNextLineArr = $this->getNextLine();
 
         if (! $this->aColumns)
         {
-            $aChecks = $this->CheckSQLCsvHeaders($next_line_arr->getValues());
+            $aChecks = $this->CheckSQLCsvHeaders($oNextLineArr->getValues());
             foreach($aChecks['errors'] as $sError)
             {
                 Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
@@ -226,50 +226,50 @@ abstract class CSVCollector extends Collector
             {
                 throw new Exception("Missing columns in the CSV file.");
             }
-            $this->aColumns = array_merge($next_line_arr->getValues());
-            $this->idx++;
+            $this->aColumns = array_merge($oNextLineArr->getValues());
+            $this->iIdx++;
         }
 
-        /** NextLineObject**/ $next_line_arr = $this->get_next_line();
-        $column_size = sizeof($this->aColumns);
-        $line_size = sizeof($next_line_arr->getValues());
-        if ($column_size !== $line_size)
+        /** NextLineObject**/ $oNextLineArr = $this->getNextLine();
+        $iColumnSize = sizeof($this->aColumns);
+        $iLineSize = sizeof($oNextLineArr->getValues());
+        if ($iColumnSize !== $iLineSize)
         {
-            $line = $this->idx + 1;
-            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Wrong number of columns ($line_size) on line $line (expected $column_size columns just like in header): " . $next_line_arr->getCsvLine());
+            $line = $this->iIdx + 1;
+            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Wrong number of columns ($iLineSize) on line $line (expected $iColumnSize columns just like in header): " . $oNextLineArr->getCsvLine());
             throw new Exception("Invalid CSV file.");
         }
 
         $aData = array();
         $i=0;
-        foreach ($next_line_arr->getValues() as $val)
+        foreach ($oNextLineArr->getValues() as $sVal)
         {
             $column = $this->aColumns[$i];
             if (!array_key_exists($column, $this->aSkippedAttributes))
             {
-                $aData[$column] = $val;
+                $aData[$column] = $sVal;
             }
             $i++;
         }
 
-        $this->idx++;
+        $this->iIdx++;
         return $aData;
     }
 
     /**
      * @return NextLineObject
      */
-    public function get_next_line()
+    public function getNextLine()
     {
-        $csv_line = $this->aCsvLines[$this->idx];
-        $aValues = explode($this->sCsvSeparator, $csv_line);
-        return new NextLineObject($csv_line, $aValues);
+        $sCsvLine = $this->aCsvLines[$this->iIdx];
+        $aValues = explode($this->sCsvSeparator, $sCsvLine);
+        return new NextLineObject($sCsvLine, $aValues);
     }
 }
 
 class NextLineObject
 {
-    private $csv_line;
+    private $sCsvLine;
     private $aValues;
 
     /**
@@ -277,9 +277,9 @@ class NextLineObject
      * @param $csv_line
      * @param $aValues
      */
-    public function __construct($csv_line, $aValues)
+    public function __construct($sCsvLine, $aValues)
     {
-        $this->csv_line = $csv_line;
+        $this->sCsvLine = $sCsvLine;
         $this->aValues = $aValues;
     }
 
@@ -288,7 +288,7 @@ class NextLineObject
      */
     public function getCsvLine()
     {
-        return $this->csv_line;
+        return $this->sCsvLine;
     }
 
     /**

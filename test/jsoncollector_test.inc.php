@@ -22,13 +22,13 @@ class TestJsonCollector extends TestCase
         parent::setUp();
 
         $aCollectorFiles = glob(TestJsonCollector::$sCollectorPath . "*");
-        foreach ($aCollectorFiles as $file)
+        foreach ($aCollectorFiles as $fFile)
         {
-            unlink($file);
+            unlink($fFile);
         }
 
         $this->oMockedLogger = $this->createMock("UtilsLogger");
-        \Utils::mock_log($this->oMockedLogger);
+        \Utils::MockLog($this->oMockedLogger);
 
     }
 
@@ -56,14 +56,14 @@ class TestJsonCollector extends TestCase
         }
 
         $aFiles = glob($sPattern);
-        foreach ($aFiles as $file)
+        foreach ($aFiles as $fFile)
         {
-            if (is_file($file))
+            if (is_file($fFile))
             {
-                $bRes = copy($file, TestJsonCollector::$sCollectorPath . basename($file));
+                $bRes = copy($fFile, TestJsonCollector::$sCollectorPath . basename($fFile));
                 if (!$bRes)
                 {
-                    throw new \Exception("Failed copying $file to " . TestJsonCollector::COLLECTOR_PATH . basename($file));
+                    throw new \Exception("Failed copying $fFile to " . TestJsonCollector::COLLECTOR_PATH . basename($fFile));
                 }
             }
         }
@@ -75,9 +75,9 @@ class TestJsonCollector extends TestCase
     {
         $sContent = str_replace("APPROOT", APPROOT, file_get_contents(APPROOT . $initDir."/params.distrib.xml"));
         print_r($sContent);
-        $hHandle  = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
-        fwrite($hHandle , $sContent);
-        fclose($hHandle );
+        $rHandle  = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
+        fwrite($rHandle , $sContent);
+        fclose($rHandle );
 
     }
     /**
@@ -96,10 +96,10 @@ class TestJsonCollector extends TestCase
         $this->oMockedLogger->expects($this->exactly(0))
             ->method("Log");
 
-        $orgCollector = new \ITopPersonJsonCollector();
+        $oOrgCollector = new \ITopPersonJsonCollector();
         \Utils::LoadConfig();
 
-        $this->assertTrue($orgCollector->Collect());
+        $this->assertTrue($oOrgCollector->Collect());
 
         $sExpected_content = file_get_contents(TestJsonCollector::$sCollectorPath ."expected_generated.csv");
 
@@ -122,7 +122,7 @@ class TestJsonCollector extends TestCase
      * @throws \Exception
      * @dataProvider ErrorFileProvider
      */
-    public function testJsonErrors($sAdditionalDir, $sError_msg, $sException_msg=false, $sException_msg3=false)
+    public function testJsonErrors($sAdditionalDir, $sErrorMsg, $sExceptionMsg=false, $sExceptionMsg3=false)
     {
         $this->copy(APPROOT . "/test/single_json/common/*");
         $this->copy(APPROOT . "/test/single_json/json_error/".$sAdditionalDir."/*");
@@ -133,20 +133,20 @@ class TestJsonCollector extends TestCase
         $oOrgCollector = new \ITopPersonJsonCollector();
         \Utils::LoadConfig();
 
-        if ($sException_msg3) {
+        if ($sExceptionMsg3) {
             $this->oMockedLogger->expects($this->exactly(3))
                 ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $sError_msg), array(LOG_ERR, $sException_msg), array(LOG_ERR, $sException_msg3));
+                ->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg), array(LOG_ERR, $sExceptionMsg3));
         }
-        elseif ($sException_msg) {
+        elseif ($sExceptionMsg) {
             $this->oMockedLogger->expects($this->exactly(2))
                 ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $sError_msg), array(LOG_ERR, $sException_msg));
+                ->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
         }
-        elseif ($sError_msg) {
+        elseif ($sErrorMsg) {
             $this->oMockedLogger->expects($this->exactly(1))
                 ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $sError_msg));
+                ->withConsecutive(array(LOG_ERR, $sErrorMsg));
         }
         else {
             $this->oMockedLogger->expects($this->exactly(0))
@@ -155,10 +155,10 @@ class TestJsonCollector extends TestCase
         try{
             $bResult = $oOrgCollector->Collect();
 
-            $this->assertEquals($sError_msg ? false : true, $bResult);
+            $this->assertEquals($sErrorMsg ? false : true, $bResult);
         }
         catch(Exception $e){
-             $this->assertEquals($sException_msg, $e->getMessage());
+             $this->assertEquals($sExceptionMsg, $e->getMessage());
         }
     }
 

@@ -1,30 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml in the conf folder instead -->
 <parameters>
-	<itoppersonjsoncollector_jsonurl>https://localhost/itopextension/iTop/webservices/rest.php</itoppersonjsoncollector_jsonurl>
-	<itoppersonjsoncollector_jsonpost>
+	<itoppersonjsoncollector>
+		<jsonurl>https://localhost/itopextension/iTop/webservices/rest.php</jsonurl>
+	<jsonpost>
 		<auth_user>charlie</auth_user>
 		<auth_pwd>Charlie;charlie0</auth_pwd>
 		<json_data>{"operation": "core/get", "class": "Person", "key": "SELECT Person WHERE email LIKE '%.com'", "output_fields": "friendlyname, email, first_name, function, name, id, org_id,phone"}</json_data>
 		<version>1.3</version>
-	</itoppersonjsoncollector_jsonpost>
-	<itoppersonjsoncollector_way>objects/*/fields</itoppersonjsoncollector_way>
-	<itoppersonjsoncollector_fields>
-		<primary_key>id</primary_key>
-		<name>name</name>
-		<status>status</status>
-		<first_name>first_name</first_name>
-		<email>email</email>
-		<phone>phone</phone>
-		<mobile_phone>mobile</mobile_phone>
-		<function>function</function>
-		<employee_number>employee_number</employee_number>
-		<org_id>org_id</org_id>
-	</itoppersonjsoncollector_fields>
-	<itoppersonjsoncollector_defaults>
-		<org_id>Demo</org_id>
-		<status>active</status>
-	</itoppersonjsoncollector_defaults>
+	</jsonpost>
+	<path>objects/*/fields</path>
+		<fields>
+			<primary_key>id</primary_key>
+			<name>name</name>
+			<status>status</status>
+			<first_name>first_name</first_name>
+			<email>email</email>
+			<phone>phone</phone>
+			<mobile_phone>mobile</mobile_phone>
+			<function>function</function>
+			<employee_number>employee_number</employee_number>
+			<org_id>org_id</org_id>
+		</fields>
+		<defaults>
+			<org_id>Demo</org_id>
+			<status>active</status>
+		</defaults>
+	</itoppersonjsoncollector>
 	<json_placeholders>
 		<!-- For compatibility with the version 1.1.x of the collector, define the data table names as following:
 		<prefix></prefix>
@@ -32,6 +34,6 @@
 		<users_data_table></users_data_table>
 		 -->
 		<prefix>$prefix$</prefix>
-		<persons_data_table>synchro_data_person</persons_data_table>
+		<persons_data_table></persons_data_table>
 	</json_placeholders>
 </parameters>
