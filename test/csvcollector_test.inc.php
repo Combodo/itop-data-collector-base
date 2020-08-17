@@ -101,6 +101,10 @@ class TestCsvCollector extends TestCase
             "charset_ISO" => array("charset_ISO"),
             "separator" => array("separator"),
             "clicommand" => array("clicommand"),
+            "adding hardcoded values" => array("hardcoded_values_add"),
+            "replacing hardcoded values" => array("hardcoded_values_replace"),
+            "ignored attributes" => array("ignored_attributes"),
+            "configured header" => array("configured_header"),
         );
     }
 

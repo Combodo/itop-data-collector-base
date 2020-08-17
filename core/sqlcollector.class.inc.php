@@ -182,7 +182,6 @@ abstract class SQLCollector extends Collector
 	 */
 	public function AttributeIsOptional($sAttCode)
 	{
-		$aCollectorParams = Utils::GetConfigurationValue(get_class($this), array());
 		$aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this)."_ignored_attributes", null);
 		if ($aIgnoredAttributes === null)
 		{

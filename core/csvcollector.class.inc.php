@@ -33,6 +33,9 @@ abstract class CSVCollector extends Collector
     protected $sCsvEncoding ;
     protected $aColumns;
     protected $sCsvCliCommand;
+    protected $aAttributeValues = array();
+    protected $aIgnoredAttributes = array();
+    protected $aConfiguredHeaderColumns;
 
     /**
 	 * Initalization
@@ -66,6 +69,38 @@ abstract class CSVCollector extends Collector
             $this->sCsvEncoding = Utils::GetConfigurationValue(strtolower(get_class($this))."_encoding", 'UTF-8');
         }
         Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->sCsvEncoding . "]");
+
+        $this->aAttributeValues = Utils::GetConfigurationValue(get_class($this)."_attribute_values", null);
+        if ($this->aAttributeValues === null)
+        {
+            // Try all lowercase
+            $this->aAttributeValues = Utils::GetConfigurationValue(strtolower(get_class($this))."_attribute_values", null);
+            if ($this->aAttributeValues === null) {
+                $this->aAttributeValues = array();
+            }
+        }
+
+        $aCurrentConfiguredHeaderColumns = Utils::GetConfigurationValue(get_class($this)."_header_columns", null);
+        if ($aCurrentConfiguredHeaderColumns === null)
+        {
+            // Try all lowercase
+            $aCurrentConfiguredHeaderColumns = Utils::GetConfigurationValue(strtolower(get_class($this))."_header_columns", null);
+        }
+        if (is_array($aCurrentConfiguredHeaderColumns))
+        {
+            array_multisort($aCurrentConfiguredHeaderColumns);
+            $this->aConfiguredHeaderColumns = array_keys($aCurrentConfiguredHeaderColumns);
+        }
+
+        $this->aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this)."_ignored_attributes", null);
+        if ($this->aIgnoredAttributes === null)
+        {
+            // Try all lowercase
+            $this->aIgnoredAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_ignored_attributes", null);
+            if ($this->aIgnoredAttributes === null) {
+                $this->aIgnoredAttributes = array();
+            }
+        }
 
         $this->sCsvCliCommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
         if ($this->sCsvCliCommand == '')
@@ -162,6 +197,35 @@ abstract class CSVCollector extends Collector
     }
 
     /**
+     * Determine if a given attribute is allowed to be missing in the data datamodel.
+     *
+     * The implementation is based on a predefined configuration parameter named from the
+     * class of the collector (all lowercase) with _ignored_attributes appended.
+     *
+     * Example: here is the configuration to "ignore" the attribute 'location_id' for the class MyJSONCollector:
+     * <myjsoncollector_ignored_attributes type="array">
+     *    <attribute>location_id</attribute>
+     * </myjsoncollector_ignored_attributes>
+     * @param string $sAttCode
+     * @return boolean True if the attribute can be skipped, false otherwise
+     */
+    public function AttributeIsOptional($sAttCode)
+    {
+        $aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this) . "_ignored_attributes", null);
+        if ($aIgnoredAttributes === null)
+        {
+            // Try all lowercase
+            $aIgnoredAttributes = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_ignored_attributes", null);
+        }
+        if (is_array($aIgnoredAttributes))
+        {
+            if (in_array($sAttCode, $aIgnoredAttributes)) return true;
+        }
+
+        return parent::AttributeIsOptional($sAttCode);
+    }
+
+    /**
      * Check if the keys of the supplied hash array match the expected fields
      * @param array $aData
      * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings
@@ -176,6 +240,12 @@ abstract class CSVCollector extends Collector
         }
         foreach($this->aFields as $sCode => $aDefs)
         {
+            if (array_key_exists($sCode, $this->aAttributeValues)
+                || $this->AttributeIsOptional($sCode))
+            {
+                continue;
+            }
+
             // Check for missing columns
             if (!in_array($sCode, $aData) && $aDefs['reconcile'])
             {
@@ -213,7 +283,17 @@ abstract class CSVCollector extends Collector
 
         if (! $this->aColumns)
         {
-            $aChecks = $this->CheckSQLCsvHeaders($oNextLineArr->getValues());
+            if (is_array($this->aConfiguredHeaderColumns))
+            {
+                $aCurrentColumns = $this->aConfiguredHeaderColumns;
+            }
+            else
+            {
+                $aCurrentColumns = $oNextLineArr->getValues();
+                $this->iIdx++;
+            }
+
+            $aChecks = $this->CheckSQLCsvHeaders($aCurrentColumns);
             foreach($aChecks['errors'] as $sError)
             {
                 Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
@@ -226,8 +306,7 @@ abstract class CSVCollector extends Collector
             {
                 throw new Exception("Missing columns in the CSV file.");
             }
-            $this->aColumns = array_merge($oNextLineArr->getValues());
-            $this->iIdx++;
+            $this->aColumns = array_merge($aCurrentColumns);
         }
 
         /** NextLineObject**/ $oNextLineArr = $this->getNextLine();
@@ -245,13 +324,25 @@ abstract class CSVCollector extends Collector
         foreach ($oNextLineArr->getValues() as $sVal)
         {
             $column = $this->aColumns[$i];
-            if (!array_key_exists($column, $this->aSkippedAttributes))
+            if (array_key_exists($column, $this->aAttributeValues))
+            {
+                $aData[$column] = $this->aAttributeValues[$column];
+            }
+            else if (!array_key_exists($column, $this->aSkippedAttributes))
             {
                 $aData[$column] = $sVal;
             }
             $i++;
         }
 
+        foreach ($this->aAttributeValues as $sAttributeId => $sAttributeValue)
+        {
+            if (!array_key_exists($sAttributeId, $aData))
+            {
+                $aData[$sAttributeId] = $sAttributeValue;
+            }
+        }
+        
         $this->iIdx++;
         return $aData;
     }

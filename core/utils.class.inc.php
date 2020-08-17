@@ -164,9 +164,9 @@ class Utils
 		}
 	}
 
-	static public function MockLog($oMockedLogger)
+	static public function MockLog($MockedLogger)
     {
-        self::$oMockedLogger = $oMockedLogger;
+        self::$oMockedLogger = $MockedLogger;
     }
 
 	static public function LoadConfig()
@@ -276,7 +276,7 @@ class Utils
 	
 		if (function_exists('curl_init'))
 		{
-            // If cURL is available, let's use it, since it provides a greater control over the various HTTP/SSL options
+			// If cURL is available, let's use it, since it provides a greater control over the various HTTP/SSL options
 			// For instance fopen does not allow to work around the bug: http://stackoverflow.com/questions/18191672/php-curl-ssl-routinesssl23-get-server-helloreason1112
 			// by setting the SSLVERSION to 3 as done below.
 			$aHTTPHeaders = array();
@@ -318,15 +318,10 @@ class Utils
 			$iErr = curl_errno($ch);
 			$sErrMsg = curl_error( $ch );
 			$aHeaders = curl_getinfo( $ch );
-            Utils::Log(LOG_DEBUG, 'aHeaders'.json_encode($aHeaders));
-            if ($iErr !== 0)
+			if ($iErr !== 0)
 			{
 				throw new IOException("Problem opening URL: $sUrl, $sErrMsg");
 			}
-            if ( isset($aHeaders["http_code"]) && $aHeaders["http_code"] >= 400 )
-            {
-                throw new IOException("Problem opening URL: $sUrl. Code HTTP: ".$aHeaders["http_code"]);
-            }
 			if (is_array($aResponseHeaders))
 			{
 				$aHeaders = curl_getinfo($ch);
@@ -341,7 +336,8 @@ class Utils
 		else
 		{
 			// cURL is not available let's try with streams and fopen...
-            $sData = http_build_query($aData);
+				
+			$sData = http_build_query($aData);
 			$aParams = array('http' => array(
 				'method' => 'POST',
 				'content' => $sData,
