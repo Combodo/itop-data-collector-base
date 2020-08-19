@@ -674,6 +674,12 @@ abstract class Collector
 				}
 			}
 		}
+		else
+		{
+			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
+			$this->sErrorMessage .= $sResult;
+			$iErrorsCount = 1;
+		}
 		if ($iErrorsCount == 0)
 		{
 			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
