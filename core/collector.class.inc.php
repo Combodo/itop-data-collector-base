@@ -265,16 +265,17 @@ abstract class Collector
 	protected function GetVersionFromModuleFile()
 	{
 		$aFiles = glob(APPROOT.'collectors/module.*.php');
-		$sModuleFile = null;
-		$sModuleFile = reset($aFiles);
-		if ($sModuleFile == null)
+		if (!$aFiles)
 		{
 			// No module found, use a default value...
 			$this->sVersion = '1.0.0';
+			Utils::Log(LOG_INFO, "No module file found, using default version value.");
+			return;
 		}
 		
 		try
 		{
+			$sModuleFile = reset($aFiles);
 			$sModuleFileContents = file_get_contents($sModuleFile);
 			$sModuleFileContents = str_replace(array('<?php', '?>'), '', $sModuleFileContents);
 			$sModuleFileContents = str_replace('SetupWebPage::AddModule(', '$this->InitVersionCallback(', $sModuleFileContents);
