@@ -2,7 +2,9 @@
 <!-- Default values for parameters. Do NOT alter this file, copy its content to conf/params.local.xml and edit it instead -->
 <parameters>
   <console_log_level>6</console_log_level>
-  <iTopPersonCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_csv>
+  <iTopPersonCsvCollector>
+    <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
+  </iTopPersonCsvCollector>
 
   <console_log_dateformat>||Y-m-d H:i:s||</console_log_dateformat>
   <synchro_user>admin</synchro_user>

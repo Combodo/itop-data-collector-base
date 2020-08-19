@@ -1,8 +1,11 @@
 <?php
 
 namespace UnitTestFiles\Test;
+use IOException;
+use iTopPersonCsvCollector;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Runner\Exception;
+use Utils;
 
 define('APPROOT', dirname(__FILE__).'/../');
 require_once(APPROOT.'core/parameters.class.inc.php');
@@ -28,7 +31,7 @@ class TestCsvCollector extends TestCase
         }
 
         $this->oMockedLogger = $this->createMock("UtilsLogger");
-        \Utils::MockLog($this->oMockedLogger);
+        Utils::MockLog($this->oMockedLogger);
 
     }
 
@@ -45,7 +48,7 @@ class TestCsvCollector extends TestCase
     public function testIOException()
     {
         $this->assertFalse(is_a(new Exception(""), "IOException"));
-        $this->assertTrue(is_a(new \IOException(""), "IOException"));
+        $this->assertTrue(is_a(new IOException(""), "IOException"));
     }
 
     private function copy($sPattern)
@@ -63,7 +66,7 @@ class TestCsvCollector extends TestCase
                 $bRes = copy($sFile, TestCsvCollector::$sCollectorPath . basename($sFile));
                 if (!$bRes)
                 {
-                    throw new \Exception("Failed copying $sFile to " . TestCsvCollector::$sCollectorPath . basename($sFile));
+                    throw new Exception("Failed copying $sFile to " . TestCsvCollector::$sCollectorPath . basename($sFile));
                 }
             }
         }
@@ -79,13 +82,13 @@ class TestCsvCollector extends TestCase
         $this->copy(APPROOT . "/test/single_csv/common/*");
         $this->copy(APPROOT . "/test/single_csv/".$sAdditionalDir."/*");
 
-        require_once TestCsvCollector::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
+        require_once self::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
 
         $this->oMockedLogger->expects($this->exactly(0))
             ->method("Log");
 
-        $oOrgCollector = new \iTopPersonCsvCollector();
-        \Utils::LoadConfig();
+        $oOrgCollector = new iTopPersonCsvCollector();
+        Utils::LoadConfig();
 
         $this->assertTrue($oOrgCollector->Collect());
 
@@ -105,6 +108,7 @@ class TestCsvCollector extends TestCase
             "replacing hardcoded values" => array("hardcoded_values_replace"),
             "ignored attributes" => array("ignored_attributes"),
             "configured header" => array("configured_header"),
+            "mapping" => array("mapping"),
         );
     }
 
@@ -130,13 +134,13 @@ class TestCsvCollector extends TestCase
             throw new \Exception("Cannot find $sCsvFile file");
         }
 
-        require_once TestCsvCollector::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
+        require_once self::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
 
         $this->oMockedLogger->expects($this->exactly(0))
             ->method("Log");
 
-        $oOrgCollector = new \iTopPersonCsvCollector();
-        \Utils::LoadConfig();
+        $oOrgCollector = new iTopPersonCsvCollector();
+        Utils::LoadConfig();
 
         $this->assertTrue($oOrgCollector->Collect());
 
@@ -157,9 +161,9 @@ class TestCsvCollector extends TestCase
         $this->copy(APPROOT . "/test/single_csv/common/*");
         copy(APPROOT . "/test/single_csv/csv_errors/$sErrorFile", TestCsvCollector::$sCollectorPath . "iTopPersonCsvCollector.csv");
 
-        require_once TestCsvCollector::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
-        $orgCollector = new \iTopPersonCsvCollector();
-        \Utils::LoadConfig();
+        require_once self::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
+        $orgCollector = new iTopPersonCsvCollector();
+        Utils::LoadConfig();
 
         if ($sExceptionMsg) {
             $this->oMockedLogger->expects($this->exactly(2))

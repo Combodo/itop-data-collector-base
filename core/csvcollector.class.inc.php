@@ -28,101 +28,133 @@ Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
  */
 abstract class CSVCollector extends Collector
 {
+    protected $iIdx = 0;
     protected $aCsvLines = array();
     protected $sCsvSeparator ;
     protected $sCsvEncoding ;
-    protected $aColumns;
+    protected $bHasHeader = true ;
     protected $sCsvCliCommand;
-    protected $aAttributeValues = array();
-    protected $aIgnoredAttributes = array();
+    protected $aSynchroColumns;
+    protected $aSynchroFieldsToDefaultValues = array();
     protected $aConfiguredHeaderColumns;
+    protected $aMappingCsvToSynchro = array();
+    protected $aIgnoredCsvColumns = array();
+    protected $aIgnoredSynchroFields = array();
 
     /**
-	 * Initalization
-	 */
+     * Initalization
+     * @throws Exception
+     */
 	public function __construct()
 	{
 		parent::__construct();
 	}
 
-	/**
-	 * Parses configured csv file to fetch data
-	 * @see Collector::Prepare()
-	 */
+    /**
+     * Parses configured csv file to fetch data
+     * @throws Exception
+     * @see Collector::Prepare()
+     */
 	public function Prepare()
 	{
 		$bRet = parent::Prepare();
 
-        // Read the SQL query from the configuration
-        $this->sCsvSeparator = Utils::GetConfigurationValue(get_class($this)."_separator", '');
-        if ($this->sCsvSeparator == '')
-        {
-            // Try all lowercase
-            $this->sCsvSeparator = Utils::GetConfigurationValue(strtolower(get_class($this))."_separator", ';');
+        $aClassConfig = Utils::GetConfigurationValue(get_class($this));
+        if ($aClassConfig == '') {
+            $aClassConfig = Utils::GetConfigurationValue(strtolower(get_class($this)));
         }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->sCsvSeparator . "]");
 
-        $this->sCsvEncoding = Utils::GetConfigurationValue(get_class($this)."_encoding", '');
-        if ($this->sCsvEncoding == '')
-        {
-            // Try all lowercase
-            $this->sCsvEncoding = Utils::GetConfigurationValue(strtolower(get_class($this))."_encoding", 'UTF-8');
-        }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->sCsvEncoding . "]");
+        $this->sCsvSeparator = ';';
+        $this->sCsvEncoding = 'UTF-8';
+        $this->sCsvCliCommand = '';
+        $this->aSynchroFieldsToDefaultValues = array();
+        $this->bHasHeader = true;
 
-        $this->aAttributeValues = Utils::GetConfigurationValue(get_class($this)."_attribute_values", null);
-        if ($this->aAttributeValues === null)
+        if (is_array($aClassConfig))
         {
-            // Try all lowercase
-            $this->aAttributeValues = Utils::GetConfigurationValue(strtolower(get_class($this))."_attribute_values", null);
-            if ($this->aAttributeValues === null) {
-                $this->aAttributeValues = array();
+            if (array_key_exists('csv_file', $aClassConfig))
+            {
+                $sCsvFilePath = $aClassConfig['csv_file'];
+            }
+
+            if (array_key_exists('separator', $aClassConfig))
+            {
+                $this->sCsvSeparator = $aClassConfig['separator'];
+            }
+            if (array_key_exists('encoding', $aClassConfig))
+            {
+                $this->sCsvEncoding = $aClassConfig['encoding'];
+            }
+            if (array_key_exists('command', $aClassConfig))
+            {
+                $this->sCsvCliCommand = $aClassConfig['command'];
+            }
+            if (array_key_exists('has_header', $aClassConfig))
+            {
+                $this->bHasHeader = ($aClassConfig['has_header'] !== 'no');
+            }
+
+
+            if (array_key_exists('defaults', $aClassConfig)) {
+                if ($aClassConfig['defaults'] !== '')
+                {
+                    $this->aSynchroFieldsToDefaultValues = $aClassConfig['defaults'];
+                    if (! is_array($this->aSynchroFieldsToDefaultValues))
+                    {
+                        Utils::Log(LOG_ERR, "[".get_class($this)."] defaults section configuration is not correct. please see documentation.");
+                        return false;
+                    }
+                }
+            }
+
+            if (array_key_exists('ignored_attributes', $aClassConfig)) {
+                if ($aClassConfig['ignored_attributes'] !== '') {
+                    if (! is_array($aClassConfig['ignored_attributes']))
+                    {
+                        Utils::Log(LOG_ERR, "[".get_class($this)."] ignored_attributes section configuration is not correct. please see documentation.");
+                        return false;
+                    }
+                    $this->aIgnoredCsvColumns = array_values($aClassConfig['ignored_attributes']);
+                }
+            }
+
+            if (array_key_exists('fields', $aClassConfig)) {
+                if ($aClassConfig['fields'] !== '') {
+                    $aCurrentConfiguredHeaderColumns = $aClassConfig['fields'];
+                    if (! is_array($aCurrentConfiguredHeaderColumns))
+                    {
+                        Utils::Log(LOG_ERR, "[".get_class($this)."] fields section configuration is not correct. please see documentation.");
+                        return false;
+                    }
+
+                    array_multisort($aCurrentConfiguredHeaderColumns);
+                    $this->aConfiguredHeaderColumns = array_keys($aCurrentConfiguredHeaderColumns);
+
+                    if ($this->bHasHeader)
+                    {
+                        foreach ($aCurrentConfiguredHeaderColumns as $sSynchroField => $sCsvColumn)
+                        {
+                            $this->aMappingCsvToSynchro[$sCsvColumn] = $sSynchroField;
+                        }
+                    }
+                }
             }
         }
 
-        $aCurrentConfiguredHeaderColumns = Utils::GetConfigurationValue(get_class($this)."_header_columns", null);
-        if ($aCurrentConfiguredHeaderColumns === null)
-        {
-            // Try all lowercase
-            $aCurrentConfiguredHeaderColumns = Utils::GetConfigurationValue(strtolower(get_class($this))."_header_columns", null);
-        }
-        if (is_array($aCurrentConfiguredHeaderColumns))
-        {
-            array_multisort($aCurrentConfiguredHeaderColumns);
-            $this->aConfiguredHeaderColumns = array_keys($aCurrentConfiguredHeaderColumns);
-        }
-
-        $this->aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this)."_ignored_attributes", null);
-        if ($this->aIgnoredAttributes === null)
-        {
-            // Try all lowercase
-            $this->aIgnoredAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_ignored_attributes", null);
-            if ($this->aIgnoredAttributes === null) {
-                $this->aIgnoredAttributes = array();
-            }
-        }
-
-        $this->sCsvCliCommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
-        if ($this->sCsvCliCommand == '')
-        {
-            // Try all lowercase
-            $this->sCsvCliCommand = Utils::GetConfigurationValue(strtolower(get_class($this))."_command", '');
-        }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->sCsvCliCommand . "]");
-
-        // Read the SQL query from the configuration
-        $sCsvFilePath = Utils::GetConfigurationValue(get_class($this)."_csv", '');
-        if ($sCsvFilePath == '')
-        {
-            // Try all lowercase
-            $sCsvFilePath = Utils::GetConfigurationValue(strtolower(get_class($this))."_csv", '');
-        }
-        if ($sCsvFilePath == '')
+        if ($sCsvFilePath === '')
         {
             // No query at all !!
             Utils::Log(LOG_ERR, "[".get_class($this)."] no CSV file configured! Cannot collect data. The csv was expected to be configured as '".strtolower(get_class($this))."_csv' in the configuration file.");
             return false;
         }
+
+        Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file is [". $sCsvFilePath . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Has cs header [". $this->bHasHeader . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->sCsvSeparator . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->sCsvEncoding . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Fields [". var_dump($this->aConfiguredHeaderColumns,true) . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Ignored csv fields [". var_dump($this->aIgnoredCsvColumns,true) . "]");
+        Utils::Log(LOG_INFO, "[".get_class($this)."] Default values [". var_dump($this->aSynchroFieldsToDefaultValues,true) . "]");
 
         if (!is_file($sCsvFilePath))
         {
@@ -156,7 +188,6 @@ abstract class CSVCollector extends Collector
         }
 
         fclose($hHandle);
-        $this->iIdx = 0;
 		return $bRet;
     }
 
@@ -165,7 +196,7 @@ abstract class CSVCollector extends Collector
      *
      * @param string $cmd - Command to execute
      *
-     * @return string[] - Array with keys: 'code' - exit code, 'out' - stdout, 'err' - stderr
+     * @return false|string
      * @throws \Exception
      */
     function Exec($sCmd) {
@@ -197,79 +228,95 @@ abstract class CSVCollector extends Collector
     }
 
     /**
-     * Determine if a given attribute is allowed to be missing in the data datamodel.
-     *
-     * The implementation is based on a predefined configuration parameter named from the
-     * class of the collector (all lowercase) with _ignored_attributes appended.
-     *
-     * Example: here is the configuration to "ignore" the attribute 'location_id' for the class MyJSONCollector:
-     * <myjsoncollector_ignored_attributes type="array">
-     *    <attribute>location_id</attribute>
-     * </myjsoncollector_ignored_attributes>
-     * @param string $sAttCode
-     * @return boolean True if the attribute can be skipped, false otherwise
+     * @param $aCsvHeaderColumns
      */
-    public function AttributeIsOptional($sAttCode)
+    protected function Configure($aCsvHeaderColumns)
     {
-        $aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this) . "_ignored_attributes", null);
-        if ($aIgnoredAttributes === null)
+        if ($this->bHasHeader)
         {
-            // Try all lowercase
-            $aIgnoredAttributes = Utils::GetConfigurationValue(strtolower(get_class($this)) . "_ignored_attributes", null);
+            $this->aSynchroColumns = array();
+            foreach ($aCsvHeaderColumns as $sCsvColumn)
+            {
+                if (array_key_exists($sCsvColumn, $this->aMappingCsvToSynchro))
+                {
+                    //use mapping instead of csv header sSynchroColumn
+                    $this->aSynchroColumns[] = $this->aMappingCsvToSynchro[$sCsvColumn];
+                }
+                else
+                {
+                    $this->aSynchroColumns[] = $sCsvColumn;
+                    $this->aMappingCsvToSynchro[$sCsvColumn] = $sCsvColumn;
+                }
+            }
         }
-        if (is_array($aIgnoredAttributes))
+        else
         {
-            if (in_array($sAttCode, $aIgnoredAttributes)) return true;
+            $this->aSynchroColumns = $this->aConfiguredHeaderColumns;
         }
 
-        return parent::AttributeIsOptional($sAttCode);
+        foreach ($this->aIgnoredCsvColumns as $sIgnoredCsvColumn)
+        {
+            $this->aIgnoredSynchroFields[] = ($this->bHasHeader) ? $this->aMappingCsvToSynchro[$sIgnoredCsvColumn] : $this->aSynchroColumns[ $sIgnoredCsvColumn - 1 ];
+        }
     }
 
     /**
      * Check if the keys of the supplied hash array match the expected fields
      * @param array $aData
-     * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings
+     * @throws Exception
      */
-    protected function CheckSQLCsvHeaders($aData)
+    protected function CheckSynchroColumns()
     {
-        $aRet = array('errors' => array(), 'warnings' => array());
+        $aChecks = array('errors' => array(), 'warnings' => array());
 
-        if(!in_array('primary_key', $aData))
+        if(!in_array('primary_key', $this->aSynchroColumns))
         {
-            $aRet['errors'][] = 'The mandatory column "primary_key" is missing from the csv.';
+            $aChecks['errors'][] = 'The mandatory column "primary_key" is missing from the csv.';
         }
-        foreach($this->aFields as $sCode => $aDefs)
+        foreach($this->aFields as $sSynchroColumn => $aDefs)
         {
-            if (array_key_exists($sCode, $this->aAttributeValues)
-                || $this->AttributeIsOptional($sCode))
+            if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)
+                || in_array($sSynchroColumn, $this->aIgnoredSynchroFields))
             {
                 continue;
             }
 
             // Check for missing columns
-            if (!in_array($sCode, $aData) && $aDefs['reconcile'])
+            if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['reconcile'])
             {
-                $aRet['errors'][] = 'The column "'.$sCode.'", used for reconciliation, is missing from the csv.';
+                $aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for reconciliation, is missing from the csv.';
             }
-            else if (!in_array($sCode, $aData) && $aDefs['update'])
+            else if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['update'])
             {
-                $aRet['errors'][] = 'The column "'.$sCode.'", used for update, is missing from the csv.';
+                $aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for update, is missing from the csv.';
             }
 
             // Check for useless columns
-            if (in_array($sCode, $aData) && !$aDefs['reconcile']  && !$aDefs['update'])
+            if (in_array($sSynchroColumn, $this->aSynchroColumns) && !$aDefs['reconcile']  && !$aDefs['update'])
             {
-                $aRet['warnings'][] = 'The column "'.$sCode.'" is used neither for update nor for reconciliation.';
+                $aChecks['warnings'][] = 'The column "'.$sSynchroColumn.'" is used neither for update nor for reconciliation.';
             }
-
         }
-        return $aRet;
+
+        foreach($aChecks['warnings'] as $sWarning)
+        {
+            Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
+        }
+        foreach($aChecks['errors'] as $sError)
+        {
+            Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
+        }
+        if(count($aChecks['errors']) > 0)
+        {
+            throw new Exception("Missing columns in the CSV file.");
+        }
     }
 
 
     /**
      * Fetches one csv row at a time
      * The first row is used to check if the columns of the result match the expected "fields"
+     * @throws Exception
      * @see Collector::Fetch()
      */
     public function Fetch()
@@ -281,36 +328,22 @@ abstract class CSVCollector extends Collector
 
         /** NextLineObject**/ $oNextLineArr = $this->getNextLine();
 
-        if (! $this->aColumns)
+        if (! $this->aSynchroColumns)
         {
-            if (is_array($this->aConfiguredHeaderColumns))
-            {
-                $aCurrentColumns = $this->aConfiguredHeaderColumns;
-            }
-            else
-            {
-                $aCurrentColumns = $oNextLineArr->getValues();
-                $this->iIdx++;
-            }
+            $aCsvHeaderColumns = $oNextLineArr->getValues();
+            $this->iIdx++;
 
-            $aChecks = $this->CheckSQLCsvHeaders($aCurrentColumns);
-            foreach($aChecks['errors'] as $sError)
+            $this->Configure($aCsvHeaderColumns);
+
+            $this->CheckSynchroColumns();
+
+            if ($this->bHasHeader)
             {
-                Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
+                /** NextLineObject**/ $oNextLineArr = $this->getNextLine();
             }
-            foreach($aChecks['warnings'] as $sWarning)
-            {
-                Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
-            }
-            if(count($aChecks['errors']) > 0)
-            {
-                throw new Exception("Missing columns in the CSV file.");
-            }
-            $this->aColumns = array_merge($aCurrentColumns);
         }
 
-        /** NextLineObject**/ $oNextLineArr = $this->getNextLine();
-        $iColumnSize = sizeof($this->aColumns);
+        $iColumnSize = sizeof($this->aSynchroColumns);
         $iLineSize = sizeof($oNextLineArr->getValues());
         if ($iColumnSize !== $iLineSize)
         {
@@ -323,19 +356,20 @@ abstract class CSVCollector extends Collector
         $i=0;
         foreach ($oNextLineArr->getValues() as $sVal)
         {
-            $column = $this->aColumns[$i];
-            if (array_key_exists($column, $this->aAttributeValues))
-            {
-                $aData[$column] = $this->aAttributeValues[$column];
-            }
-            else if (!array_key_exists($column, $this->aSkippedAttributes))
-            {
-                $aData[$column] = $sVal;
-            }
+            $sSynchroColumn = $this->aSynchroColumns[$i];
             $i++;
+            if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues))
+            {
+                //replacing by default value
+                $aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
+            }
+            else if (!in_array($sSynchroColumn, $this->aIgnoredSynchroFields))
+            {
+                $aData[$sSynchroColumn] = $sVal;
+            }
         }
 
-        foreach ($this->aAttributeValues as $sAttributeId => $sAttributeValue)
+        foreach ($this->aSynchroFieldsToDefaultValues as $sAttributeId => $sAttributeValue)
         {
             if (!array_key_exists($sAttributeId, $aData))
             {

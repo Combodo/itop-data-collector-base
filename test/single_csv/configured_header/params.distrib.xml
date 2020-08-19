@@ -2,19 +2,29 @@
 <!-- Default values for parameters. Do NOT alter this file, copy its content to conf/params.local.xml and edit it instead -->
 <parameters>
   <console_log_level>6</console_log_level>
-  <iTopPersonCsvCollector_csv>collectors/iTopPersonCsvCollector.csv</iTopPersonCsvCollector_csv>
-  <iTopPersonCsvCollector_header_columns>
-    <first_name type="int">2</first_name>
-    <primary_key type="int">1</primary_key>
-    <employee_number type="int">7</employee_number>
-    <email type="int">8</email>
-    <function type="int">9</function>
-    <status type="int">10</status>
-    <mobile_phone type="int">6</mobile_phone>
-    <phone type="int">5</phone>
-    <org_id type="int">4</org_id>
-    <name type="int">3</name>
-  </iTopPersonCsvCollector_header_columns>
+
+  <iTopPersonCsvCollector>
+    <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
+    <has_header>no</has_header>
+    <fields>
+      <first_name>2</first_name>
+      <primary_key>1</primary_key>
+      <employee_number>7</employee_number>
+      <email>8</email>
+      <function>9</function>
+      <mobile_phone>6</mobile_phone>
+      <phone>5</phone>
+      <org_id>4</org_id>
+      <name>3</name>
+    </fields>
+    <defaults>
+      <status>Active</status>
+    </defaults>
+    <ignored_attributes type="array">
+      <ignored_attribute>9</ignored_attribute>
+      <ignored_attribute>4</ignored_attribute>
+    </ignored_attributes>
+  </iTopPersonCsvCollector>
 
   <synchro_user>admin</synchro_user>
   <contact_to_notify></contact_to_notify>
