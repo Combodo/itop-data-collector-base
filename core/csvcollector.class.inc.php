@@ -174,7 +174,7 @@ abstract class CSVCollector extends Collector
 
         if (!empty($this->sCsvCliCommand))
         {
-            $this->Exec($this->sCsvCliCommand);
+            utils::Exec($this->sCsvCliCommand);
         }
 
         $hHandle = fopen($sCsvFilePath, "r");
@@ -191,41 +191,7 @@ abstract class CSVCollector extends Collector
 		return $bRet;
     }
 
-    /**
-     * Executes a command and returns an array with exit code, stdout and stderr content
-     *
-     * @param string $cmd - Command to execute
-     *
-     * @return false|string
-     * @throws \Exception
-     */
-    function Exec($sCmd) {
-        $iBeginTime = time();
-        $sWorkDir = APPROOT;
-        $aDescriptorSpec = array(
-            0 => array("pipe", "r"),  // stdin
-            1 => array("pipe", "w"),  // stdout
-            2 => array("pipe", "w"),  // stderr
-        );
-        $rProcess = proc_open($sCmd, $aDescriptorSpec, $aPipes, $sWorkDir, null);
 
-        $sStdOut = stream_get_contents($aPipes[1]);
-        fclose($aPipes[1]);
-
-        $sStdErr = stream_get_contents($aPipes[2]);
-        fclose($aPipes[2]);
-
-        $iCode = proc_close($rProcess);
-
-        $iElapsed = time() - $iBeginTime;
-        Utils::Log(LOG_INFO, "Command: $sCmd. Workdir: $sWorkDir");
-        if (0 === $iCode) {
-            Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $sStdOut");
-            return $sStdOut;
-        } else {
-            throw new Exception("Command failed : $sCmd \n\t\t=== with status:$iCode \n\t\t=== stderr:$sStdErr \n\t\t=== stdout: $sStdOut");
-        }
-    }
 
     /**
      * @param $aCsvHeaderColumns
