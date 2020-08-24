@@ -5,9 +5,9 @@
 
   <iTopPersonCsvCollector>
     <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
-    <ignored_attributes>
+    <ignored_columns>
       <ignored_attribute>mobile_phone</ignored_attribute>
-    </ignored_attributes>
+    </ignored_columns>
   </iTopPersonCsvCollector>
 
 

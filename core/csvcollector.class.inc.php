@@ -107,14 +107,14 @@ abstract class CSVCollector extends Collector
                 }
             }
 
-            if (array_key_exists('ignored_attributes', $aClassConfig)) {
-                if ($aClassConfig['ignored_attributes'] !== '') {
-                    if (! is_array($aClassConfig['ignored_attributes']))
+            if (array_key_exists('ignored_columns', $aClassConfig)) {
+                if ($aClassConfig['ignored_columns'] !== '') {
+                    if (! is_array($aClassConfig['ignored_columns']))
                     {
-                        Utils::Log(LOG_ERR, "[".get_class($this)."] ignored_attributes section configuration is not correct. please see documentation.");
+                        Utils::Log(LOG_ERR, "[".get_class($this)."] ignored_columns section configuration is not correct. please see documentation.");
                         return false;
                     }
-                    $this->aIgnoredCsvColumns = array_values($aClassConfig['ignored_attributes']);
+                    $this->aIgnoredCsvColumns = array_values($aClassConfig['ignored_columns']);
                 }
             }
 

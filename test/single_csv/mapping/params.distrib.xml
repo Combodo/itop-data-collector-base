@@ -16,10 +16,10 @@
     <defaults>
       <mobile_phone>9998877665544</mobile_phone>
     </defaults>
-    <ignored_attributes type="array">
+    <ignored_columns type="array">
       <ignored_attribute>fonction</ignored_attribute>
       <ignored_attribute>org_id</ignored_attribute>
-    </ignored_attributes>
+    </ignored_columns>
   </iTopPersonCsvCollector>
 
   <console_log_dateformat>||Y-m-d H:i:s||</console_log_dateformat>

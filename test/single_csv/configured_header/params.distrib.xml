@@ -20,10 +20,10 @@
     <defaults>
       <status>Active</status>
     </defaults>
-    <ignored_attributes type="array">
+    <ignored_columns type="array">
       <ignored_attribute>9</ignored_attribute>
       <ignored_attribute>4</ignored_attribute>
-    </ignored_attributes>
+    </ignored_columns>
   </iTopPersonCsvCollector>
 
   <synchro_user>admin</synchro_user>
