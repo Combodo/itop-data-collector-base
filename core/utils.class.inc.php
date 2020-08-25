@@ -99,10 +99,13 @@ class Utils
 
 	/**
 	 * Logs a message to the centralized log for the application, with the given priority
-	 * 
-	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see: www.php.net/manual/en/function.syslog.php)
+	 *
+	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see:
+	 *     www.php.net/manual/en/function.syslog.php)
 	 * @param string $sMessage The message to log
+	 *
 	 * @return void
+	 * @throws \Exception
 	 */
 	static public function Log($iPriority, $sMessage)
 	{
@@ -503,7 +506,6 @@ class Utils
 	    return $result;
 	}
 
-
     /**
      * Executes a command and returns an array with exit code, stdout and stderr content
      *
@@ -543,7 +545,6 @@ class Utils
 
 class UtilsLogger
 {
-
     /**
      * UtilsLogger constructor.
      */
