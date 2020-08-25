@@ -5,14 +5,6 @@ require_once(APPROOT.'core/parameters.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 
-if (DIRECTORY_SEPARATOR === '\\') {
-    print 'WINDOWS system'.PHP_EOL;
-}
-else
-{
-    print 'UNIX system'.PHP_EOL;
-}
-
 print '    curl_init exists: ' . function_exists('curl_init').PHP_EOL;
 
 try{
