@@ -23,6 +23,7 @@ class LookupTable
 	protected $aFieldsPos;
 	protected $bCaseSensitive;
 	protected $bIgnoreMappingErrors;
+	protected $sReturnAttCode;
 
 	/**
 	 * Initialization of a LookupTable, based on an OQL query in iTop
@@ -30,14 +31,16 @@ class LookupTable
 	 * @param array $aKeyFields The fields of the object to use in the lookup key
 	 * @param bool $bCaseSensitive Is the mapping case sensitive ?
 	 * @param bool $bIgnoreMappingErrors Are mapping errors considered as "normal"? (e.g. when using the lookup table for filtering the data)
+	 * @param string $sReturnAttCode The attribute code whose value to return as the result of the mapping (by default 'id' meaning the ID of the matching iTop object)
 	 * @throws Exception
 	 */
-	public function __construct($sOQL, $aKeyFields, $bCaseSensitive = true, $bIgnoreMappingErrors = false)
+	public function __construct($sOQL, $aKeyFields, $bCaseSensitive = true, $bIgnoreMappingErrors = false, $sReturnAttCode = 'id')
 	{
 		$this->aData =array();
 		$this->aFieldsPos =array();
 		$this->bCaseSensitive = $bCaseSensitive;
 		$this->bIgnoreMappingErrors = $bIgnoreMappingErrors;
+		$this->sReturnAttCode = $sReturnAttCode;
 		
 		if(!preg_match('/^SELECT ([^ ]+)/', $sOQL, $aMatches))
 		{
@@ -45,12 +48,18 @@ class LookupTable
 		}
 		$sClass = $aMatches[1];
 		$oRestClient = new RestClient();
-		$aRes = $oRestClient->Get($sClass, $sOQL, implode(',', $aKeyFields));
-		$aOSVersionToId = array();
+		$aRestFields = $aKeyFields;
+		if ($this->sReturnAttCode !== 'id')
+		{
+		    // If the return attcode is not the ID of the object, add it to the list of the required fields
+		    $aRestFields[] = $this->sReturnAttCode;
+		}
+		$aRes = $oRestClient->Get($sClass, $sOQL, implode(',', $aRestFields));
 		if ($aRes['code'] == 0)
 		{
 			foreach($aRes['objects'] as $sObjKey => $aObj)
 			{
+				$iObjKey = 0;
 				$aMappingKeys = array();
 				foreach($aKeyFields as $sField)
 				{
@@ -67,26 +76,43 @@ class LookupTable
 				$sMappingKey = implode($aMappingKeys, '_');
 				if (!$this->bCaseSensitive)
 				{
-				    if (function_exists('mb_strtolower'))
-				    {
-				        $sMappingKey = mb_strtolower($sMappingKey);
-				    }
-				    else
-				    {
-				        $sMappingKey = strtolower($sMappingKey);
-				    }
-				}
-				if(!array_key_exists('key', $aObj))
-				{
-					// Emulate the behavior for older versions of the REST API
-					if(preg_match('/::([0-9]+)$/', $sObjKey, $aMatches))
+					if (function_exists('mb_strtolower'))
 					{
-						$iObjKey = (int)$aMatches[1];
+						$sMappingKey = mb_strtolower($sMappingKey);
+					}
+					else
+					{
+						$sMappingKey = strtolower($sMappingKey);
+					}
+				}
+				if ($this->sReturnAttCode !== 'id')
+				{
+					// If the return attcode is not the ID of the object, check that it exists
+					if (!array_key_exists($this->sReturnAttCode, $aObj['fields']))
+					{
+						Utils::Log(LOG_ERR, "field '{$this->sReturnAttCode}' does not exist in '".json_encode($aObj['fields'])."'");
+						$iObjKey = 0;
+					}
+					else
+					{
+						$iObjKey = $aObj['fields'][$this->sReturnAttCode];
 					}
 				}
 				else
 				{
-					$iObjKey = (int)$aObj['key'];
+					// The return value is the ID of the object
+					if(!array_key_exists('key', $aObj))
+					{
+						// Emulate the behavior for older versions of the REST API
+						if(preg_match('/::([0-9]+)$/', $sObjKey, $aMatches))
+						{
+							$iObjKey = (int)$aMatches[1];
+						}
+					}
+					else
+					{
+						$iObjKey = (int)$aObj['key'];
+					}
 				}
 				$this->aData[$sMappingKey] = $iObjKey; // Store the mapping
 			}
