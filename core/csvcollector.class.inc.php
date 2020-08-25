@@ -191,8 +191,6 @@ abstract class CSVCollector extends Collector
 		return $bRet;
     }
 
-
-
     /**
      * @param $aCsvHeaderColumns
      */

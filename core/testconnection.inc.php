@@ -6,11 +6,13 @@ require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 
 if (DIRECTORY_SEPARATOR === '\\') {
-    // windows
-    print 'Windows not supported!'.PHP_EOL;
-    exit(1);
+    print 'WINDOWS system'.PHP_EOL;
 }
-print 'UNIX system'.PHP_EOL;
+else
+{
+    print 'UNIX system'.PHP_EOL;
+}
+
 print '    curl_init exists: ' . function_exists('curl_init').PHP_EOL;
 
 try{
