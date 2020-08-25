@@ -193,4 +193,11 @@ class TestCsvCollector extends TestCase
             "OK" => array("../nominal/iTopPersonCsvCollector.csv", "")
         );
     }
+
+    public function testExploode()
+    {
+        $stest = "primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function;status";
+        $aValues=array("primary_key","first_name","name","org_id","phone","mobile_phone","employee_number","email","function","status");
+        $this->assertEquals($aValues, explode(";", $stest));
+    }
 }

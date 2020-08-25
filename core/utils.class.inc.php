@@ -169,26 +169,54 @@ class Utils
         self::$oMockedLogger = $MockedLogger;
     }
 
+    /**
+     * Load the configuration from the various XML condifuration files
+     * @throws Exception
+     * @return Parameters
+     */
 	static public function LoadConfig()
 	{
-		self::$aConfigFiles = array();
+	    $sCustomConfigFile = Utils::ReadParameter('config_file', null);
+
 		self::$aConfigFiles[] = CONF_DIR.'params.distrib.xml';
 		self::$oConfig = new Parameters(CONF_DIR.'params.distrib.xml');
 		if (file_exists(APPROOT.'collectors/params.distrib.xml'))
 		{
-			self::$aConfigFiles[] = APPROOT.'collectors/params.distrib.xml';
-			$oLocalConfig = new Parameters(APPROOT.'collectors/params.distrib.xml');
-			self::$oConfig->Merge($oLocalConfig);
+		    self::MergeConfFile(APPROOT.'collectors/params.distrib.xml');
 		}
-		if (file_exists(CONF_DIR.'params.local.xml'))
+		if ($sCustomConfigFile !== null)
 		{
-			self::$aConfigFiles[] =CONF_DIR.'params.local.xml';
-			$oLocalConfig = new Parameters(CONF_DIR.'params.local.xml');
-			self::$oConfig->Merge($oLocalConfig);
+		    // A custom config file was supplied on the command line
+		    if (file_exists($sCustomConfigFile))
+		    {
+                self::MergeConfFile($sCustomConfigFile);
+		    }
+		    else
+		    {
+		        throw new Exception("The specified configuration file '$sCustomConfigFile' does not exist.");
+		    }
+		}
+		else if (file_exists(CONF_DIR.'params.local.xml'))
+		{
+            self::MergeConfFile(CONF_DIR.'params.local.xml');
 		}
 		return self::$oConfig;
 	}
+
+    static private function MergeConfFile($sFilePath)
+    {
+        self::$aConfigFiles[] = $sFilePath;
+        $oLocalConfig = new Parameters($sFilePath);
+        self::$oConfig->Merge($oLocalConfig);
+    }
 	
+	/**
+	 * Get the value of a configuration parameter
+	 * @param string $sCode
+	 * @param mixed $defaultValue
+	 * @throws Exception
+	 * @return mixed
+	 */
 	static public function GetConfigurationValue($sCode, $defaultValue = '')
 	{
 		if (self::$oConfig == null)
@@ -202,20 +230,30 @@ class Utils
 		return $value;
 	}
 	
+	/**
+	 * Dump information about the configuration (value of the parameters)
+	 * @throws Exception
+	 * @return string
+	 */
 	static public function DumpConfig()
 	{
 		if (self::$oConfig == null)
 		{
-			self::LoadConfig();
+		    self::LoadConfig();
 		}
 		return self::$oConfig->Dump();	
 	}
 	
+	/**
+	 * Get the ordered list of configuration files loaded
+	 * @throws Exception
+	 * @return string
+	 */
 	static public function GetConfigFiles()
 	{
 		if (self::$oConfig == null)
 		{
-			self::LoadConfig();
+		    self::LoadConfig();
 		}
 		return self::$aConfigFiles;	
 	}
@@ -251,9 +289,23 @@ class Utils
 		return $value;		
 	}
 	
+	/**
+	 * Return the (valid) location where to store some temporary data
+	 * Throws an exception if the directory specified in the 'data_path' configuration does not exist and cannot be created
+	 * @param string $sFileName
+	 * @throws Exception
+	 * @return string
+	 */
 	static public  function GetDataFilePath($sFileName)
 	{
-		return APPROOT.'data/'.basename($sFileName);
+	    $sPath = static::GetConfigurationValue('data_path', '%APPROOT%/data/');
+	    $sPath = str_replace('%APPROOT%', APPROOT, $sPath); // substitute the %APPROOT% placeholder with its actual value
+	    $sPath = rtrim($sPath, '/').'/'; // Make that the path ends with exactly one /
+	    if (!file_exists($sPath))
+	    {
+	        if (!mkdir($sPath, 0700, true)) throw new Exception("Failed to create data_path: '$sPath'. Either create the directory yourself or make sure that the script has enough rights to create it.");
+	    }
+	    return $sPath.basename($sFileName);
 	}
 	
 	/**

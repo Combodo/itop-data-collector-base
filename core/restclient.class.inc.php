@@ -111,7 +111,7 @@ class RestClient
 //print_r($aOperation);
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
 		$aHeaders = array();
-		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array());
 		$aCurlOptions = array();
 		foreach($aRawCurlOptions as $key => $value)
 		{
