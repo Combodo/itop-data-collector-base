@@ -14,6 +14,8 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
+define('NULL_VALUE', '<NULL>');
+
 /**
  * Special kind of exception to tell the collector to ignore the row of data being processed
  */
@@ -503,7 +505,9 @@ abstract class Collector
 		$aData = array();
 		foreach($this->aCSVHeaders as $sHeader)
 		{
-			$aData[] = $aRow[$sHeader];
+			if (is_null($aRow[$sHeader]))
+				$aData[] = NULL_VALUE;
+			else $aData[] = $aRow[$sHeader];
 		}
 		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");	
 		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator);
