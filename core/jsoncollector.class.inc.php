@@ -180,13 +180,11 @@ abstract class JsonCollector extends Collector
         $this->aJson = json_decode($this->sFileJson, true);
         if ($this->aJson == null)
         {
-            $aInfo = json_last_error();
             Utils::Log(LOG_ERR, "[" . get_class($this) . "] Failed to translate data from JSON file: '". $this->sURL . $this->sFilePath ."'. Reason: " . json_last_error_msg());
             return false;
         }
 
         //Get table of Element in JSON file with a specific path
-
         foreach ($aPath as $sTag)
         {
             Utils::Log(LOG_DEBUG, "tag: " . $sTag);
@@ -214,10 +212,9 @@ abstract class JsonCollector extends Collector
                 }
                 $this->aJson = $aJsonNew;
             }
-
-            if ($this->aJson == null)
+            if (count($this->aJson) == 0 )
             {
-                Utils::Log(LOG_ERR, "[" . get_class($this) . "] Failed to find path '.$aPath.' until data in json file: '$this->sURL'.");
+                Utils::Log(LOG_ERR, "[" . get_class($this) . "] Failed to find path ".implode("/",$aPath)." until data in json file: $this->sURL $this->sFilePath.");
                 return false;
             }
         }
@@ -261,7 +258,6 @@ abstract class JsonCollector extends Collector
                 //
                 $aJsonKeyPath = explode('/', $sPath);
                 $aValue = $aData;
-                //$aData = $this->aJson[$this->aJsonKey[$this->iIdx]];
                 $bFind=false;
                 foreach ($aJsonKeyPath as $sTag)
                 {
@@ -294,17 +290,14 @@ abstract class JsonCollector extends Collector
                         }
                         $aValue = $aNewValue;
                     }
-                    Utils::Log(LOG_DEBUG, "this->aJson[$sTag]: " . json_encode($aValue));
-
-                    if (!$bFind) {
-                        Utils::Log(LOG_ERR, "[" . get_class($this) . "] Failed to find path '$sPath' until data in json file: '$this->sURL'.");
-                        return false;
-                    }
                 }
-                $aDataToSynchronize[$key] = $aValue;
+                if ($bFind) {
+                    Utils::Log(LOG_DEBUG, "aDataToSynchronize[$sTag]: " . json_encode($aValue));
+                    $aDataToSynchronize[$key] = $aValue;
+                }
             }
-
             Utils::Log(LOG_DEBUG, '$aDataToSynchronize: ' . json_encode($aDataToSynchronize));
+
 
             foreach ($this->aSkippedAttributes as $sCode)
             {
@@ -327,6 +320,15 @@ abstract class JsonCollector extends Collector
                     throw new Exception("Missing columns in the Json file.");
                 }
             }
+            //check if all expected fields are in array. If not add it with null value
+            foreach($this->aCSVHeaders as $sHeader)
+            {
+               if(!isset($aDataToSynchronize[$sHeader]))
+               {
+                   $aDataToSynchronize[$sHeader]="";
+               }
+            }
+
             $this->iIdx++;
             return $aDataToSynchronize;
         }

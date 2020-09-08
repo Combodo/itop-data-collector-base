@@ -3,7 +3,7 @@
 <parameters>
 	<itoppersonjsoncollector>
 		<jsonfile>APPROOT/collectors/dataTest.json</jsonfile>
-		<path>objects/*</path>
+		<path>objects/*/blop</path>
 		<fields>
 			<primary_key>key</primary_key>
 			<name>name</name>

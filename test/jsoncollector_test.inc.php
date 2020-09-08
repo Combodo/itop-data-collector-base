@@ -166,7 +166,7 @@ class TestJsonCollector extends TestCase
     {
         return array(
             "error_json_1" => array("error_json_1","[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.","ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file."),
-            "error_json_2" => array("error_json_2","ITopPersonJsonCollector::Collect() got an exception: Undefined index: blop",""),
+            "error_json_2" => array("error_json_2","[ITopPersonJsonCollector] Failed to find path objects/*/blop until data in json file:  ".APPROOT."/collectors/dataTest.json.","ITopPersonJsonCollector::Prepare() returned false"),
             "error_json_3" => array("error_json_3",'[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'/collectors/dataTest.json\'. Reason: Syntax error',"ITopPersonJsonCollector::Prepare() returned false"),
         );
     }
