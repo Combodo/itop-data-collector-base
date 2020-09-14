@@ -1,6 +1,7 @@
 <?php
 
 namespace UnitTestFiles\Test;
+
 use IOException;
 use iTopPersonCsvCollector;
 use PHPUnit\Framework\TestCase;
@@ -15,189 +16,194 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
 
-class TestCsvCollector extends TestCase
-{
-    private static $sCollectorPath = APPROOT . "/collectors/";
-    private $oMockedLogger;
+class TestCsvCollector extends TestCase {
+	private static $sCollectorPath = APPROOT."/collectors/";
+	private $oMockedLogger;
 
-    public function setUp()
-    {
-        parent::setUp();
+	public function setUp() {
+		parent::setUp();
 
-        $aCollectorFiles = glob(TestCsvCollector::$sCollectorPath . "*");
-        foreach ($aCollectorFiles as $sFile)
-        {
-            unlink($sFile);
-        }
+		$aCollectorFiles = glob(TestCsvCollector::$sCollectorPath."*");
+		foreach ($aCollectorFiles as $sFile) {
+			unlink($sFile);
+		}
 
-        $this->oMockedLogger = $this->createMock("UtilsLogger");
-        Utils::MockLog($this->oMockedLogger);
-    }
+		$this->oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($this->oMockedLogger);
+	}
 
-    public function tearDown()
-    {
-        parent::tearDown();
-        $aCollectorFiles = glob(TestCsvCollector::$sCollectorPath . "*");
-        foreach ($aCollectorFiles as $sFile)
-        {
-           unlink($sFile);
-        }
-    }
+	public function tearDown() {
+		parent::tearDown();
+		$aCollectorFiles = glob(TestCsvCollector::$sCollectorPath."*");
+		foreach ($aCollectorFiles as $sFile) {
+			unlink($sFile);
+		}
+	}
 
-    public function testIOException()
-    {
-        $this->assertFalse(is_a(new Exception(""), "IOException"));
-        $this->assertTrue(is_a(new IOException(""), "IOException"));
-    }
+	public function testIOException() {
+		$this->assertFalse(is_a(new Exception(""), "IOException"));
+		$this->assertTrue(is_a(new IOException(""), "IOException"));
+	}
 
-    private function copy($sPattern)
-    {
-        if (! is_dir(TestCsvCollector::$sCollectorPath))
-        {
-            mkdir(TestCsvCollector::$sCollectorPath);
-        }
+	/**
+	 * @param bool $sAdditionalDir
+	 *
+	 * @dataProvider OrgCollectorProvider
+	 * @throws \Exception
+	 */
+	public function testOrgCollector($sAdditionalDir = false) {
+		$this->copy(APPROOT."/test/single_csv/common/*");
+		$this->copy(APPROOT."/test/single_csv/".$sAdditionalDir."/*");
 
-        $aFiles = glob($sPattern);
-        foreach ($aFiles as $sFile)
-        {
-            if (is_file($sFile))
-            {
-                $bRes = copy($sFile, TestCsvCollector::$sCollectorPath . basename($sFile));
-                if (!$bRes)
-                {
-                    throw new Exception("Failed copying $sFile to " . TestCsvCollector::$sCollectorPath . basename($sFile));
-                }
-            }
-        }
-    }
+		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
 
-    /**
-     * @param bool $sAdditionalDir
-     * @dataProvider OrgCollectorProvider
-     * @throws \Exception
-     */
-    public function testOrgCollector($sAdditionalDir=false)
-    {
-        $this->copy(APPROOT . "/test/single_csv/common/*");
-        $this->copy(APPROOT . "/test/single_csv/".$sAdditionalDir."/*");
+		$this->oMockedLogger->expects($this->exactly(0))
+			->method("Log");
 
-        require_once self::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
+		$oOrgCollector = new iTopPersonCsvCollector();
+		Utils::LoadConfig();
 
-        $this->oMockedLogger->expects($this->exactly(0))
-            ->method("Log");
+		$this->assertTrue($oOrgCollector->Collect());
 
-        $oOrgCollector = new iTopPersonCsvCollector();
-        Utils::LoadConfig();
+		$sExpected_content = file_get_contents(TestCsvCollector::$sCollectorPath."expected_generated.csv");
 
-        $this->assertTrue($oOrgCollector->Collect());
+		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
+	}
 
-        $sExpected_content = file_get_contents(TestCsvCollector::$sCollectorPath ."expected_generated.csv");
+	private function copy($sPattern) {
+		if (!is_dir(TestCsvCollector::$sCollectorPath)) {
+			mkdir(TestCsvCollector::$sCollectorPath);
+		}
 
-        $this->assertEquals($sExpected_content, file_get_contents(APPROOT . "/data/iTopPersonCsvCollector-1.csv"));
-    }
+		$aFiles = glob($sPattern);
+		foreach ($aFiles as $sFile) {
+			if (is_file($sFile)) {
+				$bRes = copy($sFile, TestCsvCollector::$sCollectorPath.basename($sFile));
+				if (!$bRes) {
+					throw new Exception("Failed copying $sFile to ".TestCsvCollector::$sCollectorPath.basename($sFile));
+				}
+			}
+		}
+	}
 
-    public function OrgCollectorProvider()
-    {
-        return array(
-            "nominal" => array("nominal"),
-            "charset_ISO" => array("charset_ISO"),
-            "separator" => array("separator"),
-            "clicommand" => array("clicommand"),
-            "adding hardcoded values" => array("hardcoded_values_add"),
-            "replacing hardcoded values" => array("hardcoded_values_replace"),
-            "ignored attributes" => array("ignored_attributes"),
-            "configured header" => array("configured_header"),
-            "mapping" => array("mapping"),
-	        "separator_incolumns" => array("separator_incolumns"),
-        );
-    }
+	public function OrgCollectorProvider() {
+		return array(
+			"nominal" => array("nominal"),
+			"charset_ISO" => array("charset_ISO"),
+			"separator" => array("separator"),
+			"clicommand" => array("clicommand"),
+			"adding hardcoded values" => array("hardcoded_values_add"),
+			"replacing hardcoded values" => array("hardcoded_values_replace"),
+			"ignored attributes" => array("ignored_attributes"),
+			"configured header" => array("configured_header"),
+			"mapping" => array("mapping"),
+			"separator_incolumns" => array("separator_incolumns"),
+		);
+	}
 
-    public function testAbsolutePath()
-    {
-        $this->copy(APPROOT . "/test/single_csv/common/*");
-        $sTargetDir = tempnam(sys_get_temp_dir(), 'build-');
-        @unlink($sTargetDir);
-        mkdir($sTargetDir);
-        $sTargetDir = realpath($sTargetDir);
-        $sContent = str_replace("TMPDIR", $sTargetDir, file_get_contents(APPROOT . "/test/single_csv/absolutepath/params.distrib.xml"));
-        $rHandle  = fopen(APPROOT . "/collectors/params.distrib.xml", "w");
-        fwrite($rHandle , $sContent);
-        fclose($rHandle );
+	public function testAbsolutePath() {
+		$this->copy(APPROOT."/test/single_csv/common/*");
+		$sTargetDir = tempnam(sys_get_temp_dir(), 'build-');
+		@unlink($sTargetDir);
+		mkdir($sTargetDir);
+		$sTargetDir = realpath($sTargetDir);
+		$sContent = str_replace("TMPDIR", $sTargetDir, file_get_contents(APPROOT."/test/single_csv/absolutepath/params.distrib.xml"));
+		$rHandle = fopen(APPROOT."/collectors/params.distrib.xml", "w");
+		fwrite($rHandle, $sContent);
+		fclose($rHandle);
 
-        $sCsvFile = dirname(__FILE__) . "/single_csv/nominal/iTopPersonCsvCollector.csv";
-        if (is_file($sCsvFile))
-        {
-            copy($sCsvFile, $sTargetDir . "/iTopPersonCsvCollector.csv");
-        }
-        else
-        {
-            throw new \Exception("Cannot find $sCsvFile file");
-        }
+		$sCsvFile = dirname(__FILE__)."/single_csv/nominal/iTopPersonCsvCollector.csv";
+		if (is_file($sCsvFile)) {
+			copy($sCsvFile, $sTargetDir."/iTopPersonCsvCollector.csv");
+		}
+		else {
+			throw new \Exception("Cannot find $sCsvFile file");
+		}
 
-        require_once self::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
 
-        $this->oMockedLogger->expects($this->exactly(0))
-            ->method("Log");
+		$this->oMockedLogger->expects($this->exactly(0))
+			->method("Log");
 
-        $oOrgCollector = new iTopPersonCsvCollector();
-        Utils::LoadConfig();
+		$oOrgCollector = new iTopPersonCsvCollector();
+		Utils::LoadConfig();
 
-        $this->assertTrue($oOrgCollector->Collect());
+		$this->assertTrue($oOrgCollector->Collect());
 
-        $sExpected_content = file_get_contents(dirname(__FILE__) . "/single_csv/nominal/expected_generated.csv");
+		$sExpected_content = file_get_contents(dirname(__FILE__)."/single_csv/nominal/expected_generated.csv");
 
-        $this->assertEquals($sExpected_content, file_get_contents(APPROOT . "/data/iTopPersonCsvCollector-1.csv"));
-    }
+		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
+	}
 
-    /**
-     * @param $error_file
-     * @param $error_msg
-     * @param bool $exception_msg
-     * @throws \Exception
-     * @dataProvider ErrorFileProvider
-     */
-    public function testCsvErrors($sErrorFile, $sErrorMsg, $sExceptionMsg=false)
-    {
-        $this->copy(APPROOT . "/test/single_csv/common/*");
-        copy(APPROOT . "/test/single_csv/csv_errors/$sErrorFile", TestCsvCollector::$sCollectorPath . "iTopPersonCsvCollector.csv");
+	/**
+	 * @param $error_file
+	 * @param $error_msg
+	 * @param bool $exception_msg
+	 *
+	 * @throws \Exception
+	 * @dataProvider ErrorFileProvider
+	 */
+	public function testCsvErrors($sErrorFile, $sErrorMsg, $sExceptionMsg = false) {
+		$this->copy(APPROOT."/test/single_csv/common/*");
+		copy(APPROOT."/test/single_csv/csv_errors/$sErrorFile", TestCsvCollector::$sCollectorPath."iTopPersonCsvCollector.csv");
 
-        require_once self::$sCollectorPath . "iTopPersonCsvCollector.class.inc.php";
-        $orgCollector = new iTopPersonCsvCollector();
-        Utils::LoadConfig();
+		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
+		$orgCollector = new iTopPersonCsvCollector();
+		Utils::LoadConfig();
 
-        if ($sExceptionMsg) {
-            $this->oMockedLogger->expects($this->exactly(2))
-                ->method("Log")
-                ->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
-        }
-        else{
-            $this->oMockedLogger->expects($this->exactly(0))
-                ->method("Log");
-        }
-        try{
-            $bResult = $orgCollector->Collect();
+		if ($sExceptionMsg) {
+			$this->oMockedLogger->expects($this->exactly(2))
+				->method("Log")
+				->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
+		}
+		else {
+			$this->oMockedLogger->expects($this->exactly(0))
+				->method("Log");
+		}
+		try {
+			$bResult = $orgCollector->Collect();
 
-            $this->assertEquals($sExceptionMsg ? false : true, $bResult);
-        }
-        catch(Exception $e){
-            $this->assertEquals($sExceptionMsg, $e->getMessage());
-        }
-    }
+			$this->assertEquals($sExceptionMsg ? false : true, $bResult);
+		} catch (Exception $e) {
+			$this->assertEquals($sExceptionMsg, $e->getMessage());
+		}
+	}
 
-    public function ErrorFileProvider()
-    {
-        return array(
-            "wrong number of line" => array("wrongnumber_columns_inaline.csv", "[iTopPersonCsvCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa", 'iTopPersonCsvCollector::Collect() got an exception: Invalid CSV file.'),
-            "no primary key" => array("no_primarykey.csv", "[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing from the csv.", 'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.'),
-            "no email" => array("no_email.csv", "[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing from the csv.", "iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file."),
-            "OK" => array("../nominal/iTopPersonCsvCollector.csv", "")
-        );
-    }
+	public function ErrorFileProvider() {
+		return array(
+			"wrong number of line" => array(
+				"wrongnumber_columns_inaline.csv",
+				"[iTopPersonCsvCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa",
+				'iTopPersonCsvCollector::Collect() got an exception: Invalid CSV file.',
+			),
+			"no primary key" => array(
+				"no_primarykey.csv",
+				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing from the csv.",
+				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.',
+			),
+			"no email" => array(
+				"no_email.csv",
+				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing from the csv.",
+				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.",
+			),
+			"OK" => array("../nominal/iTopPersonCsvCollector.csv", ""),
+		);
+	}
 
-    public function testExploode()
-    {
-        $stest = "primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function;status";
-        $aValues=array("primary_key","first_name","name","org_id","phone","mobile_phone","employee_number","email","function","status");
-        $this->assertEquals($aValues, explode(";", $stest));
-    }
+	public function testExploode() {
+		$stest = "primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function;status";
+		$aValues = array(
+			"primary_key",
+			"first_name",
+			"name",
+			"org_id",
+			"phone",
+			"mobile_phone",
+			"employee_number",
+			"email",
+			"function",
+			"status",
+		);
+		$this->assertEquals($aValues, explode(";", $stest));
+	}
 }

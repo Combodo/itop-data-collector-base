@@ -26,7 +26,7 @@ class Utils
 	static protected $oConfig = null;
 	static protected $aConfigFiles = array();
 
-    static protected $oMockedLogger;
+	static protected $oMockedLogger;
 
 	static public function ReadParameter($sParamName, $defaultValue)
 	{
@@ -107,70 +107,63 @@ class Utils
 	 * @return void
 	 * @throws \Exception
 	 */
-	static public function Log($iPriority, $sMessage)
-	{
-        //testing only LOG_ERR
-        if (self::$oMockedLogger)
-        {
-            if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR)
-            {
-                self::$oMockedLogger->Log($iPriority, $sMessage);
-            }
-        }
+	static public function Log($iPriority, $sMessage) {
+		//testing only LOG_ERR
+		if (self::$oMockedLogger) {
+			if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR) {
+				self::$oMockedLogger->Log($iPriority, $sMessage);
+			}
+		}
 
-		switch($iPriority)
-		{
+		switch ($iPriority) {
 			case LOG_EMERG:
-			$sPrio = 'Emergency';
-			break;
+				$sPrio = 'Emergency';
+				break;
 
 			case LOG_ALERT:
-			$sPrio = 'Alert';
-			break;
+				$sPrio = 'Alert';
+				break;
 			case LOG_CRIT:
-			$sPrio = 'Critical Error';
-			break;
+				$sPrio = 'Critical Error';
+				break;
 
 			case LOG_ERR:
-			$sPrio = 'Error';
-			break;
-			
+				$sPrio = 'Error';
+				break;
+
 			case LOG_WARNING:
-			$sPrio = 'Warning';
-			break;
+				$sPrio = 'Warning';
+				break;
 
 			case LOG_NOTICE:
-			$sPrio = 'Notice';
-			break;
-			
+				$sPrio = 'Notice';
+				break;
+
 			case LOG_INFO:
-			$sPrio = 'Info';
-			break;
+				$sPrio = 'Info';
+				break;
 
 			case LOG_DEBUG:
-			$sPrio = 'Debug';
-			break;
+				$sPrio = 'Debug';
+				break;
 		}
 
-        if ($iPriority <= self::$iConsoleLogLevel)
-		{
-            $log_date_format = self::GetConfigurationValue("console_log_dateformat", "[Y-m-d H:i:s]");
-            $txt = date($log_date_format)."\t[".$sPrio."]\t".$sMessage."\n";
-            echo $txt;
+		if ($iPriority <= self::$iConsoleLogLevel) {
+			$log_date_format = self::GetConfigurationValue("console_log_dateformat", "[Y-m-d H:i:s]");
+			$txt = date($log_date_format)."\t[".$sPrio."]\t".$sMessage."\n";
+			echo $txt;
 		}
-		
-		if ($iPriority <= self::$iSyslogLogLevel)
-		{
-			openlog ( 'iTop Data Collector' , LOG_PID , LOG_USER );
+
+		if ($iPriority <= self::$iSyslogLogLevel) {
+			openlog('iTop Data Collector', LOG_PID, LOG_USER);
 			syslog($iPriority, $sMessage);
 			closelog();
 		}
 	}
 
-	static public function MockLog($oMockedLogger)
-    {
-        self::$oMockedLogger = $oMockedLogger;
-    }
+	static public function MockLog($oMockedLogger) {
+		self::$oMockedLogger = $oMockedLogger;
+	}
 
     /**
      * Load the configuration from the various XML condifuration files
