@@ -167,7 +167,7 @@ class Utils
 		}
 	}
 
-	static public function MockLog($MockedLogger)
+	static public function MockLog($oMockedLogger)
     {
         self::$oMockedLogger = $MockedLogger;
     }
