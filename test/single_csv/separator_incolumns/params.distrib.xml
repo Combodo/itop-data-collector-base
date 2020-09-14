@@ -5,20 +5,11 @@
 
   <iTopPersonCsvCollector>
     <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
-    <has_header>no</has_header>
+    <separator> </separator>
+
     <fields>
-      <first_name>2</first_name>
-      <primary_key>1</primary_key>
-      <employee_number>7</employee_number>
-      <email>8</email>
-      <function>9</function>
-      <status>10</status>
-      <mobile_phone>6</mobile_phone>
-      <phone>5</phone>
-      <org_id>4</org_id>
-      <name>3</name>
+      <first_name>first name</first_name>
     </fields>
-    <command>echo '1;isaac;asimov;Demo;123456789;06543210;9998877665544;issac.asimov@function.io;writer;Active' >collectors/iTopPersonCsvCollector.csv</command>
   </iTopPersonCsvCollector>
 
   <synchro_user>admin</synchro_user>

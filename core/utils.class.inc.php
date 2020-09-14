@@ -522,6 +522,7 @@ class Utils
             1 => array("pipe", "w"),  // stdout
             2 => array("pipe", "w"),  // stderr
         );
+	    Utils::Log(LOG_INFO, "Command: $sCmd. Workdir: $sWorkDir");
         $rProcess = proc_open($sCmd, $aDescriptorSpec, $aPipes, $sWorkDir, null);
 
         $sStdOut = stream_get_contents($aPipes[1]);
@@ -533,7 +534,6 @@ class Utils
         $iCode = proc_close($rProcess);
 
         $iElapsed = time() - $iBeginTime;
-        Utils::Log(LOG_INFO, "Command: $sCmd. Workdir: $sWorkDir");
         if (0 === $iCode) {
             Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $sStdOut");
             return $sStdOut;

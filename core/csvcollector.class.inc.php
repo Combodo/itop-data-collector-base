@@ -148,17 +148,22 @@ abstract class CSVCollector extends Collector
             return false;
         }
 
-        Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file is [". $sCsvFilePath . "]");
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Has cs header [". $this->bHasHeader . "]");
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->sCsvSeparator . "]");
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->sCsvEncoding . "]");
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Fields [". var_dump($this->aConfiguredHeaderColumns,true) . "]");
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Ignored csv fields [". var_dump($this->aIgnoredCsvColumns,true) . "]");
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Default values [". var_dump($this->aSynchroFieldsToDefaultValues,true) . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] CSV file is [". $sCsvFilePath . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Has cs header [". $this->bHasHeader . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Separator used is [". $this->sCsvSeparator . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Encoding used is [". $this->sCsvEncoding . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Fields [". var_export($this->aConfiguredHeaderColumns,true) . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Ignored csv fields [". var_export($this->aIgnoredCsvColumns,true) . "]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Default values [". var_export($this->aSynchroFieldsToDefaultValues,true) . "]");
+
+		if (!empty($this->sCsvCliCommand))
+		{
+			utils::Exec($this->sCsvCliCommand);
+		}
 
         if (!is_file($sCsvFilePath))
         {
-            Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file not found in [". $sCsvFilePath . "]");
+            Utils::Log(LOG_DEBUG, "[".get_class($this)."] CSV file not found in [". $sCsvFilePath . "]");
             $sCsvFilePath = APPROOT . $sCsvFilePath;
             if (!is_file($sCsvFilePath)) {
                 Utils::Log(LOG_ERR, "[" . get_class($this) . "] Cannot find CSV file $sCsvFilePath");
@@ -170,11 +175,6 @@ abstract class CSVCollector extends Collector
         {
             Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot read CSV file $sCsvFilePath");
             return false;
-        }
-
-        if (!empty($this->sCsvCliCommand))
-        {
-            utils::Exec($this->sCsvCliCommand);
         }
 
         $hHandle = fopen($sCsvFilePath, "r");
@@ -285,7 +285,7 @@ abstract class CSVCollector extends Collector
      */
     public function Fetch()
     {
-        if ($this->iIdx >= sizeof($this->aCsvLines))
+        if ($this->iIdx >= count($this->aCsvLines))
         {
             return false;
         }
@@ -307,8 +307,8 @@ abstract class CSVCollector extends Collector
             }
         }
 
-        $iColumnSize = sizeof($this->aSynchroColumns);
-        $iLineSize = sizeof($oNextLineArr->getValues());
+        $iColumnSize = count($this->aSynchroColumns);
+        $iLineSize = count($oNextLineArr->getValues());
         if ($iColumnSize !== $iLineSize)
         {
             $line = $this->iIdx + 1;
@@ -351,7 +351,7 @@ abstract class CSVCollector extends Collector
     public function getNextLine()
     {
         $sCsvLine = $this->aCsvLines[$this->iIdx];
-        $aValues = explode($this->sCsvSeparator, $sCsvLine);
+        $aValues = str_getcsv($sCsvLine, $this->sCsvSeparator);
         return new NextLineObject($sCsvLine, $aValues);
     }
 }

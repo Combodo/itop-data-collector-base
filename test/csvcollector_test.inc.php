@@ -32,7 +32,6 @@ class TestCsvCollector extends TestCase
 
         $this->oMockedLogger = $this->createMock("UtilsLogger");
         Utils::MockLog($this->oMockedLogger);
-
     }
 
     public function tearDown()
@@ -41,7 +40,7 @@ class TestCsvCollector extends TestCase
         $aCollectorFiles = glob(TestCsvCollector::$sCollectorPath . "*");
         foreach ($aCollectorFiles as $sFile)
         {
-            unlink($sFile);
+           unlink($sFile);
         }
     }
 
@@ -109,6 +108,7 @@ class TestCsvCollector extends TestCase
             "ignored attributes" => array("ignored_attributes"),
             "configured header" => array("configured_header"),
             "mapping" => array("mapping"),
+	        "separator_incolumns" => array("separator_incolumns"),
         );
     }
 
