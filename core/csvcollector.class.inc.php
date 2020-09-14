@@ -142,7 +142,7 @@ abstract class CSVCollector extends Collector {
 			return false;
 		}
 
-		Utils::Log(LOG_DEBUG, "[".get_class($this)."] CSV file is [".$sCsvFilePath."]");
+		Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file is [".$sCsvFilePath."]");
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Has cs header [".$this->bHasHeader."]");
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Separator used is [".$this->sCsvSeparator."]");
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Encoding used is [".$this->sCsvEncoding."]");
@@ -154,26 +154,21 @@ abstract class CSVCollector extends Collector {
 			utils::Exec($this->sCsvCliCommand);
 		}
 
-		if (!is_file($sCsvFilePath)) {
-			Utils::Log(LOG_DEBUG, "[".get_class($this)."] CSV file not found in [".$sCsvFilePath."]");
+		try{
+			$hHandle = fopen($sCsvFilePath, "r");
+		}catch(Exception $e) {
+			Utils::Log(LOG_INFO, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 			$sCsvFilePath = APPROOT.$sCsvFilePath;
-			if (!is_file($sCsvFilePath)) {
-				Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot find CSV file $sCsvFilePath");
-
+			try{
+				$hHandle = fopen($sCsvFilePath, "r");
+			}catch(Exception $e) {
+				Utils::Log(LOG_ERROR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 				return false;
 			}
 		}
 
-		if (!is_readable($sCsvFilePath)) {
-			Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot read CSV file $sCsvFilePath");
-
-			return false;
-		}
-
-		$hHandle = fopen($sCsvFilePath, "r");
 		if (!$hHandle) {
-			Utils::Log(LOG_ERR, "[".get_class($this)."] Handle issue with file $sCsvFilePath");
-
+			Utils::Log(LOG_ERROR, "[".get_class($this)."] Cannot use CSV file handle for $sCsvFilePath");
 			return false;
 		}
 
