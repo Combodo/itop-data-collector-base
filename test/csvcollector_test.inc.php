@@ -98,6 +98,7 @@ class TestCsvCollector extends TestCase {
 			"configured header" => array("configured_header"),
 			"mapping" => array("mapping"),
 			"separator_incolumns" => array("separator_incolumns"),
+			"return_in_fieldvalues" => array("return_in_fieldvalues"),
 		);
 	}
 

@@ -28,7 +28,7 @@ Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
  */
 abstract class CSVCollector extends Collector {
 	protected $iIdx = 0;
-	protected $aCsvLines = array();
+	protected $aCsvFieldsPerLine = array();
 	protected $sCsvSeparator;
 	protected $sCsvEncoding;
 	protected $bHasHeader = true;
@@ -172,13 +172,26 @@ abstract class CSVCollector extends Collector {
 			return false;
 		}
 
-		while (($sLine = fgets($hHandle)) !== false) {
-			$this->aCsvLines[] = rtrim(iconv($this->sCsvEncoding, $this->GetCharset(), $sLine), "\n\r");
+		$sTmpFile = tempnam(sys_get_temp_dir(), "decoded_");
+		file_put_contents($sTmpFile, iconv($this->sCsvEncoding, $this->GetCharset(), stream_get_contents($hHandle)));
+		$oTmpHandle = fopen($sTmpFile, "r");
+
+		while (($aData = fgetcsv($oTmpHandle, 0, $this->sCsvSeparator)) !== false) {
+			$this->aCsvFieldsPerLine[] = $aData;
 		}
 
-		fclose($hHandle);
-
+		fclose($oTmpHandle);
+		unlink($sTmpFile);
 		return $bRet;
+	}
+
+	/**
+	 * @return NextLineObject
+	 */
+	public function getNextLine() {
+		$aValues = $this->aCsvFieldsPerLine[$this->iIdx];
+		$sCsvLine = implode($this->sCsvSeparator,$aValues);
+		return new NextLineObject($sCsvLine, $aValues);
 	}
 
 	/**
@@ -189,7 +202,7 @@ abstract class CSVCollector extends Collector {
 	 * @throws Exception
 	 */
 	public function Fetch() {
-		if ($this->iIdx >= count($this->aCsvLines)) {
+		if ($this->iIdx >= count($this->aCsvFieldsPerLine)) {
 			return false;
 		}
 
@@ -244,16 +257,6 @@ abstract class CSVCollector extends Collector {
 		$this->iIdx++;
 
 		return $aData;
-	}
-
-	/**
-	 * @return NextLineObject
-	 */
-	public function getNextLine() {
-		$sCsvLine = $this->aCsvLines[$this->iIdx];
-		$aValues = str_getcsv($sCsvLine, $this->sCsvSeparator);
-
-		return new NextLineObject($sCsvLine, $aValues);
 	}
 
 	/**
