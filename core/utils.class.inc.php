@@ -169,7 +169,7 @@ class Utils
 
 	static public function MockLog($oMockedLogger)
     {
-        self::$oMockedLogger = $MockedLogger;
+        self::$oMockedLogger = $oMockedLogger;
     }
 
     /**
