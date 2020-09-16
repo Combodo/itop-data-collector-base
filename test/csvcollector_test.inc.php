@@ -91,6 +91,7 @@ class TestCsvCollector extends TestCase {
 			"nominal" => array("nominal"),
 			"charset_ISO" => array("charset_ISO"),
 			"separator" => array("separator"),
+			"separator_tab" => array("separator_tab"),
 			"clicommand" => array("clicommand"),
 			"adding hardcoded values" => array("hardcoded_values_add"),
 			"replacing hardcoded values" => array("hardcoded_values_replace"),

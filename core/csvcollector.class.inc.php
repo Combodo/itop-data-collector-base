@@ -76,6 +76,10 @@ abstract class CSVCollector extends Collector {
 
 			if (array_key_exists('separator', $aClassConfig)) {
 				$this->sCsvSeparator = $aClassConfig['separator'];
+				if($this->sCsvSeparator === 'TAB')
+				{
+					$this->sCsvSeparator = "\t";
+				}
 			}
 			if (array_key_exists('encoding', $aClassConfig)) {
 				$this->sCsvEncoding = $aClassConfig['encoding'];
