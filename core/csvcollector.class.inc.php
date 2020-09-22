@@ -215,13 +215,13 @@ abstract class CSVCollector extends Collector {
 
 		if (!$this->aSynchroColumns) {
 			$aCsvHeaderColumns = $oNextLineArr->getValues();
-			$this->iIdx++;
 
 			$this->Configure($aCsvHeaderColumns);
 
 			$this->CheckSynchroColumns();
 
 			if ($this->bHasHeader) {
+				$this->iIdx++;
 				/** NextLineObject**/
 				$oNextLineArr = $this->getNextLine();
 			}

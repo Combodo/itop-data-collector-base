@@ -1,2 +1,3 @@
 primary_key;first_name;name;phone;mobile_phone;employee_number;email;status
 1;isaac;asimov;123456789;9998877665544;06543210;issac.asimov@function.io;Active
+12;isaac2;asimov2;123456789;9998877665544;06543210;issac.asimov@function.io;Active
