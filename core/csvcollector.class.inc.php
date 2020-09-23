@@ -297,6 +297,7 @@ abstract class CSVCollector extends Collector {
 	 * @throws Exception
 	 */
 	protected function CheckSynchroColumns() {
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
 		$aChecks = array('errors' => array(), 'warnings' => array());
 
 		if (!in_array('primary_key', $this->aSynchroColumns)) {
