@@ -292,7 +292,7 @@ abstract class JsonCollector extends Collector
                     }
                 }
                 if ($bFind) {
-                    Utils::Log(LOG_DEBUG, "aDataToSynchronize[$sTag]: " . json_encode($aValue));
+                    Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: " . json_encode($aValue));
                     $aDataToSynchronize[$key] = $aValue;
                 }
             }
