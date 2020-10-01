@@ -39,6 +39,11 @@ if ($sTaskName == '*')
 	$oRestClient = new RestClient();
 	$aResult = $oRestClient->Get('SynchroDataSource', 'SELECT SynchroDataSource');
 	$sITopUrl = Utils::GetConfigurationValue('itop_url', '');
+	if($aResult['code'] != 0)
+	{
+		echo "[{$aResult['code']}] {$aResult['message']}\n";
+		exit -1;
+	}
 
 	switch (count($aResult['objects']))
 	{
