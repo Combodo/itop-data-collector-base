@@ -70,7 +70,7 @@ abstract class JsonCollector extends Collector
         {
             $aParamsSourceJson = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
         }
-        Utils::Log(LOG_INFO, "aParamsSourceJson [" . json_encode($aParamsSourceJson) . "]");
+        Utils::Log(LOG_DEBUG, "aParamsSourceJson [" . json_encode($aParamsSourceJson) . "]");
         if (isset($aParamsSourceJson["command"]))
         {
             $this->sJsonCliCommand = $aParamsSourceJson["command"];
@@ -78,8 +78,9 @@ abstract class JsonCollector extends Collector
         if (isset($aParamsSourceJson["COMMAND"]))
         {
             $this->sJsonCliCommand = $aParamsSourceJson["COMMAND"];
+            Utils::Log(LOG_INFO, "[" . get_class($this) . "] CLI command used is [" . $this->sJsonCliCommand . "]");
         }
-        Utils::Log(LOG_INFO, "[" . get_class($this) . "] CLI command used is [" . $this->sJsonCliCommand . "]");
+
 
         // Read the URL or Path from the configuration
         if (isset($aParamsSourceJson["jsonurl"])) {
@@ -100,11 +101,11 @@ abstract class JsonCollector extends Collector
             {     // Try all lowercase
                 $this->sFilePath = $aParamsSourceJson["JSONFILE"];
             }
-            Utils::Log(LOG_INFO, "FilePath:" . $this->sFilePath);
+            Utils::Log(LOG_INFO, "Source file path: " . $this->sFilePath);
         }
         else
         {
-           Utils::Log(LOG_INFO, "sURL" . $this->sURL);
+           Utils::Log(LOG_INFO, "Source URL: " . $this->sURL);
         }
 
         if ($this->sURL == '' && $this->sFilePath == '')
@@ -325,7 +326,7 @@ abstract class JsonCollector extends Collector
             {
                if(!isset($aDataToSynchronize[$sHeader]))
                {
-                   $aDataToSynchronize[$sHeader]="";
+                   $aDataToSynchronize[$sHeader]=null;
                }
             }
 

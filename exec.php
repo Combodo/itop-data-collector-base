@@ -78,7 +78,7 @@ $bDumpConfigOnly = (Utils::ReadBooleanParameter('dump_config_only', false) == tr
 
 try
 {
-    Utils::$iConsoleLogLevel = Utils::ReadParameter('console_log_level', Utils::GetConfigurationValue('console_log_level', LOG_INFO));
+    Utils::$iConsoleLogLevel = Utils::ReadParameter('console_log_level', Utils::GetConfigurationValue('console_log_level', LOG_WARNING));//On windows LOG_NOTICE=LOG_INFO=LOG_DEBUG=6
     $iMaxChunkSize = Utils::ReadParameter('max_chunk_size', Utils::GetConfigurationValue('max_chunk_size', 1000));
     
     if (file_exists(APPROOT.'collectors/main.php'))
@@ -115,8 +115,8 @@ try
 	else
 	{
 		Utils::Log(LOG_DEBUG, $sConfigDebug);
-	}	
-	
+	}
+
 	$oOrchestrator = new Orchestrator();
 	$aCollectors = $oOrchestrator->ListCollectors();
 	Utils::Log(LOG_DEBUG, "Registered collectors:");
