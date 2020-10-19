@@ -322,20 +322,23 @@ abstract class Collector
 	{
 	    Utils::Log(LOG_DEBUG, "Checking the configuration of the data source '{$aExpectedSourceDefinition['name']}'...");
 	    
-	    // Check that there is at least 1 reconciliation key
-	    $bReconciliationKeyFound = false;
-	    foreach($aExpectedSourceDefinition['attribute_list'] as $aAttributeDef)
+	    // Check that there is at least 1 reconciliation key, if the reconciliation_policy is "use_attributes"
+	    if ($aExpectedSourceDefinition['reconciliation_policy'] == 'use_attributes')
 	    {
-	        if ($aAttributeDef['reconcile'] == '1')
-	        {
-	            $bReconciliationKeyFound = true;
-	            break;
-	        }
-	    }
-	    if (!$bReconciliationKeyFound)
-	    {
-	        throw new InvalidConfigException("Collector::CheckDataSourceDefinition: Missing reconciliation key for data source '{$aExpectedSourceDefinition['name']}'. " .
-	           "At least one attribute in 'attribute_list' must have the flag 'reconcile' set to '1'.");
+		    $bReconciliationKeyFound = false;
+		    foreach($aExpectedSourceDefinition['attribute_list'] as $aAttributeDef)
+		    {
+		        if ($aAttributeDef['reconcile'] == '1')
+		        {
+		            $bReconciliationKeyFound = true;
+		            break;
+		        }
+		    }
+		    if (!$bReconciliationKeyFound)
+		    {
+		        throw new InvalidConfigException("Collector::CheckDataSourceDefinition: Missing reconciliation key for data source '{$aExpectedSourceDefinition['name']}'. " .
+		           "At least one attribute in 'attribute_list' must have the flag 'reconcile' set to '1'.");
+		    }
 	    }
 	    
 	    // Check the database table name for invalid characters
