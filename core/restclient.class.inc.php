@@ -108,8 +108,9 @@ class RestClient
 		$aData['auth_user'] = Utils::GetConfigurationValue('itop_login', '');
 		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
 		$aData['json_data'] = json_encode($aOperation);
-//print_r($aOperation);
+
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
+		$sUrl .= '&login_mode=' . Utils::GetConfigurationValue('itop_login_mode', 'form');
 		$aHeaders = array();
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array());
 		$aCurlOptions = array();
@@ -127,7 +128,7 @@ class RestClient
 		{
 			throw new Exception("rest.php replied: $response");
 		}
-//print_r($aResults);
+
 		return $aResults;
 	}
 	
