@@ -27,16 +27,16 @@ pipeline {
           junit testResults:'logs/*.xml', allowEmptyResults:false
       }
       success {
-          echo 'I succeeeded!'
+          echo 'I succeeeded! (Author: ${env.CHANGE_AUTHOR})'
       }
       unstable {
-          echo 'I am unstable :/'
+          echo 'I am unstable (Author: ${env.CHANGE_AUTHOR}) :/'
       }
       failure {
-          echo 'I failed :('
+          echo 'I failed (Author: ${env.CHANGE_AUTHOR}) :('
       }
       changed {
-          echo 'Things were different before...'
+          echo 'Things were different before... (Author: ${env.CHANGE_AUTHOR})'
       }
   }
 }
