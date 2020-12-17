@@ -110,7 +110,8 @@ class RestClient
 		$aData['json_data'] = json_encode($aOperation);
 
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
-		$sUrl .= '&login_mode=' . Utils::GetConfigurationValue('itop_login_mode', 'form');
+		$sLoginMode = Utils::GetConfigurationValue('itop_login_mode', 'form');
+		if (!empty($sLoginMode)) $sUrl .= '&login_mode=' . $sLoginMode;
 		$aHeaders = array();
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array());
 		$aCurlOptions = array();
