@@ -599,7 +599,7 @@ abstract class Collector
 				'charset' => $this->GetCharset(),
 			);
 			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php';
-			if (!empty($sLoginMode)) $sUrl .= '?login_mode=' . $sLoginMode;
+			if (!empty($sLoginMode)) { $sUrl .= '?login_mode=' . $sLoginMode;}
     		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run	
 
 	    	$aResponseHeaders = null;
@@ -642,7 +642,7 @@ abstract class Collector
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_exec.php';
-		if (!empty($sLoginMode)) $sUrl .= '?login_mode=' . $sLoginMode;
+		if (!empty($sLoginMode)) { $sUrl .= '?login_mode=' . $sLoginMode;}
 
 		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 		

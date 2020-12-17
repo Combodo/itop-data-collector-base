@@ -111,7 +111,7 @@ class RestClient
 
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
 		$sLoginMode = Utils::GetConfigurationValue('itop_login_mode', 'form');
-		if (!empty($sLoginMode)) $sUrl .= '&login_mode=' . $sLoginMode;
+		if (!empty($sLoginMode)) { $sUrl .= '&login_mode=' . $sLoginMode;}
 		$aHeaders = array();
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array());
 		$aCurlOptions = array();
