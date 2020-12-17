@@ -581,6 +581,7 @@ abstract class Collector
 			$this->DoProcessBeforeSynchro();
 		}
 		
+		$sLoginMode = Utils::GetConfigurationValue('itop_login_mode', 'form');
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
 		foreach($aFiles as $sDataFile)
 		{
@@ -598,6 +599,7 @@ abstract class Collector
 				'charset' => $this->GetCharset(),
 			);
 			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php';
+			if (!empty($sLoginMode)) { $sUrl .= '?login_mode=' . $sLoginMode;}
     		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run	
 
 	    	$aResponseHeaders = null;
@@ -640,6 +642,8 @@ abstract class Collector
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_exec.php';
+		if (!empty($sLoginMode)) { $sUrl .= '?login_mode=' . $sLoginMode;}
+
 		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 		
 		$aResponseHeaders = null;
