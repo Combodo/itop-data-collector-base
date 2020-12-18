@@ -581,7 +581,6 @@ abstract class Collector
 			$this->DoProcessBeforeSynchro();
 		}
 		
-		$sLoginMode = Utils::GetConfigurationValue('itop_login_mode', 'form');
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
 		foreach($aFiles as $sDataFile)
 		{
@@ -598,26 +597,24 @@ abstract class Collector
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
 			);
-			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php';
-			if (!empty($sLoginMode)) { $sUrl .= '?login_mode=' . $sLoginMode;}
-    		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run	
+			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php?login_mode=form';
+			$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
-	    	$aResponseHeaders = null;
+			$aResponseHeaders = null;
 
 			$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
 			$aCurlOptions = array();
-			foreach($aRawCurlOptions as $key => $value)
-			{
+			foreach ($aRawCurlOptions as $key => $value) {
 				// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-				$iKey = (!is_numeric($key)) ? constant((string)$key) : (int) $key;
-				$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
+				$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
+				$iValue = (!is_numeric($value)) ? constant((string)$value) : (int)$value;
 				$aCurlOptions[$iKey] = $iValue;
 			}
-		    $aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
-            $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
+			$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
+			$aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
 
 			$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
-			
+
 			// Read the status code from the last line
 			$aLines = explode("\n", trim(strip_tags($sResult)));
 			$sLastLine = array_pop($aLines);
@@ -637,23 +634,19 @@ abstract class Collector
 			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 			'data_sources' => $this->iSourceId,
 		);
-		if ($iMaxChunkSize > 0)
-		{
+		if ($iMaxChunkSize > 0) {
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_exec.php';
-		if (!empty($sLoginMode)) { $sUrl .= '?login_mode=' . $sLoginMode;}
-
+		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_exec.php?login_mode=form';
 		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
-		
+
 		$aResponseHeaders = null;
 
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
 		$aCurlOptions = array();
-		foreach($aRawCurlOptions as $key => $value)
-		{
+		foreach ($aRawCurlOptions as $key => $value) {
 			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int) $key;
+			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
 			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
 			$aCurlOptions[$iKey] = $iValue;
 		}

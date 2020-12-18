@@ -4,7 +4,6 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  <itop_login_mode></itop_login_mode>
   
   <!-- console_log_level: level of logging to console (std output)
   -1 : none, nothing will be logged to the console

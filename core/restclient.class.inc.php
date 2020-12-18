@@ -108,28 +108,22 @@ class RestClient
 		$aData['auth_user'] = Utils::GetConfigurationValue('itop_login', '');
 		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
 		$aData['json_data'] = json_encode($aOperation);
-
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?version='.$sVersion;
-		$sLoginMode = Utils::GetConfigurationValue('itop_login_mode', 'form');
-		if (!empty($sLoginMode)) { $sUrl .= '&login_mode=' . $sLoginMode;}
+		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?login_mode=form&version='.$sVersion;
 		$aHeaders = array();
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array());
 		$aCurlOptions = array();
-		foreach($aRawCurlOptions as $key => $value)
-		{
+		foreach ($aRawCurlOptions as $key => $value) {
 			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
 			// Make sure that the actual constant exists to prevent warnings/errors in case of typo or when php-curl is not loaded
-			$iKey = ((!is_numeric($key)) && defined((string)$key)) ? constant((string)$key) : (int) $key;
-			$iValue = ((!is_numeric($value)) && defined((string)$value))  ? constant((string)$value) : (int) $value;
+			$iKey = ((!is_numeric($key)) && defined((string)$key)) ? constant((string)$key) : (int)$key;
+			$iValue = ((!is_numeric($value)) && defined((string)$value)) ? constant((string)$value) : (int)$value;
 			$aCurlOptions[$iKey] = $iValue;
 		}
 		$response = Utils::DoPostRequest($sUrl, $aData, null, $aHeaders, $aCurlOptions);
 		$aResults = json_decode($response, true);
-		if (!$aResults)
-		{
+		if (!$aResults) {
 			throw new Exception("rest.php replied: $response");
 		}
-
 		return $aResults;
 	}
 	
