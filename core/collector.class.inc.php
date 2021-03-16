@@ -488,7 +488,7 @@ abstract class Collector
 		{
 			if (($sHeader != 'primary_key') && !array_key_exists($sHeader, $this->aFields))
 			{
-				if (!in_array($sHeader, $this->aSkippedAttributes))
+				if (!$this->AttributeIsOptional($sHeader))
 				{
 					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
 				}
