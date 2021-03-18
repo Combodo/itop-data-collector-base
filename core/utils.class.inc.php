@@ -439,7 +439,7 @@ class Utils
 
 	/**
 	 * Pretty print a JSON formatted string. Copied/pasted from http://stackoverflow.com/questions/6054033/pretty-printing-json-with-php
-	 * @deprecated 1.3.0 use `json_encode($json, JSON_PRETTY_PRINT);` instead
+	 * @deprecated 1.3.0 use `json_encode($value, JSON_PRETTY_PRINT);` instead
 	 * @param string $json A JSON formatted object definition
 	 * @return string The nicely formatted JSON definition
 	 */
