@@ -445,6 +445,8 @@ class Utils
 	 */
 	public static function JSONPrettyPrint($json)
 	{
+	    Utils::Log(LOG_NOTICE, 'Use of deprecated method '.__METHOD__);
+
 	    $result = '';
 	    $level = 0;
 	    $in_quotes = false;
