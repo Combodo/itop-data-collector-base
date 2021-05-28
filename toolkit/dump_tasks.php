@@ -113,7 +113,11 @@ else
 					$aCurrentTaskDefinition['database_table_name'] = "";
 				}
 
-				echo json_encode($aCurrentTaskDefinition, JSON_PRETTY_PRINT);
+				if (defined('JSON_PRETTY_PRINT') {
+					echo json_encode($aCurrentTaskDefinition, JSON_PRETTY_PRINT);
+				} else {
+					echo Utils::JSONPrettyPrint($sDefinition)."\n";
+				}
 			}
 		}
 		else
