@@ -116,7 +116,8 @@ else
 				if (defined('JSON_PRETTY_PRINT')) {
 					echo json_encode($aCurrentTaskDefinition, JSON_PRETTY_PRINT);
 				} else {
-					echo Utils::JSONPrettyPrint($aCurrentTaskDefinition)."\n";
+                    $sDefinition = json_encode($aCurrentTaskDefinition);
+                    echo Utils::JSONPrettyPrint($sDefinition)."\n";
 				}
 			}
 		}
