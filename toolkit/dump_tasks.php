@@ -46,21 +46,23 @@ if ($sTaskName == '*')
 		exit -1;
 	}
 
-	switch (count($aResult['objects']))
+	if (empty($aResult['objects']))
 	{
-		case 0:
-			echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
-			break;
-
-		case 1:
-			echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
-			break;
-
-		default:
-			echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+		echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
 	}
-	if (count($aResult['objects']) > 0)
+	else
 	{
+		switch (count($aResult['objects']))
+		{
+			case 1:
+				echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				break;
+
+			default:
+				echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				break;
+		}
+
 		echo "+--------------------------------+----------------------------------------------------+\n";
 		echo "|            Name                |                    Description                     |\n";
 		echo "+--------------------------------+----------------------------------------------------+\n";
