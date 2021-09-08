@@ -28,6 +28,7 @@ require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 
 $sTaskName = Utils::ReadParameter('task_name', '*');
+Utils::$iConsoleLogLevel = Utils::ReadParameter('console_log_level', Utils::GetConfigurationValue('console_log_level', LOG_WARNING));
 
 if ($sTaskName == '*')
 {

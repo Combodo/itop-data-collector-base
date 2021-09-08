@@ -5,6 +5,8 @@ require_once(APPROOT . 'core/parameters.class.inc.php');
 require_once(APPROOT . 'core/utils.class.inc.php');
 require_once(APPROOT . 'core/restclient.class.inc.php');
 
+Utils::$iConsoleLogLevel = Utils::ReadParameter('console_log_level', Utils::GetConfigurationValue('console_log_level', LOG_WARNING));
+
 print '    curl_init exists: ' . function_exists('curl_init').PHP_EOL;
 
 try{
