@@ -83,7 +83,7 @@ else
 	$aResult = $oRestClient->Get('SynchroDataSource', array('name' => $sTaskName), '*');
 	if ($aResult['code'] != 0)
 	{
-		echo "Sorry, an error occured while retrieving the information from iTop: {$aResult['message']} ({$aResult['code']})\n";
+		echo "Sorry, an error occurred while retrieving the information from iTop: {$aResult['message']} ({$aResult['code']})\n";
 	}
 	else
 	{
@@ -106,10 +106,9 @@ else
 				$aCurrentTaskDefinition = $aValues['fields'];
 				RestClient::GetFullSynchroDataSource($aCurrentTaskDefinition, $iKey);
 
-				// Replace some litterals by their usual placeholders
+				// Replace some literals by their usual placeholders
 				$aCurrentTaskDefinition['user_id'] = '$synchro_user$';
 				$aCurrentTaskDefinition['notify_contact_id'] = '$contact_to_notify$';
-
 
 				if (isset($aCurrentTaskDefinition['database_table_name']))
 				{
