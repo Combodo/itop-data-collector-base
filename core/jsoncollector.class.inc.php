@@ -29,6 +29,7 @@ Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version
  * - <path> to configuring the path in the json file to take to find the data
  * by example aa/bb for {"aa":{"bb":{mydata},"cc":"xxx"}
  *      "*" will replace any tag aa/ * /bb  for {"aa":{cc":{"bb":{mydata1}},"dd":{"bb":{mydata2}}}
+ *
  */
 
 abstract class JsonCollector extends Collector
