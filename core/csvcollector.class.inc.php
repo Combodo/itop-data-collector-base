@@ -15,8 +15,6 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
-Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
-
 /**
  * Base class for creating collectors which retrieve their data via a CSV files
  *
