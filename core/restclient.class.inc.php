@@ -190,6 +190,7 @@ class RestClient
 							$aSource['attribute_list'][$idx]['update'] = $aAttDef['fields']['update'] ? '1' : '0';
 							
 							// read-only (external) fields
+							unset($aSource['attribute_list'][$idx]['friendlyname']);
 							unset($aSource['attribute_list'][$idx]['sync_source_id']);
 							unset($aSource['attribute_list'][$idx]['sync_source_name']);
 							unset($aSource['attribute_list'][$idx]['sync_source_id_friendlyname']);
@@ -197,13 +198,16 @@ class RestClient
 					}				
 				}
 			}
-			// Don't care about these read-only fields
-		    unset($aSource['friendlyname']);
-		    unset($aSource['user_id_friendlyname']);
-		    unset($aSource['user_id_finalclass_recall']);
-		    unset($aSource['notify_contact_id_friendlyname']);
-		    unset($aSource['notify_contact_id_finalclass_recall']);
 		}
+
+		// Don't care about these read-only fields
+		unset($aSource['friendlyname']);
+		unset($aSource['user_id_friendlyname']);
+		unset($aSource['user_id_finalclass_recall']);
+		unset($aSource['notify_contact_id_friendlyname']);
+		unset($aSource['notify_contact_id_finalclass_recall']);
+		unset($aSource['notify_contact_id_obsolescence_flag']);
+
 		return $bResult;	
 	}
 }
