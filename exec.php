@@ -37,6 +37,7 @@ $aOptionalParams = array(
     'synchro_only' => 'boolean',
     'dump_config_only' => 'boolean',
     'console_log_level' => 'integer',
+    'eventissue_log_level' => 'integer',
     'max_chunk_size' => 'integer',
     'help' => 'boolean',
     'config_file' => 'string'

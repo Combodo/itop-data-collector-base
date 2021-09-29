@@ -191,22 +191,20 @@ class Utils
 		$sProjectName = self::$sProjectName;
 		$sCollectorName = (self::$oCollector == null) ? "" : get_class(self::$oCollector);
 		$sStep = self::$sStep;
-		$sJson = <<<JSON
-{
-   "operation": "core/create",
-   "comment": "collector issue triggers EventIssue creation.",
-   "class": "EventIssue",
-   "output_fields": "id, friendlyname",
-   "fields":
-   {
-      "message": "$sMessage",
-      "userinfo": "Collector",
-      "issue": "$sStep",
-      "impact": "$sProjectName",
-      "page": "$sCollectorName",
-   }
-}
-JSON;
+
+		$aJson = [
+			"operation" => "core/create",
+			"comment" => "collector issue triggers EventIssue creation.",
+			"class" => "EventIssue",
+			"output_fields" => "id, friendlyname, userinfo, issue, impact, data",
+			"fields" => [
+				"message" => "$sMessage",
+				"userinfo" => "Collector",
+				"issue"=> "$sStep/$sCollectorName",
+				"impact" => "$sProjectName",
+			]
+		];
+		$sJson = json_encode($aJson, true);
 
 		Utils::Log(LOG_INFO, sprintf("CreateEventIssue json: %s", $sJson));
 		$aData = [
@@ -214,6 +212,7 @@ JSON;
 			"json_data" => $sJson,
 		];
 		$response = Collector::CallItopViaHttp('/webservices/rest.php', $aData);
+		var_dump($response);
 	}
 
 	static public function MockLog($oMockedLogger) {
