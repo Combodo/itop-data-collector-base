@@ -4,7 +4,8 @@ namespace UnitTestFiles\Test;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Runner\Exception;
 
-define('APPROOT', dirname(__FILE__).'/../');
+@define('APPROOT', dirname(__FILE__).'/../');
+
 require_once(APPROOT.'core/parameters.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/collector.class.inc.php');
@@ -12,7 +13,7 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/jsoncollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
 
-class TestJsonCollector extends TestCase
+class JsonCollectorTest extends TestCase
 {
     private static $sCollectorPath = APPROOT . "/collectors/";
     private $oMockedLogger;
@@ -21,7 +22,7 @@ class TestJsonCollector extends TestCase
     {
         parent::setUp();
 
-        $aCollectorFiles = glob(TestJsonCollector::$sCollectorPath . "*");
+        $aCollectorFiles = glob(self::$sCollectorPath . "*");
         foreach ($aCollectorFiles as $fFile)
         {
             unlink($fFile);
@@ -35,7 +36,7 @@ class TestJsonCollector extends TestCase
     public function tearDown()
     {
         parent::tearDown();
-        $aCollectorFiles = glob(TestJsonCollector::$sCollectorPath . "*");
+        $aCollectorFiles = glob(self::$sCollectorPath . "*");
         foreach ($aCollectorFiles as $file)
         {
             unlink($file);
@@ -50,9 +51,9 @@ class TestJsonCollector extends TestCase
 
     private function copy($sPattern)
     {
-        if (! is_dir(TestJsonCollector::$sCollectorPath))
+        if (! is_dir(self::$sCollectorPath))
         {
-            mkdir(TestJsonCollector::$sCollectorPath);
+            mkdir(self::$sCollectorPath);
         }
 
         $aFiles = glob($sPattern);
@@ -60,10 +61,10 @@ class TestJsonCollector extends TestCase
         {
             if (is_file($fFile))
             {
-                $bRes = copy($fFile, TestJsonCollector::$sCollectorPath . basename($fFile));
+                $bRes = copy($fFile, self::$sCollectorPath . basename($fFile));
                 if (!$bRes)
                 {
-                    throw new \Exception("Failed copying $fFile to " . TestJsonCollector::COLLECTOR_PATH . basename($fFile));
+                    throw new \Exception("Failed copying $fFile to " . JsonCollectorTest::COLLECTOR_PATH . basename($fFile));
                 }
             }
         }
@@ -91,7 +92,7 @@ class TestJsonCollector extends TestCase
         $this->copy(APPROOT . "/test/single_json/".$sAdditionalDir."/*");
         $this->replaceTranslateRelativePathInParam("/test/single_json/".$sAdditionalDir);
 
-        require_once TestJsonCollector::$sCollectorPath . "ITopPersonJsonCollector.class.inc.php";
+        require_once self::$sCollectorPath . "ITopPersonJsonCollector.class.inc.php";
 
         $this->oMockedLogger->expects($this->exactly(0))
             ->method("Log");
@@ -101,7 +102,7 @@ class TestJsonCollector extends TestCase
 
         $this->assertTrue($oOrgCollector->Collect());
 
-        $sExpected_content = file_get_contents(TestJsonCollector::$sCollectorPath ."expected_generated.csv");
+        $sExpected_content = file_get_contents(self::$sCollectorPath ."expected_generated.csv");
 
         $this->assertEquals($sExpected_content, file_get_contents(APPROOT . "/data/ITopPersonJsonCollector-1.csv"));
     }
@@ -130,7 +131,7 @@ class TestJsonCollector extends TestCase
 
         $this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$sAdditionalDir);
 
-        require_once TestJsonCollector::$sCollectorPath . "ITopPersonJsonCollector.class.inc.php";
+        require_once self::$sCollectorPath . "ITopPersonJsonCollector.class.inc.php";
         $oOrgCollector = new \ITopPersonJsonCollector();
         \Utils::LoadConfig();
 
