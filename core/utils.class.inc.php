@@ -23,10 +23,26 @@ class Utils
 {
 	static public $iConsoleLogLevel = LOG_INFO;
 	static public $iSyslogLogLevel = LOG_NONE;
+	static public $iEventIssueLogLevel = LOG_NONE;
+	static public $sProjectName = "";
+	static public $sStep = "";
+	static public $oCollector = "";
 	static protected $oConfig = null;
 	static protected $aConfigFiles = array();
 
 	static protected $oMockedLogger;
+
+	static public function SetProjectName($sProjectName) {
+		if ($sProjectName != null)
+		{
+			self::$sProjectName = $sProjectName;
+		}
+	}
+
+	static public function SetCollector($oCollector, $sStep = "") {
+		self::$oCollector = $oCollector;
+		self::$sStep = $sStep;
+	}
 
 	static public function ReadParameter($sParamName, $defaultValue)
 	{
@@ -159,6 +175,45 @@ class Utils
 			syslog($iPriority, $sMessage);
 			closelog();
 		}
+
+		if ($iPriority <= self::$iEventIssueLogLevel) {
+			Utils::CreateEventIssue($sMessage);
+		}
+	}
+
+
+	/**
+	 * @param bool $bResult
+	 * @param string $sErrorMessage
+	 */
+	private static function CreateEventIssue($sMessage)
+	{
+		$sProjectName = self::$sProjectName;
+		$sCollectorName = (self::$oCollector == null) ? "" : get_class(self::$oCollector);
+		$sStep = self::$sStep;
+		$sJson = <<<JSON
+{
+   "operation": "core/create",
+   "comment": "collector issue triggers EventIssue creation.",
+   "class": "EventIssue",
+   "output_fields": "id, friendlyname",
+   "fields":
+   {
+      "message": "$sMessage",
+      "userinfo": "Collector",
+      "issue": "$sStep",
+      "impact": "$sProjectName",
+      "page": "$sCollectorName",
+   }
+}
+JSON;
+
+		Utils::Log(LOG_INFO, sprintf("CreateEventIssue json: %s", $sJson));
+		$aData = [
+			'version' => '1.3',
+			"json_data" => $sJson,
+		];
+		$response = Collector::CallItopViaHttp('/webservices/rest.php', $aData);
 	}
 
 	static public function MockLog($oMockedLogger) {
@@ -166,7 +221,7 @@ class Utils
 	}
 
     /**
-     * Load the configuration from the various XML condifuration files
+     * Load the configuration from the various XML configuration files
      * @throws Exception
      * @return Parameters
      */

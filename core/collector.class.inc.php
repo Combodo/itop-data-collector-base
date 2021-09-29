@@ -38,6 +38,7 @@ abstract class Collector
 	 */
 	const TABLENAME_PATTERN = '/^[A-Za-z0-9_]*$/';
 
+	protected $sProjectName;
 	protected $sSynchroDataSourceDefinitionFile;
 	protected $sVersion;
 	protected $iSourceId;
@@ -85,7 +86,12 @@ abstract class Collector
 	{
 		return $this->sErrorMessage;
 	}
-	
+
+	public function GetProjectName()
+	{
+		return $this->sProjectName;
+	}
+
 	protected function Fetch()
 	{
 		// Implement your own mechanism, unless you completely overload Collect()
@@ -276,11 +282,14 @@ abstract class Collector
 		try
 		{
 			$sModuleFile = reset($aFiles);
+
+			$this->SetProjectNameFromFileName($sModuleFile);
+
             $sModuleFileContents = file_get_contents($sModuleFile);
 			$sModuleFileContents = str_replace(array('<?php', '?>'), '', $sModuleFileContents);
-			$sModuleFileContents = str_replace('SetupWebPage::AddModule(', '$this->InitVersionCallback(', $sModuleFileContents);
+			$sModuleFileContents = str_replace('SetupWebPage::AddModule(', '$this->InitFieldsFromModuleContentCallback(', $sModuleFileContents);
 			$bRet = eval($sModuleFileContents);
-			
+
 			if ($bRet === false)
 			{
 				Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
@@ -292,7 +301,27 @@ abstract class Collector
 			Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: ".$e->getMessage());
 		}		
 	}
-	
+
+	/**
+	 * @param string $sModuleFile
+	 */
+	public function SetProjectNameFromFileName($sModuleFile)
+	{
+		if (preg_match("/module\.(.*)\.php/", $sModuleFile, $aMatches))
+		{
+			$this->SetProjectName($aMatches[1]);
+		}
+	}
+
+	/**
+	 * @param string $sProjectName
+	 */
+	public function SetProjectName($sProjectName): void {
+		$this->sProjectName = $sProjectName;
+		Utils::SetProjectName($sProjectName);
+	}
+
+
 	/**
 	 * Sets the $sVersion property. Called when eval'uating the content of the module file
 	 * 
@@ -300,10 +329,11 @@ abstract class Collector
 	 * @param string $sId The identifier of the module. Format:  'name/version'
 	 * @param array $void2 Unused
 	 */
-	protected function InitVersionCallback($void1, $sId, $void2)
+	protected function InitFieldsFromModuleContentCallback($void1, $sId, $void2)
 	{
 		if (preg_match('!^(.*)/(.*)$!', $sId, $aMatches))
 		{
+			$this->SetProjectName($aMatches[1]);
 			$this->sVersion = $aMatches[2];
 		}
 		else
@@ -436,7 +466,6 @@ abstract class Collector
 	
 	public function Collect($iMaxChunkSize = 0)
 	{
-		$bResult = true;
 		Utils::Log(LOG_INFO, get_class($this)." beginning of data collection...");
 		try
 		{
@@ -580,7 +609,7 @@ abstract class Collector
 		{
 			$this->DoProcessBeforeSynchro();
 		}
-		
+
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
 		foreach($aFiles as $sDataFile)
 		{
@@ -588,8 +617,6 @@ abstract class Collector
 			// Load by chunk
 			$aData = array(
 				'separator' => ';',
-				'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-				'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 				'data_source_id' => $this->iSourceId,
 				'synchronize' => '0',
 				'no_stop_on_import_error' => 1,
@@ -597,23 +624,9 @@ abstract class Collector
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
 			);
-			$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_import.php?login_mode=form';
-			$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
-			$aResponseHeaders = null;
-
-			$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
-			$aCurlOptions = array();
-			foreach ($aRawCurlOptions as $key => $value) {
-				// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-				$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
-				$iValue = (!is_numeric($value)) ? constant((string)$value) : (int)$value;
-				$aCurlOptions[$iKey] = $iValue;
-			}
-			$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
-			$aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
-
-			$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
+			$sResult = self::CallItopViaHttp('/synchro/synchro_import.php?login_mode=form',
+				$aData);
 
 			// Read the status code from the last line
 			$aLines = explode("\n", trim(strip_tags($sResult)));
@@ -625,36 +638,20 @@ abstract class Collector
 				Utils::Log(LOG_ERR, trim(strip_tags($sResult)));
 				return false;
 			}
-			
 		}
+
 		// Synchronize... also by chunks...
 		Utils::Log(LOG_INFO, "Starting synchronization of the data source '{$this->sSourceName}'...");
 		$aData = array(
-			'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 			'data_sources' => $this->iSourceId,
 		);
 		if ($iMaxChunkSize > 0) {
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/synchro/synchro_exec.php?login_mode=form';
-		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
-		$aResponseHeaders = null;
+		$sResult = self::CallItopViaHttp('/synchro/synchro_exec.php?login_mode=form',
+			$aData);
 
-		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
-		$aCurlOptions = array();
-		foreach ($aRawCurlOptions as $key => $value) {
-			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
-			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
-			$aCurlOptions[$iKey] = $iValue;
-		}
-		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
-        $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
-
-		$sResult = Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
-		
 		$iErrorsCount = 0;
 		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches))
 		{
@@ -686,6 +683,36 @@ abstract class Collector
 			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
 		}
 		return ($iErrorsCount == 0);
+	}
+
+	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
+	{
+		$iCurrentTimeOut = ($iTimeOut !== -1) ? $iTimeOut : (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
+
+		$sUrl = Utils::GetConfigurationValue('itop_url', '') . $sUri;
+
+		$aResponseHeaders = null;
+
+		$aData = array_merge(
+			array(
+			'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
+			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
+			),
+			$aAdditionalData
+		);
+
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+		$aCurlOptions = array();
+		foreach ($aRawCurlOptions as $key => $value) {
+			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
+			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int) $value;
+			$aCurlOptions[$iKey] = $iValue;
+		}
+		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
+		$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
+
+		return Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
 	}
 	
 	/////////////////////////////////////////////////////////////////////////
@@ -925,5 +952,22 @@ abstract class Collector
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * @param string $sStep
+	 *
+	 * @return array
+	 */
+	public function GetErrorStatus($sStep)
+	{
+		return [
+			'status' => false,
+			'exit_status' => false,
+			'project' => $this->GetProjectName(),
+			'collector' => get_class($this),
+			'message' => '',
+			'step' => $sStep
+		];
 	}
 }
