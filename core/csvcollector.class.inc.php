@@ -164,13 +164,13 @@ abstract class CSVCollector extends Collector {
 			try{
 				$hHandle = fopen($sCsvFilePath, "r");
 			}catch(Exception $e) {
-				Utils::Log(LOG_ERROR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
+				Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 				return false;
 			}
 		}
 
 		if (!$hHandle) {
-			Utils::Log(LOG_ERROR, "[".get_class($this)."] Cannot use CSV file handle for $sCsvFilePath");
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot use CSV file handle for $sCsvFilePath");
 			return false;
 		}
 
