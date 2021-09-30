@@ -200,7 +200,7 @@ class Utils
 			"fields" => [
 				"message" => "$sMessage",
 				"userinfo" => "Collector",
-				"issue"=> "$sStep/$sCollectorName",
+				"issue"=> "$sStep-$sCollectorName",
 				"impact" => "$sProjectName",
 			]
 		];
