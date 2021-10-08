@@ -180,8 +180,7 @@ class Utils
 			Utils::CreateEventIssue($sMessage);
 		}
 	}
-
-
+	
 	/**
 	 * @param bool $bResult
 	 * @param string $sErrorMessage
@@ -192,27 +191,15 @@ class Utils
 		$sCollectorName = (self::$oCollector == null) ? "" : get_class(self::$oCollector);
 		$sStep = self::$sStep;
 
-		$aJson = [
-			"operation" => "core/create",
-			"comment" => "collector issue triggers EventIssue creation.",
-			"class" => "EventIssue",
-			"output_fields" => "id, friendlyname, userinfo, issue, impact, data",
-			"fields" => [
-				"message" => "$sMessage",
-				"userinfo" => "Collector",
-				"issue"=> "$sStep-$sCollectorName",
-				"impact" => "$sProjectName",
-			]
+		$aFields = [
+			"message" => "$sMessage",
+			"userinfo" => "Collector",
+			"issue"=> "$sStep-$sCollectorName",
+			"impact" => "$sProjectName",
 		];
-		$sJson = json_encode($aJson, true);
 
-		Utils::Log(LOG_INFO, sprintf("CreateEventIssue json: %s", $sJson));
-		$aData = [
-			'version' => '1.3',
-			"json_data" => $sJson,
-		];
-		$response = Collector::CallItopViaHttp('/webservices/rest.php', $aData);
-		var_dump($response);
+		$oClient = new RestClient();
+		$oClient->Create("EventIssue", $aFields, 'create vent issue from collector $sCollectorName execution.');
 	}
 
 	static public function MockLog($oMockedLogger) {
