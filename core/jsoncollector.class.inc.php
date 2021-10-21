@@ -158,16 +158,15 @@ abstract class JsonCollector extends Collector
             $aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iSynchroTimeout;
             $aCurlOptions[CURLOPT_TIMEOUT] = $iSynchroTimeout;
 
-            //logs
-            Utils::Log(LOG_INFO, 'synchro url: ' . $this->sURL);
-            Utils::Log(LOG_DEBUG, 'synchro aDataGet: ' . json_encode($aDataGet));
+              //logs
+            Utils::Log(LOG_DEBUG, 'Source aDataGet: ' . json_encode($aDataGet));
             $this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, null, $aResponseHeaders, $aCurlOptions);
-            Utils::Log(LOG_DEBUG, 'synchro sFileJson: ' . $this->sFileJson);
-        }
-        else
-        {
+            Utils::Log(LOG_DEBUG, 'Source sFileJson: ' . $this->sFileJson);
+            Utils::Log(LOG_INFO, 'Synchro URL (target): ' . Utils::GetConfigurationValue('itop_url', array()));
+        } else {
             $this->sFileJson = file_get_contents($this->sFilePath);
-            Utils::Log(LOG_DEBUG, 'synchro sFileJson: ' . $this->sFileJson);
+            Utils::Log(LOG_DEBUG, 'Source sFileJson: ' . $this->sFileJson);
+            Utils::Log(LOG_INFO, 'Synchro  URL (target): ' . Utils::GetConfigurationValue('itop_url', array()));
         }
         
         //verify the file
