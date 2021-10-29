@@ -240,8 +240,11 @@ abstract class CSVCollector extends Collector {
 			$sSynchroColumn = $this->aSynchroColumns[$i];
 			$i++;
 			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)) {
-				//replacing by default value
-				$aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
+				if (empty($sVal)) {
+				    $aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
+				}	else {
+                    $aData[$sSynchroColumn] = $sVal;
+                }
 			}
 			else {
 				if (!in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
