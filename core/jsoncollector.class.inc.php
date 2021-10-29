@@ -115,6 +115,15 @@ abstract class JsonCollector extends Collector
             Utils::Log(LOG_ERR, "[" . get_class($this) . "] no json URL or path configured! Cannot collect data. Please configure it as '<jsonurl>' or '<jsonfile>' in the configuration file.");
             return false;
         }
+        if (array_key_exists('defaults', $aParamsSourceJson)) {
+            if ($aParamsSourceJson['defaults'] !== '') {
+                $this->aSynchroFieldsToDefaultValues = $aParamsSourceJson['defaults'];
+                if (!is_array($this->aSynchroFieldsToDefaultValues)) {
+                    Utils::Log(LOG_ERR,"[".get_class($this)."] defaults section configuration is not correct. please see documentation.");
+                    return false;
+                }
+            }
+        }
 
         if (isset($aParamsSourceJson["path"]))
         {
@@ -294,7 +303,15 @@ abstract class JsonCollector extends Collector
                 }
                 if ($bFind) {
                     Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: " . json_encode($aValue));
-                    $aDataToSynchronize[$key] = $aValue;
+                    if (empty ($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)){
+                        $aDataToSynchronize[$key] =  $this->aSynchroFieldsToDefaultValues[$key];
+                    } else {
+                        $aDataToSynchronize[$key] = $aValue;
+                    }
+                } else {
+                     if (array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
+                        $aDataToSynchronize[$key] =  $this->aSynchroFieldsToDefaultValues[$key];
+                    }
                 }
             }
             Utils::Log(LOG_DEBUG, '$aDataToSynchronize: ' . json_encode($aDataToSynchronize));
