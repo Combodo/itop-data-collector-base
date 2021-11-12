@@ -44,6 +44,7 @@ pipeline {
       fixed {
         script {
           rocketSend(channel: "#ci-commit", color: 'green', emoji: ':love_you_gesture:', rawMessage: true, message: "Yes! ${JOB_NAME_UNESCAPED} Build repaired! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")            
+        }
       }
   }
 
