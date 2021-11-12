@@ -28,29 +28,22 @@ pipeline {
       }
       success {
               echo 'I succeeeded!'
-          }
-          unstable {
-            script {
-              echo 'I am unstable :/'
-              if ("${factoryTaskId}"=="" && "${notify}"=="true"){
-                rocketSend(channel: "#ci-commit", color: 'yellow', emoji: ':woozy_face:', rawMessage: true, message: "Oh no! ${JOB_NAME_UNESCAPED} Build is unstable! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")
-              }
-            }
-          }
-          regression {
-            script {
-              echo 'I failed :('
-              if ("${factoryTaskId}"=="" && "${notify}"=="true"){
-                rocketSend(channel: "#ci-commit", color: 'red', emoji: ':sob:', rawMessage: true, message: "Oh no! ${JOB_NAME_UNESCAPED} Build failed! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")
-              }
-            }
-          }
-          fixed {
-            script {
-              if ("${factoryTaskId}"=="" && "${notify}"=="true"){
-                rocketSend(channel: "#ci-commit", color: 'green', emoji: ':love_you_gesture:', rawMessage: true, message: "Yes! ${JOB_NAME_UNESCAPED} Build repaired! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")
-              }
-            }
+      }
+      unstable {
+        script {
+          echo 'I am unstable :/'
+            rocketSend(channel: "#ci-commit", color: 'yellow', emoji: ':woozy_face:', rawMessage: true, message: "Oh no! ${JOB_NAME_UNESCAPED} Build is unstable! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")
+        }
+      }
+      failure {
+        script {
+          echo 'I failed :('
+          rocketSend(channel: "#ci-commit", color: 'red', emoji: ':sob:', rawMessage: true, message: "Oh no! ${JOB_NAME_UNESCAPED} Build failed! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")
+        }
+      }
+      fixed {
+        script {
+          rocketSend(channel: "#ci-commit", color: 'green', emoji: ':love_you_gesture:', rawMessage: true, message: "Yes! ${JOB_NAME_UNESCAPED} Build repaired! (${currentBuild.result}), Author: ${GIT_AUTHOR}, sha1: ${SHORT_SHA1}), (${env.BUILD_URL})")            
       }
   }
 
