@@ -42,6 +42,7 @@ abstract class JsonCollector extends Collector
     protected $aFieldsKey;
     protected $sJsonCliCommand;
     protected $iIdx;
+    protected $aSynchroFieldsToDefaultValues = array();
 
     /**
      * Initalization

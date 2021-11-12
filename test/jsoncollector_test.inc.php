@@ -109,6 +109,7 @@ class TestJsonCollector extends TestCase
    public function OrgCollectorProvider()
     {
         return array(
+            "default_value" => array("default_value"),
             "format_json_1" => array("format_json_1"),
             "format_json_2" => array("format_json_2"),
             "format_json_3" => array("format_json_3"),
