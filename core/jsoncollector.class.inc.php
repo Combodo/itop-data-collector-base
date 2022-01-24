@@ -233,6 +233,9 @@ abstract class JsonCollector extends Collector
 	 */
 	public function Fetch()
 	{
+		if (empty($this->aJson)) {
+			return false;
+		}
 		if ($this->iIdx < count($this->aJson)) {
 			$aData = $this->aJson[$this->aJsonKey[$this->iIdx]];
 			Utils::Log(LOG_DEBUG, '$aData: '.json_encode($aData));
