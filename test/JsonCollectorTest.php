@@ -163,9 +163,37 @@ class JsonCollectorTest extends TestCase
 	public function ErrorFileProvider()
 	{
 		return array(
-			"error_json_1" => array("error_json_1", "[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.", "ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file."),
-			"error_json_2" => array("error_json_2", "[ITopPersonJsonCollector] Failed to find path objects/*/blop until data in json file:  ".APPROOT."/collectors/dataTest.json.", "ITopPersonJsonCollector::Prepare() returned false"),
-			"error_json_3" => array("error_json_3", '[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'/collectors/dataTest.json\'. Reason: Syntax error', "ITopPersonJsonCollector::Prepare() returned false"),
+			"error_json_1" => array(
+				"error_json_1",
+				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.",
+				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file.",
+			),
+			"error_json_2" => array(
+				"error_json_2",
+				"[ITopPersonJsonCollector] Failed to find path objects/*/blop until data in json file:  ".APPROOT."/collectors/dataTest.json.",
+				"ITopPersonJsonCollector::Prepare() returned false",
+			),
+			"error_json_3" => array(
+				"error_json_3",
+				'[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'/collectors/dataTest.json\'. Reason: Syntax error',
+				"ITopPersonJsonCollector::Prepare() returned false",
+			),
 		);
+	}
+
+	public function testFetchWithEmptyJson()
+	{
+		$this->copy(APPROOT."/test/single_json/common/*");
+		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
+
+		$oiTopCollector = new \ITopPersonJsonCollector();
+		try {
+			$bResult = $oiTopCollector->Fetch();
+			$this->assertEquals(false, $bResult, "JsonCollector::Fetch returns true though CollectoClass::aJson is empty");
+		}
+		catch (Exception $e) {
+			$this->fail($e->getMessage());
+		}
+
 	}
 }
