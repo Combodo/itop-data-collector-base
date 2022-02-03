@@ -16,11 +16,13 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
 
-class OrchestratorTest extends TestCase {
+class OrchestratorTest extends TestCase
+{
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp() {
+	public function setUp()
+	{
 		parent::setUp();
 
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -32,7 +34,8 @@ class OrchestratorTest extends TestCase {
 		Utils::MockLog($this->oMockedLogger);
 	}
 
-	public function tearDown() {
+	public function tearDown()
+	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
 		foreach ($aCollectorFiles as $sFile) {
@@ -46,7 +49,8 @@ class OrchestratorTest extends TestCase {
 	 * @dataProvider OrgCollectorProvider
 	 * @throws \Exception
 	 */
-	public function testOrgCollectorGetProjectName($sExpectedProjectName, $sAdditionalDir = false) {
+	public function testOrgCollectorGetProjectName($sExpectedProjectName, $sAdditionalDir = false)
+	{
 		$this->copy(APPROOT."/test/getproject/common/*");
 		$this->copy(APPROOT."/test/getproject/$sAdditionalDir/*");
 
@@ -60,7 +64,8 @@ class OrchestratorTest extends TestCase {
 		$this->assertEquals($sExpectedProjectName, $oOrgCollector->GetProjectName());
 	}
 
-	private function copy($sPattern) {
+	private function copy($sPattern)
+	{
 		if (!is_dir(self::$sCollectorPath)) {
 			mkdir(self::$sCollectorPath);
 		}
@@ -76,10 +81,11 @@ class OrchestratorTest extends TestCase {
 		}
 	}
 
-	public function OrgCollectorProvider() {
+	public function OrgCollectorProvider()
+	{
 		return array(
 			"empty_module_file" => array("myproject"),
-			"module" => array("centreon-collector", "module"),
+			"module"            => array("centreon-collector", "module"),
 		);
 	}
 }

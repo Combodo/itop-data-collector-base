@@ -17,11 +17,13 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
 
-class CsvCollectorTest extends TestCase {
+class CsvCollectorTest extends TestCase
+{
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp() {
+	public function setUp()
+	{
 		parent::setUp();
 
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -33,7 +35,8 @@ class CsvCollectorTest extends TestCase {
 		Utils::MockLog($this->oMockedLogger);
 	}
 
-	public function tearDown() {
+	public function tearDown()
+	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
 		foreach ($aCollectorFiles as $sFile) {
@@ -41,7 +44,8 @@ class CsvCollectorTest extends TestCase {
 		}
 	}
 
-	public function testIOException() {
+	public function testIOException()
+	{
 		$this->assertFalse(is_a(new Exception(""), "IOException"));
 		$this->assertTrue(is_a(new IOException(""), "IOException"));
 	}
@@ -52,7 +56,8 @@ class CsvCollectorTest extends TestCase {
 	 * @dataProvider OrgCollectorProvider
 	 * @throws \Exception
 	 */
-	public function testOrgCollector($sAdditionalDir = false) {
+	public function testOrgCollector($sAdditionalDir = false)
+	{
 		$this->copy(APPROOT."/test/single_csv/common/*");
 		$this->copy(APPROOT."/test/single_csv/".$sAdditionalDir."/*");
 
@@ -71,7 +76,8 @@ class CsvCollectorTest extends TestCase {
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
 	}
 
-	private function copy($sPattern) {
+	private function copy($sPattern)
+	{
 		if (!is_dir(self::$sCollectorPath)) {
 			mkdir(self::$sCollectorPath);
 		}
@@ -87,24 +93,26 @@ class CsvCollectorTest extends TestCase {
 		}
 	}
 
-	public function OrgCollectorProvider() {
+	public function OrgCollectorProvider()
+	{
 		return array(
-			"nominal" => array("nominal"),
-			"charset_ISO" => array("charset_ISO"),
-			"separator" => array("separator"),
-			"separator_tab" => array("separator_tab"),
-			"clicommand" => array("clicommand"),
-			"adding hardcoded values" => array("hardcoded_values_add"),
+			"nominal"                    => array("nominal"),
+			"charset_ISO"                => array("charset_ISO"),
+			"separator"                  => array("separator"),
+			"separator_tab"              => array("separator_tab"),
+			"clicommand"                 => array("clicommand"),
+			"adding hardcoded values"    => array("hardcoded_values_add"),
 			"replacing hardcoded values" => array("hardcoded_values_replace"),
-			"ignored attributes" => array("ignored_attributes"),
-			"configured header" => array("configured_header"),
-			"mapping" => array("mapping"),
-			"separator_incolumns" => array("separator_incolumns"),
-			"return_in_fieldvalues" => array("return_in_fieldvalues"),
+			"ignored attributes"         => array("ignored_attributes"),
+			"configured header"          => array("configured_header"),
+			"mapping"                    => array("mapping"),
+			"separator_incolumns"        => array("separator_incolumns"),
+			"return_in_fieldvalues"      => array("return_in_fieldvalues"),
 		);
 	}
 
-	public function testAbsolutePath() {
+	public function testAbsolutePath()
+	{
 		$this->copy(APPROOT."/test/single_csv/common/*");
 		$sTargetDir = tempnam(sys_get_temp_dir(), 'build-');
 		@unlink($sTargetDir);
@@ -118,8 +126,7 @@ class CsvCollectorTest extends TestCase {
 		$sCsvFile = dirname(__FILE__)."/single_csv/nominal/iTopPersonCsvCollector.csv";
 		if (is_file($sCsvFile)) {
 			copy($sCsvFile, $sTargetDir."/iTopPersonCsvCollector.csv");
-		}
-		else {
+		} else {
 			throw new \Exception("Cannot find $sCsvFile file");
 		}
 
@@ -146,7 +153,8 @@ class CsvCollectorTest extends TestCase {
 	 * @throws \Exception
 	 * @dataProvider ErrorFileProvider
 	 */
-	public function testCsvErrors($sErrorFile, $sErrorMsg, $sExceptionMsg = false) {
+	public function testCsvErrors($sErrorFile, $sErrorMsg, $sExceptionMsg = false)
+	{
 		$this->copy(APPROOT."/test/single_csv/common/*");
 		copy(APPROOT."/test/single_csv/csv_errors/$sErrorFile", self::$sCollectorPath."iTopPersonCsvCollector.csv");
 
@@ -158,8 +166,7 @@ class CsvCollectorTest extends TestCase {
 			$this->oMockedLogger->expects($this->exactly(2))
 				->method("Log")
 				->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
-		}
-		else {
+		} else {
 			$this->oMockedLogger->expects($this->exactly(0))
 				->method("Log");
 		}
@@ -167,33 +174,36 @@ class CsvCollectorTest extends TestCase {
 			$bResult = $orgCollector->Collect();
 
 			$this->assertEquals($sExceptionMsg ? false : true, $bResult);
-		} catch (Exception $e) {
+		}
+		catch (Exception $e) {
 			$this->assertEquals($sExceptionMsg, $e->getMessage());
 		}
 	}
 
-	public function ErrorFileProvider() {
+	public function ErrorFileProvider()
+	{
 		return array(
 			"wrong number of line" => array(
 				"wrongnumber_columns_inaline.csv",
 				"[iTopPersonCsvCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa",
 				'iTopPersonCsvCollector::Collect() got an exception: Invalid CSV file.',
 			),
-			"no primary key" => array(
+			"no primary key"       => array(
 				"no_primarykey.csv",
 				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing from the csv.",
 				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.',
 			),
-			"no email" => array(
+			"no email"             => array(
 				"no_email.csv",
 				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing from the csv.",
 				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.",
 			),
-			"OK" => array("../nominal/iTopPersonCsvCollector.csv", ""),
+			"OK"                   => array("../nominal/iTopPersonCsvCollector.csv", ""),
 		);
 	}
 
-	public function testExploode() {
+	public function testExploode()
+	{
 		$stest = "primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function;status";
 		$aValues = array(
 			"primary_key",

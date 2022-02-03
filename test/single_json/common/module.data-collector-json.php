@@ -20,39 +20,32 @@ SetupWebPage::AddModule(
 	array(
 		// Identification
 		//
-		'label' => 'JSON Data Collector',
-		'category' => 'collector',
+		'label'                => 'JSON Data Collector',
+		'category'             => 'collector',
 
 		// Setup
 		//
-		'dependencies' => array(
-		),
-		'mandatory' => false,
-		'visible' => true,
+		'dependencies'         => array(),
+		'mandatory'            => false,
+		'visible'              => true,
 
 		// Components
 		//
-		'datamodel' => array(
+		'datamodel'            => array(),
+		'webservice'           => array(),
+		'data.struct'          => array(// add your 'structure' definition XML files here,
 		),
-		'webservice' => array(
-			
+		'data.sample'          => array(// add your sample data XML files here,
 		),
-		'data.struct' => array(
-			// add your 'structure' definition XML files here,
-		),
-		'data.sample' => array(
-			// add your sample data XML files here,
-		),
-		
+
 		// Documentation
 		//
-		'doc.manual_setup' => '', // hyperlink to manual setup documentation, if any
+		'doc.manual_setup'     => '', // hyperlink to manual setup documentation, if any
 		'doc.more_information' => '', // hyperlink to more information, if any 
 
 		// Default settings
 		//
-		'settings' => array(
-			// Module specific settings go here, if any
+		'settings'             => array(// Module specific settings go here, if any
 		),
 	)
 );
