@@ -16,11 +16,11 @@
 
 SetupWebPage::AddModule(
 	__FILE__, // Path to the current file, all other file names are relative to the directory containing this file
-	'data-collector-json/0.0.1',
+	'centreon-collector/1.0.0',
 	array(
 		// Identification
 		//
-		'label'                => 'JSON Data Collector',
+		'label'                => 'Centreon collector',
 		'category'             => 'collector',
 
 		// Setup
@@ -41,7 +41,7 @@ SetupWebPage::AddModule(
 		// Documentation
 		//
 		'doc.manual_setup'     => '', // hyperlink to manual setup documentation, if any
-		'doc.more_information' => '', // hyperlink to more information, if any 
+		'doc.more_information' => '', // hyperlink to more information, if any
 
 		// Default settings
 		//
