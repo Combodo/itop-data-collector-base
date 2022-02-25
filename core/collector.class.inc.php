@@ -490,7 +490,7 @@ abstract class Collector
 	protected function AddRow($aRow)
 	{
 		$aData = array();
-		foreach($this->aCSVHeaders as $sHeader) {
+		foreach ($this->aCSVHeaders as $sHeader) {
 			if (is_null($aRow[$sHeader]))
 				$aData[] = NULL_VALUE;
 			else $aData[] = $aRow[$sHeader];
