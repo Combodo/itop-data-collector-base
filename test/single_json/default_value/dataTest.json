@@ -1,0 +1,38 @@
+{
+    "objects": {
+        "Person::1": {
+            "key": "1",
+            "name": {"bob": "My last name"},
+            "status": "active",
+            "org_id": "Blala",
+            "email": "my.email@foo.org",
+            "phone": "+00 000 000 000",
+            "notify": "yes",
+            "function": "",
+            "first_nameyo": "My first name"
+        },
+        "Person::2": {
+            "key": "2",
+            "name": {"bob":  "Picasso"},
+            "status": "active",
+            "org_id": "Demo",
+            "email": "pablo@demo.com",
+            "phone": "",
+            "notify": "yes",
+            "function": "",
+            "first_nameyo": "Pablo"
+        },
+        "Person::3": {
+            "key": "3",
+            "name": {"bob":  "Dali"},
+            "status": "active",
+            "email": "dali@demo.com",
+            "phone": "",
+            "notify": "yes",
+            "function": "",
+            "first_nameyo": "Salvador"
+        }
+    },
+    "code": 0,
+    "message": "Found: 1"
+}
