@@ -24,7 +24,8 @@
  * - configuring a CSV file path as <name_of_the_collector_class>_csv
  * - configuring a CSV encoding as <name_of_the_collector_class>_encoding
  */
-abstract class CSVCollector extends Collector {
+abstract class CSVCollector extends Collector
+{
 	protected $iIdx = 0;
 	protected $aCsvFieldsPerLine = array();
 	protected $sCsvSeparator;
@@ -43,7 +44,8 @@ abstract class CSVCollector extends Collector {
 	 *
 	 * @throws Exception
 	 */
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct();
 	}
 
@@ -53,7 +55,8 @@ abstract class CSVCollector extends Collector {
 	 * @see Collector::Prepare()
 	 * @throws Exception
 	 */
-	public function Prepare() {
+	public function Prepare()
+	{
 		$bRet = parent::Prepare();
 
 		$aClassConfig = Utils::GetConfigurationValue(get_class($this));
@@ -74,8 +77,7 @@ abstract class CSVCollector extends Collector {
 
 			if (array_key_exists('separator', $aClassConfig)) {
 				$this->sCsvSeparator = $aClassConfig['separator'];
-				if($this->sCsvSeparator === 'TAB')
-				{
+				if ($this->sCsvSeparator === 'TAB') {
 					$this->sCsvSeparator = "\t";
 				}
 			}
@@ -156,21 +158,25 @@ abstract class CSVCollector extends Collector {
 			utils::Exec($this->sCsvCliCommand);
 		}
 
-		try{
+		try {
 			$hHandle = fopen($sCsvFilePath, "r");
-		}catch(Exception $e) {
+		}
+		catch (Exception $e) {
 			Utils::Log(LOG_INFO, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 			$sCsvFilePath = APPROOT.$sCsvFilePath;
-			try{
+			try {
 				$hHandle = fopen($sCsvFilePath, "r");
-			}catch(Exception $e) {
-				Utils::Log(LOG_ERROR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
+			}
+			catch (Exception $e) {
+				Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
+
 				return false;
 			}
 		}
 
 		if (!$hHandle) {
-			Utils::Log(LOG_ERROR, "[".get_class($this)."] Cannot use CSV file handle for $sCsvFilePath");
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot use CSV file handle for $sCsvFilePath");
+
 			return false;
 		}
 
@@ -184,15 +190,18 @@ abstract class CSVCollector extends Collector {
 
 		fclose($oTmpHandle);
 		unlink($sTmpFile);
+
 		return $bRet;
 	}
 
 	/**
 	 * @return NextLineObject
 	 */
-	public function getNextLine() {
+	public function getNextLine()
+	{
 		$aValues = $this->aCsvFieldsPerLine[$this->iIdx];
-		$sCsvLine = implode($this->sCsvSeparator,$aValues);
+		$sCsvLine = implode($this->sCsvSeparator, $aValues);
+
 		return new NextLineObject($sCsvLine, $aValues);
 	}
 
@@ -203,7 +212,8 @@ abstract class CSVCollector extends Collector {
 	 * @see Collector::Fetch()
 	 * @throws Exception
 	 */
-	public function Fetch() {
+	public function Fetch()
+	{
 		if ($this->iIdx >= count($this->aCsvFieldsPerLine)) {
 			return false;
 		}
@@ -240,10 +250,12 @@ abstract class CSVCollector extends Collector {
 			$sSynchroColumn = $this->aSynchroColumns[$i];
 			$i++;
 			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)) {
-				//replacing by default value
-				$aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
-			}
-			else {
+				if (empty($sVal)) {
+					$aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
+				} else {
+					$aData[$sSynchroColumn] = $sVal;
+				}
+			} else {
 				if (!in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
 					$aData[$sSynchroColumn] = $sVal;
 				}
@@ -264,21 +276,20 @@ abstract class CSVCollector extends Collector {
 	/**
 	 * @param $aCsvHeaderColumns
 	 */
-	protected function Configure($aCsvHeaderColumns) {
+	protected function Configure($aCsvHeaderColumns)
+	{
 		if ($this->bHasHeader) {
 			$this->aSynchroColumns = array();
 			foreach ($aCsvHeaderColumns as $sCsvColumn) {
 				if (array_key_exists($sCsvColumn, $this->aMappingCsvToSynchro)) {
 					//use mapping instead of csv header sSynchroColumn
 					$this->aSynchroColumns[] = $this->aMappingCsvToSynchro[$sCsvColumn];
-				}
-				else {
+				} else {
 					$this->aSynchroColumns[] = $sCsvColumn;
 					$this->aMappingCsvToSynchro[$sCsvColumn] = $sCsvColumn;
 				}
 			}
-		}
-		else {
+		} else {
 			$this->aSynchroColumns = $this->aConfiguredHeaderColumns;
 		}
 
@@ -294,7 +305,8 @@ abstract class CSVCollector extends Collector {
 	 *
 	 * @throws Exception
 	 */
-	protected function CheckSynchroColumns() {
+	protected function CheckSynchroColumns()
+	{
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
 		$aChecks = array('errors' => array(), 'warnings' => array());
 
@@ -310,8 +322,7 @@ abstract class CSVCollector extends Collector {
 			// Check for missing columns
 			if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['reconcile']) {
 				$aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for reconciliation, is missing from the csv.';
-			}
-			else {
+			} else {
 				if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['update']) {
 					$aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for update, is missing from the csv.';
 				}
@@ -335,7 +346,8 @@ abstract class CSVCollector extends Collector {
 	}
 }
 
-class NextLineObject {
+class NextLineObject
+{
 	private $sCsvLine;
 	private $aValues;
 
@@ -345,7 +357,8 @@ class NextLineObject {
 	 * @param $csv_line
 	 * @param $aValues
 	 */
-	public function __construct($sCsvLine, $aValues) {
+	public function __construct($sCsvLine, $aValues)
+	{
 		$this->sCsvLine = $sCsvLine;
 		$this->aValues = $aValues;
 	}
@@ -353,14 +366,16 @@ class NextLineObject {
 	/**
 	 * @return mixed
 	 */
-	public function getCsvLine() {
+	public function getCsvLine()
+	{
 		return $this->sCsvLine;
 	}
 
 	/**
 	 * @return mixed
 	 */
-	public function getValues() {
+	public function getValues()
+	{
 		return $this->aValues;
 	}
 }

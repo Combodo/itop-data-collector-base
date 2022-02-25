@@ -29,8 +29,7 @@ require_once(APPROOT.'core/restclient.class.inc.php');
 
 $sTaskName = Utils::ReadParameter('task_name', '*');
 
-if ($sTaskName == '*')
-{
+if ($sTaskName == '*') {
 	// Usage
 	echo "Command line utility to generate the JSON representation of an iTop SynchroDataSource.\n\n";
 	echo "Usage: php ".basename($argv[0])." --task_name=\"selected task name\"\n\n";
@@ -39,14 +38,12 @@ if ($sTaskName == '*')
 	$oRestClient = new RestClient();
 	$aResult = $oRestClient->Get('SynchroDataSource', 'SELECT SynchroDataSource');
 	$sITopUrl = Utils::GetConfigurationValue('itop_url', '');
-	if($aResult['code'] != 0)
-	{
+	if ($aResult['code'] != 0) {
 		echo "[{$aResult['code']}] {$aResult['message']}\n";
-		exit -1;
+		exit - 1;
 	}
 
-	switch (count($aResult['objects']))
-	{
+	switch (count($aResult['objects'])) {
 		case 0:
 			echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
 			break;
@@ -58,13 +55,11 @@ if ($sTaskName == '*')
 		default:
 			echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
 	}
-	if (count($aResult['objects']) > 0)
-	{
+	if (count($aResult['objects']) > 0) {
 		echo "+--------------------------------+----------------------------------------------------+\n";
 		echo "|            Name                |                    Description                     |\n";
 		echo "+--------------------------------+----------------------------------------------------+\n";
-		foreach ($aResult['objects'] as $aValues)
-		{
+		foreach ($aResult['objects'] as $aValues) {
 			$aCurrentTaskDefinition = $aValues['fields'];
 			echo sprintf("| %-30.30s | %-50.50s |\n", $aCurrentTaskDefinition['name'], $aCurrentTaskDefinition['description']);
 		}
@@ -72,32 +67,21 @@ if ($sTaskName == '*')
 	}
 	$sMaxVersion = $oRestClient->GetNewestKnownVersion();
 	echo "iTop REST/API version: $sMaxVersion\n";
-}
-else
-{
+} else {
 	// Generate the pretty-printed JSON representation of the specified task
 	$oRestClient = new RestClient();
 	$aResult = $oRestClient->Get('SynchroDataSource', array('name' => $sTaskName), '*');
-	if ($aResult['code'] != 0)
-	{
+	if ($aResult['code'] != 0) {
 		echo "Sorry, an error occured while retrieving the information from iTop: {$aResult['message']} ({$aResult['code']})\n";
-	}
-	else
-	{
-		if (is_array($aResult['objects']) && (count($aResult['objects']) > 0))
-		{
-			foreach ($aResult['objects'] as $sKey => $aValues)
-			{
-				if (!array_key_exists('key', $aValues))
-				{
+	} else {
+		if (is_array($aResult['objects']) && (count($aResult['objects']) > 0)) {
+			foreach ($aResult['objects'] as $sKey => $aValues) {
+				if (!array_key_exists('key', $aValues)) {
 					// Emulate the behavior for older versions of the API
-					if (preg_match('/::([0-9]+)$/', $sKey, $aMatches))
-					{
+					if (preg_match('/::([0-9]+)$/', $sKey, $aMatches)) {
 						$iKey = (int)$aMatches[1];
 					}
-				}
-				else
-				{
+				} else {
 					$iKey = (int)$aValues['key'];
 				}
 				$aCurrentTaskDefinition = $aValues['fields'];
@@ -108,8 +92,7 @@ else
 				$aCurrentTaskDefinition['notify_contact_id'] = '$contact_to_notify$';
 
 
-				if (isset($aCurrentTaskDefinition['database_table_name']))
-				{
+				if (isset($aCurrentTaskDefinition['database_table_name'])) {
 					$aCurrentTaskDefinition['database_table_name'] = "";
 				}
 
@@ -120,9 +103,7 @@ else
 					echo Utils::JSONPrettyPrint($sDefinition)."\n";
 				}
 			}
-		}
-		else
-		{
+		} else {
 			echo "Sorry, no SynchroDataSource named '$sTaskName' found in iTop.\n";
 		}
 	}
