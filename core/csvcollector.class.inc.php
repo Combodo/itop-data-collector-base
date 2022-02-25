@@ -15,8 +15,6 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
-Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
-
 /**
  * Base class for creating collectors which retrieve their data via a CSV files
  *
@@ -28,14 +26,23 @@ Orchestrator::AddRequirement('5.6.0'); // Minimum PHP version to get PDO support
  */
 abstract class CSVCollector extends Collector
 {
-    protected $csv_lines = array();
-    protected $csv_separator ;
-    protected $csv_encoding ;
-    protected $columns;
-    protected $csv_clicommand;
+	protected $iIdx = 0;
+	protected $aCsvFieldsPerLine = array();
+	protected $sCsvSeparator;
+	protected $sCsvEncoding;
+	protected $bHasHeader = true;
+	protected $sCsvCliCommand;
+	protected $aSynchroColumns;
+	protected $aSynchroFieldsToDefaultValues = array();
+	protected $aConfiguredHeaderColumns;
+	protected $aMappingCsvToSynchro = array();
+	protected $aIgnoredCsvColumns = array();
+	protected $aIgnoredSynchroFields = array();
 
-    /**
+	/**
 	 * Initalization
+	 *
+	 * @throws Exception
 	 */
 	public function __construct()
 	{
@@ -44,258 +51,331 @@ abstract class CSVCollector extends Collector
 
 	/**
 	 * Parses configured csv file to fetch data
+	 *
 	 * @see Collector::Prepare()
+	 * @throws Exception
 	 */
 	public function Prepare()
 	{
 		$bRet = parent::Prepare();
 
-        // Read the SQL query from the configuration
-        $this->csv_separator = Utils::GetConfigurationValue(get_class($this)."_separator", '');
-        if ($this->csv_separator == '')
-        {
-            // Try all lowercase
-            $this->csv_separator = Utils::GetConfigurationValue(strtolower(get_class($this))."_separator", ';');
-        }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Separator used is [". $this->csv_separator . "]");
+		$aClassConfig = Utils::GetConfigurationValue(get_class($this));
+		if ($aClassConfig == '') {
+			$aClassConfig = Utils::GetConfigurationValue(strtolower(get_class($this)));
+		}
 
-        $this->csv_encoding = Utils::GetConfigurationValue(get_class($this)."_encoding", '');
-        if ($this->csv_encoding == '')
-        {
-            // Try all lowercase
-            $this->csv_encoding = Utils::GetConfigurationValue(strtolower(get_class($this))."_encoding", 'UTF-8');
-        }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] Encoding used is [". $this->csv_encoding . "]");
+		$this->sCsvSeparator = ';';
+		$this->sCsvEncoding = 'UTF-8';
+		$this->sCsvCliCommand = '';
+		$this->aSynchroFieldsToDefaultValues = array();
+		$this->bHasHeader = true;
 
-        $this->csv_clicommand = Utils::GetConfigurationValue(get_class($this)."_command", '');
-        if ($this->csv_clicommand == '')
-        {
-            // Try all lowercase
-            $this->csv_clicommand = Utils::GetConfigurationValue(strtolower(get_class($this))."_command", '');
-        }
-        Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [". $this->csv_clicommand . "]");
+		if (is_array($aClassConfig)) {
+			if (array_key_exists('csv_file', $aClassConfig)) {
+				$sCsvFilePath = $aClassConfig['csv_file'];
+			}
 
-        // Read the SQL query from the configuration
-        $csvFilePath = Utils::GetConfigurationValue(get_class($this)."_csv", '');
-        if ($csvFilePath == '')
-        {
-            // Try all lowercase
-            $csvFilePath = Utils::GetConfigurationValue(strtolower(get_class($this))."_csv", '');
-        }
-        if ($csvFilePath == '')
-        {
-            // No query at all !!
-            Utils::Log(LOG_ERR, "[".get_class($this)."] no CSV file configured! Cannot collect data. The csv was expected to be configured as '".strtolower(get_class($this))."_csv' in the configuration file.");
-            return false;
-        }
+			if (array_key_exists('separator', $aClassConfig)) {
+				$this->sCsvSeparator = $aClassConfig['separator'];
+				if ($this->sCsvSeparator === 'TAB') {
+					$this->sCsvSeparator = "\t";
+				}
+			}
+			if (array_key_exists('encoding', $aClassConfig)) {
+				$this->sCsvEncoding = $aClassConfig['encoding'];
+			}
+			if (array_key_exists('command', $aClassConfig)) {
+				$this->sCsvCliCommand = $aClassConfig['command'];
+			}
+			if (array_key_exists('has_header', $aClassConfig)) {
+				$this->bHasHeader = ($aClassConfig['has_header'] !== 'no');
+			}
 
-        if (!is_file($csvFilePath))
-        {
-            Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file not found in [". $csvFilePath . "]");
-            $csvFilePath = APPROOT . $csvFilePath;
-            if (!is_file($csvFilePath)) {
-                Utils::Log(LOG_ERR, "[" . get_class($this) . "] Cannot find CSV file $csvFilePath");
-                return false;
-            }
-        }
 
-        if (!is_readable($csvFilePath))
-        {
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot read CSV file $csvFilePath");
-            return false;
-        }
+			if (array_key_exists('defaults', $aClassConfig)) {
+				if ($aClassConfig['defaults'] !== '') {
+					$this->aSynchroFieldsToDefaultValues = $aClassConfig['defaults'];
+					if (!is_array($this->aSynchroFieldsToDefaultValues)) {
+						Utils::Log(LOG_ERR,
+							"[".get_class($this)."] defaults section configuration is not correct. please see documentation.");
 
-        if (!empty($this->csv_clicommand))
-        {
-            $this->Exec($this->csv_clicommand);
-        }
+						return false;
+					}
+				}
+			}
 
-        $handle = fopen($csvFilePath, "r");
-        if (!$handle) {
-            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Handle issue with file $csvFilePath");
-            return false;
-        }
+			if (array_key_exists('ignored_columns', $aClassConfig)) {
+				if ($aClassConfig['ignored_columns'] !== '') {
+					if (!is_array($aClassConfig['ignored_columns'])) {
+						Utils::Log(LOG_ERR,
+							"[".get_class($this)."] ignored_columns section configuration is not correct. please see documentation.");
 
-        while (($line = fgets($handle)) !== false) {
-            $this->csv_lines[] = rtrim(iconv($this->csv_encoding,$this->GetCharset(), $line), "\n");
-        }
+						return false;
+					}
+					$this->aIgnoredCsvColumns = array_values($aClassConfig['ignored_columns']);
+				}
+			}
 
-        fclose($handle);
-        $this->idx = 0;
+			if (array_key_exists('fields', $aClassConfig)) {
+				if ($aClassConfig['fields'] !== '') {
+					$aCurrentConfiguredHeaderColumns = $aClassConfig['fields'];
+					if (!is_array($aCurrentConfiguredHeaderColumns)) {
+						Utils::Log(LOG_ERR,
+							"[".get_class($this)."] fields section configuration is not correct. please see documentation.");
+
+						return false;
+					}
+
+					array_multisort($aCurrentConfiguredHeaderColumns);
+					$this->aConfiguredHeaderColumns = array_keys($aCurrentConfiguredHeaderColumns);
+
+					if ($this->bHasHeader) {
+						foreach ($aCurrentConfiguredHeaderColumns as $sSynchroField => $sCsvColumn) {
+							$this->aMappingCsvToSynchro[$sCsvColumn] = $sSynchroField;
+						}
+					}
+				}
+			}
+		}
+
+		if ($sCsvFilePath === '') {
+			// No query at all !!
+			Utils::Log(LOG_ERR,
+				"[".get_class($this)."] no CSV file configured! Cannot collect data. The csv was expected to be configured as '".strtolower(get_class($this))."_csv' in the configuration file.");
+
+			return false;
+		}
+
+		Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file is [".$sCsvFilePath."]");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Has cs header [".$this->bHasHeader."]");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Separator used is [".$this->sCsvSeparator."]");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Encoding used is [".$this->sCsvEncoding."]");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Fields [".var_export($this->aConfiguredHeaderColumns, true)."]");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Ignored csv fields [".var_export($this->aIgnoredCsvColumns, true)."]");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Default values [".var_export($this->aSynchroFieldsToDefaultValues, true)."]");
+
+		if (!empty($this->sCsvCliCommand)) {
+			utils::Exec($this->sCsvCliCommand);
+		}
+
+		try {
+			$hHandle = fopen($sCsvFilePath, "r");
+		}
+		catch (Exception $e) {
+			Utils::Log(LOG_INFO, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
+			$sCsvFilePath = APPROOT.$sCsvFilePath;
+			try {
+				$hHandle = fopen($sCsvFilePath, "r");
+			}
+			catch (Exception $e) {
+				Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
+
+				return false;
+			}
+		}
+
+		if (!$hHandle) {
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot use CSV file handle for $sCsvFilePath");
+
+			return false;
+		}
+
+		$sTmpFile = tempnam(sys_get_temp_dir(), "decoded_");
+		file_put_contents($sTmpFile, iconv($this->sCsvEncoding, $this->GetCharset(), stream_get_contents($hHandle)));
+		$oTmpHandle = fopen($sTmpFile, "r");
+
+		while (($aData = fgetcsv($oTmpHandle, 0, $this->sCsvSeparator)) !== false) {
+			$this->aCsvFieldsPerLine[] = $aData;
+		}
+
+		fclose($oTmpHandle);
+		unlink($sTmpFile);
+
 		return $bRet;
-    }
+	}
 
-    /**
-     * Executes a command and returns an array with exit code, stdout and stderr content
-     *
-     * @param string $cmd - Command to execute
-     *
-     * @return string[] - Array with keys: 'code' - exit code, 'out' - stdout, 'err' - stderr
-     * @throws \Exception
-     */
-    function Exec($cmd) {
-        $iBeginTime = time();
-        $workdir = APPROOT;
-        $descriptorspec = array(
-            0 => array("pipe", "r"),  // stdin
-            1 => array("pipe", "w"),  // stdout
-            2 => array("pipe", "w"),  // stderr
-        );
-        $process = proc_open($cmd, $descriptorspec, $pipes, $workdir, null);
+	/**
+	 * @return NextLineObject
+	 */
+	public function getNextLine()
+	{
+		$aValues = $this->aCsvFieldsPerLine[$this->iIdx];
+		$sCsvLine = implode($this->sCsvSeparator, $aValues);
 
-        $stdout = stream_get_contents($pipes[1]);
-        fclose($pipes[1]);
+		return new NextLineObject($sCsvLine, $aValues);
+	}
 
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[2]);
+	/**
+	 * Fetches one csv row at a time
+	 * The first row is used to check if the columns of the result match the expected "fields"
+	 *
+	 * @see Collector::Fetch()
+	 * @throws Exception
+	 */
+	public function Fetch()
+	{
+		if ($this->iIdx >= count($this->aCsvFieldsPerLine)) {
+			return false;
+		}
 
-        $code = proc_close($process);
+		/** NextLineObject**/
+		$oNextLineArr = $this->getNextLine();
 
-        $iElapsed = time() - $iBeginTime;
-        Utils::Log(LOG_INFO, "Command: $cmd. Workdir: $workdir");
-        if (0 === $code) {
-            Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $stdout");
-            return $stdout;
-        } else {
-            throw new Exception("Command failed : $cmd \n\t\t=== with status:$code \n\t\t=== stderr:$stderr \n\t\t=== stdout: $stdout");
-        }
-    }
+		if (!$this->aSynchroColumns) {
+			$aCsvHeaderColumns = $oNextLineArr->getValues();
 
-    /**
-     * Check if the keys of the supplied hash array match the expected fields
-     * @param array $aData
-     * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings
-     */
-    protected function CheckSQLCsvHeaders($aData)
-    {
-        $aRet = array('errors' => array(), 'warnings' => array());
+			$this->Configure($aCsvHeaderColumns);
 
-        if(!in_array('primary_key', $aData))
-        {
-            $aRet['errors'][] = 'The mandatory column "primary_key" is missing from the csv.';
-        }
-        foreach($this->aFields as $sCode => $aDefs)
-        {
-            // Check for missing columns
-            if (!in_array($sCode, $aData) && $aDefs['reconcile'])
-            {
-                $aRet['errors'][] = 'The column "'.$sCode.'", used for reconciliation, is missing from the csv.';
-            }
-            else if (!in_array($sCode, $aData) && $aDefs['update'])
-            {
-                $aRet['errors'][] = 'The column "'.$sCode.'", used for update, is missing from the csv.';
-            }
+			$this->CheckSynchroColumns();
 
-            // Check for useless columns
-            if (in_array($sCode, $aData) && !$aDefs['reconcile']  && !$aDefs['update'])
-            {
-                $aRet['warnings'][] = 'The column "'.$sCode.'" is used neither for update nor for reconciliation.';
-            }
+			if ($this->bHasHeader) {
+				$this->iIdx++;
+				/** NextLineObject**/
+				$oNextLineArr = $this->getNextLine();
+			}
+		}
 
-        }
-        return $aRet;
-    }
+		$iColumnSize = count($this->aSynchroColumns);
+		$iLineSize = count($oNextLineArr->getValues());
+		if ($iColumnSize !== $iLineSize) {
+			$line = $this->iIdx + 1;
+			Utils::Log(LOG_ERR,
+				"[".get_class($this)."] Wrong number of columns ($iLineSize) on line $line (expected $iColumnSize columns just like in header): ".$oNextLineArr->getCsvLine());
+			throw new Exception("Invalid CSV file.");
+		}
 
+		$aData = array();
+		$i = 0;
+		foreach ($oNextLineArr->getValues() as $sVal) {
+			$sSynchroColumn = $this->aSynchroColumns[$i];
+			$i++;
+			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)) {
+				if (empty($sVal)) {
+					$aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
+				} else {
+					$aData[$sSynchroColumn] = $sVal;
+				}
+			} else {
+				if (!in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
+					$aData[$sSynchroColumn] = $sVal;
+				}
+			}
+		}
 
-    /**
-     * Fetches one csv row at a time
-     * The first row is used to check if the columns of the result match the expected "fields"
-     * @see Collector::Fetch()
-     */
-    public function Fetch()
-    {
-        if ($this->idx >= sizeof($this->csv_lines))
-        {
-            return false;
-        }
+		foreach ($this->aSynchroFieldsToDefaultValues as $sAttributeId => $sAttributeValue) {
+			if (!array_key_exists($sAttributeId, $aData)) {
+				$aData[$sAttributeId] = $sAttributeValue;
+			}
+		}
 
-        /** NextLineObject**/ $next_line_arr = $this->get_next_line();
+		$this->iIdx++;
 
-        if (! $this->columns)
-        {
-            $aChecks = $this->CheckSQLCsvHeaders($next_line_arr->getValues());
-            foreach($aChecks['errors'] as $sError)
-            {
-                Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
-            }
-            foreach($aChecks['warnings'] as $sWarning)
-            {
-                Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
-            }
-            if(count($aChecks['errors']) > 0)
-            {
-                throw new Exception("Missing columns in the CSV file.");
-            }
-            $this->columns = array_merge($next_line_arr->getValues());
-            $this->idx++;
-        }
+		return $aData;
+	}
 
-        /** NextLineObject**/ $next_line_arr = $this->get_next_line();
-        $column_size = sizeof($this->columns);
-        $line_size = sizeof($next_line_arr->getValues());
-        if ($column_size !== $line_size)
-        {
-            $line = $this->idx + 1;
-            Utils::Log(LOG_ERR, "[" . get_class($this) . "] Wrong number of columns ($line_size) on line $line (expected $column_size columns just like in header): " . $next_line_arr->getCsvLine());
-            throw new Exception("Invalid CSV file.");
-        }
+	/**
+	 * @param $aCsvHeaderColumns
+	 */
+	protected function Configure($aCsvHeaderColumns)
+	{
+		if ($this->bHasHeader) {
+			$this->aSynchroColumns = array();
+			foreach ($aCsvHeaderColumns as $sCsvColumn) {
+				if (array_key_exists($sCsvColumn, $this->aMappingCsvToSynchro)) {
+					//use mapping instead of csv header sSynchroColumn
+					$this->aSynchroColumns[] = $this->aMappingCsvToSynchro[$sCsvColumn];
+				} else {
+					$this->aSynchroColumns[] = $sCsvColumn;
+					$this->aMappingCsvToSynchro[$sCsvColumn] = $sCsvColumn;
+				}
+			}
+		} else {
+			$this->aSynchroColumns = $this->aConfiguredHeaderColumns;
+		}
 
-        $aData = array();
-        $i=0;
-        foreach ($next_line_arr->getValues() as $val)
-        {
-            $column = $this->columns[$i];
-            if (!array_key_exists($column, $this->aSkippedAttributes))
-            {
-                $aData[$column] = $val;
-            }
-            $i++;
-        }
+		foreach ($this->aIgnoredCsvColumns as $sIgnoredCsvColumn) {
+			$this->aIgnoredSynchroFields[] = ($this->bHasHeader) ? $this->aMappingCsvToSynchro[$sIgnoredCsvColumn] : $this->aSynchroColumns[$sIgnoredCsvColumn - 1];
+		}
+	}
 
-        $this->idx++;
-        return $aData;
-    }
+	/**
+	 * Check if the keys of the supplied hash array match the expected fields
+	 *
+	 * @param array $aData
+	 *
+	 * @throws Exception
+	 */
+	protected function CheckSynchroColumns()
+	{
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
+		$aChecks = array('errors' => array(), 'warnings' => array());
 
-    /**
-     * @return NextLineObject
-     */
-    public function get_next_line()
-    {
-        $csv_line = $this->csv_lines[$this->idx];
-        $aValues = explode($this->csv_separator, $csv_line);
-        return new NextLineObject($csv_line, $aValues);
-    }
+		if (!in_array('primary_key', $this->aSynchroColumns)) {
+			$aChecks['errors'][] = 'The mandatory column "primary_key" is missing from the csv.';
+		}
+		foreach ($this->aFields as $sSynchroColumn => $aDefs) {
+			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)
+				|| in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
+				continue;
+			}
+
+			// Check for missing columns
+			if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['reconcile']) {
+				$aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for reconciliation, is missing from the csv.';
+			} else {
+				if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['update']) {
+					$aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for update, is missing from the csv.';
+				}
+			}
+
+			// Check for useless columns
+			if (in_array($sSynchroColumn, $this->aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+				$aChecks['warnings'][] = 'The column "'.$sSynchroColumn.'" is used neither for update nor for reconciliation.';
+			}
+		}
+
+		foreach ($aChecks['warnings'] as $sWarning) {
+			Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
+		}
+		foreach ($aChecks['errors'] as $sError) {
+			Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
+		}
+		if (count($aChecks['errors']) > 0) {
+			throw new Exception("Missing columns in the CSV file.");
+		}
+	}
 }
 
 class NextLineObject
 {
-    private $csv_line;
-    private $aValues;
+	private $sCsvLine;
+	private $aValues;
 
-    /**
-     * NextLineObject constructor.
-     * @param $csv_line
-     * @param $aValues
-     */
-    public function __construct($csv_line, $aValues)
-    {
-        $this->csv_line = $csv_line;
-        $this->aValues = $aValues;
-    }
+	/**
+	 * NextLineObject constructor.
+	 *
+	 * @param $csv_line
+	 * @param $aValues
+	 */
+	public function __construct($sCsvLine, $aValues)
+	{
+		$this->sCsvLine = $sCsvLine;
+		$this->aValues = $aValues;
+	}
 
-    /**
-     * @return mixed
-     */
-    public function getCsvLine()
-    {
-        return $this->csv_line;
-    }
+	/**
+	 * @return mixed
+	 */
+	public function getCsvLine()
+	{
+		return $this->sCsvLine;
+	}
 
-    /**
-     * @return mixed
-     */
-    public function getValues()
-    {
-        return $this->aValues;
-    }
+	/**
+	 * @return mixed
+	 */
+	public function getValues()
+	{
+		return $this->aValues;
+	}
 }

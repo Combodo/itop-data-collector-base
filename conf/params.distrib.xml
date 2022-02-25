@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
 <parameters>
-  <itop_url>http://localhost/iTop</itop_url>
+  <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
   
@@ -17,6 +17,19 @@
    7 : Debug traces
    -->
   <console_log_level>6</console_log_level>
+
+  <!-- eventissue_log_level: level of creating event issue object on remote itop
+  -1 : none, nothing will be logged to the console
+   0 : System wide emergency errors only (LOG_EMERG)
+   1 : Alert errors (LOG_ALERT)
+   2 : Critical errors (LOG_CRIT)
+   3 : Application level errors (LOG_ERR)
+   4 : Warnings
+   5 : Notice
+   6 : Information
+   7 : Debug traces
+   -->
+  <eventissue_log_level>-1</eventissue_log_level>
 
   <!--
     dateformat: logging date format

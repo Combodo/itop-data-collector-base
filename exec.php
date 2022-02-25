@@ -29,45 +29,43 @@ require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
 require_once(APPROOT.'core/csvcollector.class.inc.php');
+require_once(APPROOT.'core/jsoncollector.class.inc.php');
 
 $aOptionalParams = array(
-    'configure_only' => 'boolean',
-    'collect_only' => 'boolean',
-    'synchro_only' => 'boolean',
-    'dump_config_only' => 'boolean',
-    'console_log_level' => 'integer',
-    'max_chunk_size' => 'integer',
-    'help' => 'boolean',
-    'config_file' => 'string'
+	'configure_only'       => 'boolean',
+	'collect_only'         => 'boolean',
+	'synchro_only'         => 'boolean',
+	'dump_config_only'     => 'boolean',
+	'console_log_level'    => 'integer',
+	'eventissue_log_level' => 'integer',
+	'max_chunk_size'       => 'integer',
+	'help'                 => 'boolean',
+	'config_file'          => 'string',
 );
 $bHelp = (Utils::ReadBooleanParameter('help', false) == true);
 $aUnknownParameters = Utils::CheckParameters($aOptionalParams);
-if ($bHelp || count($aUnknownParameters) > 0)
-{
-	if (!$bHelp)
-    {
-        Utils::Log(LOG_ERR, "Unknown parameter(s): ".implode(' ', $aUnknownParameters));
-    }
+if ($bHelp || count($aUnknownParameters) > 0) {
+	if (!$bHelp) {
+		Utils::Log(LOG_ERR, "Unknown parameter(s): ".implode(' ', $aUnknownParameters));
+	}
 
-    echo "Usage:\n";
+	echo "Usage:\n";
 	echo 'php '.basename($argv[0]);
-	foreach($aOptionalParams as $sParam => $sType)
-	{
-		switch($sType)
-		{
+	foreach ($aOptionalParams as $sParam => $sType) {
+		switch ($sType) {
 			case 'boolean':
-			echo '[--'.$sParam.']';
-			break;
+				echo '[--'.$sParam.']';
+				break;
 
 			default:
-			echo '[--'.$sParam.'=xxx]';
-			break;
+				echo '[--'.$sParam.'=xxx]';
+				break;
 		}
 	}
 	echo "\n";
 	exit(1);
 }
-	
+
 $bResult = true;
 // Note: The parameter 'config_file' is read directly by Utils::LoadConfig()
 $bConfigureOnly = (Utils::ReadBooleanParameter('configure_only', false) == true);
@@ -75,73 +73,60 @@ $bCollectOnly = (Utils::ReadBooleanParameter('collect_only', false) == true);
 $bSynchroOnly = (Utils::ReadBooleanParameter('synchro_only', false) == true);
 $bDumpConfigOnly = (Utils::ReadBooleanParameter('dump_config_only', false) == true);
 
-try
-{
-    Utils::$iConsoleLogLevel = Utils::ReadParameter('console_log_level', Utils::GetConfigurationValue('console_log_level', LOG_INFO));
-    $iMaxChunkSize = Utils::ReadParameter('max_chunk_size', Utils::GetConfigurationValue('max_chunk_size', 1000));
-    
-    if (file_exists(APPROOT.'collectors/main.php'))
-	{
+try {
+	Utils::$iConsoleLogLevel = Utils::ReadParameter('console_log_level', Utils::GetConfigurationValue('console_log_level', LOG_WARNING));//On windows LOG_NOTICE=LOG_INFO=LOG_DEBUG=6
+	Utils::$iEventIssueLogLevel = Utils::ReadParameter('eventissue_log_level', Utils::GetConfigurationValue('eventissue_log_level', LOG_NONE));//On windows LOG_NOTICE=LOG_INFO=LOG_DEBUG=6
+	$iMaxChunkSize = Utils::ReadParameter('max_chunk_size', Utils::GetConfigurationValue('max_chunk_size', 1000));
+
+	if (file_exists(APPROOT.'collectors/main.php')) {
 		require_once(APPROOT.'collectors/main.php');
-	}
-	else
-	{
+	} else {
 		Utils::Log(LOG_ERR, "The file '".APPROOT."collectors/main.php' is missing (or unreadable).");
 	}
 
-	if (!Orchestrator::CheckRequirements())
-	{
+	if (!Orchestrator::CheckRequirements()) {
 		exit(1);
 	}
-	
+
 	$aConfig = Utils::GetConfigFiles();
 	$sConfigDebug = "The following configuration files were loaded (in this order):\n\n";
 	$idx = 1;
-	foreach($aConfig as $sFile)
-	{
+	foreach ($aConfig as $sFile) {
 		$sConfigDebug .= "\t{$idx}. $sFile\n";
 		$idx++;
 	}
 	$sConfigDebug .= "\nThe resulting configuration is:\n\n";
-		
+
 	$sConfigDebug .= Utils::DumpConfig();
-	
-	if ($bDumpConfigOnly)
-	{
+
+	if ($bDumpConfigOnly) {
 		echo $sConfigDebug;
 		exit(0);
-	}
-	else
-	{
+	} else {
 		Utils::Log(LOG_DEBUG, $sConfigDebug);
-	}	
-	
+	}
+
 	$oOrchestrator = new Orchestrator();
 	$aCollectors = $oOrchestrator->ListCollectors();
 	Utils::Log(LOG_DEBUG, "Registered collectors:");
-	foreach($aCollectors as $oCollector)
-	{
+	foreach ($aCollectors as $oCollector) {
 		Utils::Log(LOG_DEBUG, "Collector: ".$oCollector->GetName().", version: ".$oCollector->GetVersion());
 	}
 
-	if(!$bCollectOnly)
-	{
+	if (!$bCollectOnly) {
 		Utils::Log(LOG_DEBUG, 'iTop web services version: '.RestClient::GetNewestKnownVersion());
 		$bResult = $oOrchestrator->InitSynchroDataSources($aCollectors);
 	}
-	if ($bResult && !$bSynchroOnly && !$bConfigureOnly)
-	{
+	if ($bResult && !$bSynchroOnly && !$bConfigureOnly) {
 		$bResult = $oOrchestrator->Collect($aCollectors, $iMaxChunkSize, $bCollectOnly);
 	}
-	
-	if ($bResult && !$bConfigureOnly && !$bCollectOnly)
-	{
+
+	if ($bResult && !$bConfigureOnly && !$bCollectOnly) {
 		$bResult = $oOrchestrator->Synchronize($aCollectors);
 	}
 }
-catch(Exception $e)
-{
-    $bResult = false;
+catch (Exception $e) {
+	$bResult = false;
 	Utils::Log(LOG_ERR, "Exception: ".$e->getMessage());
 }
 
