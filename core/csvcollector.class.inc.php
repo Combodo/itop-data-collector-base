@@ -214,7 +214,7 @@ abstract class CSVCollector extends Collector
 	 */
 	public function Fetch()
 	{
-		if ($this->iIdx >= count($this->aCsvFieldsPerLine)) {
+		if ($this->iIdx >= count($this->aCsvFieldsPerLine) || count($this->aCsvFieldsPerLine) <= 1) {
 			return false;
 		}
 
