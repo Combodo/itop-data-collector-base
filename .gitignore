@@ -2,7 +2,8 @@
 composer.lock
 vendor/*
 collectors
-conf/params.local.xml
+/conf/**
++/conf/params.distrib.xml
 data/*.csv
 data/*.txt
 .buildpath
