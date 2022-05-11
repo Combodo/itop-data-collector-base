@@ -111,7 +111,7 @@ class Utils
 	/**
 	 * Init the console log level.
 	 *
-	 * Defaults to LOG_INFO if `console_log_leve` is not configured
+	 * Defaults to LOG_INFO if `console_log_level` is not configured
 	 * Can be overridden by `console_log_level` commandline argument.
 	 *
 	 * @throws Exception
