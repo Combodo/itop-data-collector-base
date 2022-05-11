@@ -28,6 +28,7 @@ require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 
 $sTaskName = Utils::ReadParameter('task_name', '*');
+Utils::InitConsoleLogLevel();
 
 if ($sTaskName == '*') {
 	// Usage
@@ -43,19 +44,19 @@ if ($sTaskName == '*') {
 		exit - 1;
 	}
 
-	switch (count($aResult['objects'])) {
-		case 0:
-			echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
-			break;
+	if (empty($aResult['objects'])) {
+		echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
+	} else {
+		switch (count($aResult['objects'])){
+			case 1:
+				echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				break;
 
-		case 1:
-			echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
-			break;
+			default:
+				echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				break;
+		}
 
-		default:
-			echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
-	}
-	if (count($aResult['objects']) > 0) {
 		echo "+--------------------------------+----------------------------------------------------+\n";
 		echo "|            Name                |                    Description                     |\n";
 		echo "+--------------------------------+----------------------------------------------------+\n";
@@ -72,7 +73,7 @@ if ($sTaskName == '*') {
 	$oRestClient = new RestClient();
 	$aResult = $oRestClient->Get('SynchroDataSource', array('name' => $sTaskName), '*');
 	if ($aResult['code'] != 0) {
-		echo "Sorry, an error occured while retrieving the information from iTop: {$aResult['message']} ({$aResult['code']})\n";
+		echo "Sorry, an error occurred while retrieving the information from iTop: {$aResult['message']} ({$aResult['code']})\n";
 	} else {
 		if (is_array($aResult['objects']) && (count($aResult['objects']) > 0)) {
 			foreach ($aResult['objects'] as $sKey => $aValues) {
@@ -87,7 +88,7 @@ if ($sTaskName == '*') {
 				$aCurrentTaskDefinition = $aValues['fields'];
 				RestClient::GetFullSynchroDataSource($aCurrentTaskDefinition, $iKey);
 
-				// Replace some litterals by their usual placeholders
+				// Replace some literals by their usual placeholders
 				$aCurrentTaskDefinition['user_id'] = '$synchro_user$';
 				$aCurrentTaskDefinition['notify_contact_id'] = '$contact_to_notify$';
 
