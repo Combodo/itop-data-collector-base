@@ -109,6 +109,20 @@ class Utils
 	}
 
 	/**
+	 * Init the console log level.
+	 *
+	 * Defaults to LOG_INFO if `console_log_level` is not configured
+	 * Can be overridden by `console_log_level` commandline argument.
+	 *
+	 * @throws Exception
+	 */
+	public static function InitConsoleLogLevel()
+	{
+		$iDefaultConsoleLogLevel = static::GetConfigurationValue('console_log_level', LOG_INFO);
+		static::$iConsoleLogLevel = static::ReadParameter('console_log_level', $iDefaultConsoleLogLevel);
+	}
+
+	/**
 	 * Logs a message to the centralized log for the application, with the given priority
 	 *
 	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see:
