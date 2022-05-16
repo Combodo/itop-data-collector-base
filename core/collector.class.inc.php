@@ -80,6 +80,12 @@ abstract class Collector
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
 			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
 		}
+
+		$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
+		if ($this->aNullifiedAttributes === null) {
+			// Try all lowercase
+			$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+		}
 	}
 
 	public function GetErrorMessage()
@@ -164,21 +170,7 @@ abstract class Collector
 	 * @return boolean True if the attribute can be skipped, false otherwise
 	 */
 	public function AttributeIsNullified($sAttCode) {
-		if ($this->aNullifiedAttributes === null) {
-			$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
-			if ($this->aNullifiedAttributes === null) {
-				// Try all lowercase
-				$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", null);
-			}
-		}
-
-		if (is_array($this->aNullifiedAttributes)) {
-			if (in_array($sAttCode, $this->aNullifiedAttributes)) {
-				return true;
-			}
-		}
-
-		return false;
+		return in_array($sAttCode, $this->aNullifiedAttributes);
 	}
 
 	public function GetName()
