@@ -89,8 +89,8 @@ XML;
 		file_put_contents(self::$sCollectorPath . "params.distrib.xml", $sXml);
 
 		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
-		$oCollector = new iTopPersonCollector();
 		Utils::LoadConfig();
+		$oCollector = new iTopPersonCollector();
 
 		$this->assertEquals($bExpectedIsNullified, $oCollector->AttributeIsNullified('phone'));
 

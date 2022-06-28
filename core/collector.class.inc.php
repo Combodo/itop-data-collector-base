@@ -170,7 +170,10 @@ abstract class Collector
 	 * @return boolean True if the attribute can be skipped, false otherwise
 	 */
 	public function AttributeIsNullified($sAttCode) {
-		return in_array($sAttCode, $this->aNullifiedAttributes);
+		if (is_array($this->aNullifiedAttributes)) {
+			return in_array($sAttCode, $this->aNullifiedAttributes);
+		}
+		return false;
 	}
 
 	public function GetName()
