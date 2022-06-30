@@ -8,6 +8,7 @@ Here are some guidelines that will help us integrate your work!
 ## Contributions
 
 ### Subjects
+
 You are welcome to create pull requests on any of those subjects:
 
 * 🐛 bug fix
@@ -15,25 +16,24 @@ You are welcome to create pull requests on any of those subjects:
 
 If you want to implement a **new feature**, please [create a corresponding ticket](https://sourceforge.net/p/itop/tickets/new/) for review.   
 If you ever want to begin implementation, do so in a fork, and add a link to the corresponding commits in the ticket. As maintainers of the module we favor generic solutions, i.e. the ones that address most use cases instead of just a very specific need.
-
 For all **security related subjects**, please see our [security policy](SECURITY.md).
 
-### 📄 License
+### 📄 License and copyright
 This iTop module is distributed under the AGPL-3.0 license (see the [license.txt] file),
 your code must comply with this license.
 
-If you want to use another license, you may [create another extension][wiki new ext].
+Combodo has the copyright on each and every source file in this repository: please do not modify the existing file copyrights.  
 
-[license.txt]: license.txt
+Anyhow, you are encouraged to signal your contribution by the mean of `@author` annotations.
+If you want to use another license or keep the code ownership (copyright), you may [create another extension][wiki new ext].
+
+[license.txt]: https://github.com/Combodo/iTop/blob/develop/license.txt
 [wiki new ext]: https://www.itophub.io/wiki/page?id=latest%3Acustomization%3Astart#by_writing_your_own_extension
-
 
 ## 🔀 Branch model
 
 All developments are done on the master branch. If needed, a support/* branch might be created from a tag for compatibility reasons.
-
 You should always base your developments on the master branch.
-
 
 ## Coding
 
