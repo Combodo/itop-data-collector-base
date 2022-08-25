@@ -927,4 +927,51 @@ abstract class Collector
 			'step'        => $sStep,
 		];
 	}
+
+	/**
+	 * Check if the keys of the supplied hash array match the expected fields listed in the data synchro
+	 *
+	 * @param $aSynchroColumns : Data to check
+	 * @paral $aColumnsToIgnore : Elements to ignore
+	 * @param $sSource : Source of the request (Json file, SQL query, csv file...)
+	 *
+	 * @throws \Exception
+	 */
+	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
+	{
+		$sClass = get_class($this);
+		$iError = 0;
+
+		if (!array_key_exists('primary_key', $aSynchroColumns)) {
+			Utils::Log(LOG_ERR, '['.$sClass.'] The mandatory column "primary_key" is missing in the '.$sSource.'.');
+			$iError++;
+		}
+		foreach ($this->aFields as $sCode => $aDefs) {
+			// Skip attributes to ignore
+			if (in_array($sCode, $aColumnsToIgnore)) {
+				continue;
+			}
+			// Skip optional attributes
+			if (!$this->AttributeIsOptional($sCode)) {
+				// Check for missing columns
+				if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
+					Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+					$iError++;
+				} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+					Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+					$iError++;
+				}
+
+				// Check for useless columns
+				if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+					Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+				}
+			}
+		}
+
+		if ($iError > 0) {
+			throw new Exception("Missing columns in the ".$sSource.'.');
+		}
+	}
+
 }
