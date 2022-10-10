@@ -301,7 +301,6 @@ abstract class CSVCollector extends Collector
 	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
 	{
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
-		$aColumnsToIgnore = [];
 		foreach ($this->aFields as $sSynchroColumn => $aDefs) {
 			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues) || in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
 				$aColumnsToIgnore[] = $sSynchroColumn;
