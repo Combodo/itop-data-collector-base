@@ -160,14 +160,12 @@ abstract class CSVCollector extends Collector
 
 		try {
 			$hHandle = fopen($sCsvFilePath, "r");
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			Utils::Log(LOG_INFO, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 			$sCsvFilePath = APPROOT.$sCsvFilePath;
 			try {
 				$hHandle = fopen($sCsvFilePath, "r");
-			}
-			catch (Exception $e) {
+			} catch (Exception $e) {
 				Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 
 				return false;
@@ -225,16 +223,7 @@ abstract class CSVCollector extends Collector
 			$aCsvHeaderColumns = $oNextLineArr->getValues();
 
 			$this->Configure($aCsvHeaderColumns);
-
-			Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
-			$aColumnsToIgnore = [];
-			foreach ($this->aFields as $sSynchroColumn => $aDefs) {
-				if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)
-					|| in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
-					$aColumnsToIgnore[] = $sSynchroColumn;
-				}
-			}
-			$this->CheckColumns($this->aSynchroColumns, $aColumnsToIgnore, 'csv file');
+			$this->CheckColumns($this->aSynchroColumns, [], 'csv file');
 
 			if ($this->bHasHeader) {
 				$this->iIdx++;
@@ -306,6 +295,21 @@ abstract class CSVCollector extends Collector
 		}
 	}
 
+	/**
+	 * @inheritdoc
+	 */
+	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
+	{
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
+		$aColumnsToIgnore = [];
+		foreach ($this->aFields as $sSynchroColumn => $aDefs) {
+			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues) || in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
+				$aColumnsToIgnore[] = $sSynchroColumn;
+			}
+		}
+
+		parent::CheckColumns($this->aSynchroColumns, $aColumnsToIgnore, 'csv file');
+	}
 }
 
 class NextLineObject
