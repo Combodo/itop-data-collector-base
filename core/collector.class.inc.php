@@ -952,21 +952,24 @@ abstract class Collector
 				continue;
 			}
 			// Skip optional attributes
-			if (!$this->AttributeIsOptional($sCode)) {
-				// Check for missing columns
-				if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
-					Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
-					$iError++;
-				} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
-					Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
-					$iError++;
-				}
-
-				// Check for useless columns
-				if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
-					Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
-				}
+			if ($this->AttributeIsOptional($sCode)) {
+				continue;
 			}
+
+			// Check for missing columns
+			if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+				$iError++;
+			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+				$iError++;
+			}
+
+			// Check for useless columns
+			if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+			}
+
 		}
 
 		if ($iError > 0) {
