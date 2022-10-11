@@ -294,16 +294,7 @@ abstract class JsonCollector extends Collector
 			}
 
 			if ($this->iIdx == 0) {
-				$aChecks = $this->CheckJSONFields($aDataToSynchronize);
-				foreach ($aChecks['errors'] as $sError) {
-					Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
-				}
-				foreach ($aChecks['warnings'] as $sWarning) {
-					Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
-				}
-				if (count($aChecks['errors']) > 0) {
-					throw new Exception("Missing columns in the Json file.");
-				}
+				$this->CheckColumns($aDataToSynchronize, [], 'Json file');
 			}
 			//check if all expected fields are in array. If not add it with null value
 			foreach ($this->aCSVHeaders as $sHeader) {
@@ -349,38 +340,6 @@ abstract class JsonCollector extends Collector
 		}
 
 		return parent::AttributeIsOptional($sAttCode);
-	}
-
-	/**
-	 * Check if the keys of the supplied hash array match the expected fields
-	 *
-	 * @param array $aData
-	 *
-	 * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings
-	 */
-	protected function CheckJSONFields($aData)
-	{
-		$aRet = array('errors' => array(), 'warnings' => array());
-
-		if (!array_key_exists('primary_key', $aData)) {
-			$aRet['errors'][] = 'The mandatory column "primary_key" is missing from the query.';
-		}
-		foreach ($this->aFields as $sCode => $aDefs) {
-			// Check for missing columns
-			if (!array_key_exists($sCode, $aData) && $aDefs['reconcile']) {
-				$aRet['errors'][] = 'The column "'.$sCode.'", used for reconciliation, is missing from the query.';
-			} else if (!array_key_exists($sCode, $aData) && $aDefs['update']) {
-				$aRet['errors'][] = 'The column "'.$sCode.'", used for update, is missing from the query.';
-			}
-
-			// Check for useless columns
-			if (array_key_exists($sCode, $aData) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				$aRet['warnings'][] = 'The column "'.$sCode.'" is used neither for update nor for reconciliation.';
-			}
-
-		}
-
-		return $aRet;
 	}
 
 }

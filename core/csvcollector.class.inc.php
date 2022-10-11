@@ -160,14 +160,12 @@ abstract class CSVCollector extends Collector
 
 		try {
 			$hHandle = fopen($sCsvFilePath, "r");
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			Utils::Log(LOG_INFO, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 			$sCsvFilePath = APPROOT.$sCsvFilePath;
 			try {
 				$hHandle = fopen($sCsvFilePath, "r");
-			}
-			catch (Exception $e) {
+			} catch (Exception $e) {
 				Utils::Log(LOG_ERR, "[".get_class($this)."] Cannot open CSV file $sCsvFilePath");
 
 				return false;
@@ -225,8 +223,7 @@ abstract class CSVCollector extends Collector
 			$aCsvHeaderColumns = $oNextLineArr->getValues();
 
 			$this->Configure($aCsvHeaderColumns);
-
-			$this->CheckSynchroColumns();
+			$this->CheckColumns($this->aSynchroColumns, [], 'csv file');
 
 			if ($this->bHasHeader) {
 				$this->iIdx++;
@@ -299,50 +296,18 @@ abstract class CSVCollector extends Collector
 	}
 
 	/**
-	 * Check if the keys of the supplied hash array match the expected fields
-	 *
-	 * @param array $aData
-	 *
-	 * @throws Exception
+	 * @inheritdoc
 	 */
-	protected function CheckSynchroColumns()
+	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
 	{
-		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($this->aSynchroColumns, true)."]");
-		$aChecks = array('errors' => array(), 'warnings' => array());
-
-		if (!in_array('primary_key', $this->aSynchroColumns)) {
-			$aChecks['errors'][] = 'The mandatory column "primary_key" is missing from the csv.';
-		}
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Columns [".var_export($aSynchroColumns, true)."]");
 		foreach ($this->aFields as $sSynchroColumn => $aDefs) {
-			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)
-				|| in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
-				continue;
-			}
-
-			// Check for missing columns
-			if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['reconcile']) {
-				$aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for reconciliation, is missing from the csv.';
-			} else {
-				if (!in_array($sSynchroColumn, $this->aSynchroColumns) && $aDefs['update']) {
-					$aChecks['errors'][] = 'The column "'.$sSynchroColumn.'", used for update, is missing from the csv.';
-				}
-			}
-
-			// Check for useless columns
-			if (in_array($sSynchroColumn, $this->aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				$aChecks['warnings'][] = 'The column "'.$sSynchroColumn.'" is used neither for update nor for reconciliation.';
+			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues) || in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
+				$aColumnsToIgnore[] = $sSynchroColumn;
 			}
 		}
 
-		foreach ($aChecks['warnings'] as $sWarning) {
-			Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
-		}
-		foreach ($aChecks['errors'] as $sError) {
-			Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
-		}
-		if (count($aChecks['errors']) > 0) {
-			throw new Exception("Missing columns in the CSV file.");
-		}
+		parent::CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource);
 	}
 }
 
