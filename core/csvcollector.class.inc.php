@@ -307,7 +307,7 @@ abstract class CSVCollector extends Collector
 			}
 		}
 
-		parent::CheckColumns($this->aSynchroColumns, $aColumnsToIgnore, 'csv file');
+		parent::CheckColumns($this->aSynchroColumns, $aColumnsToIgnore, $sSource);
 	}
 }
 
