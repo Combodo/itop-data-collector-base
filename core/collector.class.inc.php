@@ -169,10 +169,12 @@ abstract class Collector
 	 *
 	 * @return boolean True if the attribute can be skipped, false otherwise
 	 */
-	public function AttributeIsNullified($sAttCode) {
+	public function AttributeIsNullified($sAttCode)
+	{
 		if (is_array($this->aNullifiedAttributes)) {
 			return in_array($sAttCode, $this->aNullifiedAttributes);
 		}
+
 		return false;
 	}
 
@@ -264,8 +266,7 @@ abstract class Collector
 							$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
 							// Write the CSV data
 							fputcsv($hOutputCSV, $aData, $this->sSeparator);
-						}
-						catch (IgnoredRowException $e) {
+						} catch (IgnoredRowException $e) {
 							// Skip this line
 							Utils::Log(LOG_DEBUG, "Ignoring the line $iLineIndex. Reason: ".$e->getMessage());
 						}
@@ -321,8 +322,7 @@ abstract class Collector
 			if ($bRet === false) {
 				Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			// Continue...
 			Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: ".$e->getMessage());
 		}
@@ -461,8 +461,7 @@ abstract class Collector
 						$bResult = false;
 				}
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			Utils::Log(LOG_ERR, $e->getMessage());
 			$bResult = false;
 		}
@@ -499,8 +498,7 @@ abstract class Collector
 			} else {
 				Utils::Log(LOG_ERR, get_class($this)."::Prepare() returned false");
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$bResult = false;
 			Utils::Log(LOG_ERR, get_class($this)."::Collect() got an exception: ".$e->getMessage());
 		}
@@ -528,12 +526,9 @@ abstract class Collector
 	{
 		$aData = array();
 		foreach ($this->aCSVHeaders as $sHeader) {
-			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader))
-			{
+			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader)) {
 				$aData[] = NULL_VALUE;
-			}
-			else
-			{
+			} else {
 				$aData[] = $aRow[$sHeader];
 			}
 		}
@@ -603,13 +598,13 @@ abstract class Collector
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk
 			$aData = array(
-				'separator'               => ';',
-				'data_source_id'          => $this->iSourceId,
-				'synchronize'             => '0',
+				'separator' => ';',
+				'data_source_id' => $this->iSourceId,
+				'synchronize' => '0',
 				'no_stop_on_import_error' => 1,
-				'output'                  => 'retcode',
-				'csvdata'                 => file_get_contents($sDataFile),
-				'charset'                 => $this->GetCharset(),
+				'output' => 'retcode',
+				'csvdata' => file_get_contents($sDataFile),
+				'charset' => $this->GetCharset(),
 			);
 
 			$sResult = self::CallItopViaHttp('/synchro/synchro_import.php?login_mode=form',
@@ -645,18 +640,20 @@ abstract class Collector
 			Utils::Log(LOG_ERR, "Failed to login to iTop. Invalid (or insufficent) credentials.");
 			$this->sErrorMessage .= "Failed to login to iTop. Invalid (or insufficent) credentials.\n";
 			$iErrorsCount = 1;
-		} else if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
-			foreach ($aMatches[2] as $idx => $sErrCount) {
-				$iErrorsCount += (int)$sErrCount;
-				if ((int)$sErrCount > 0) {
-					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
-					$this->sErrorMessage .= $aMatches[0][$idx]."\n";
-				}
-			}
 		} else {
-			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
-			$this->sErrorMessage .= $sResult;
-			$iErrorsCount = 1;
+			if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
+				foreach ($aMatches[2] as $idx => $sErrCount) {
+					$iErrorsCount += (int)$sErrCount;
+					if ((int)$sErrCount > 0) {
+						Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
+						$this->sErrorMessage .= $aMatches[0][$idx]."\n";
+					}
+				}
+			} else {
+				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
+				$this->sErrorMessage .= $sResult;
+				$iErrorsCount = 1;
+			}
 		}
 		if ($iErrorsCount == 0) {
 			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
@@ -676,7 +673,7 @@ abstract class Collector
 		$aData = array_merge(
 			array(
 				'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-				'auth_pwd'  => Utils::GetConfigurationValue('itop_password', ''),
+				'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 			),
 			$aAdditionalData
 		);
@@ -857,11 +854,13 @@ abstract class Collector
 								return false;
 							}
 
-						} else if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
-							// Definitions are different
-							Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
+						} else {
+							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
+								// Definitions are different
+								Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
 
-							return false;
+								return false;
+							}
 						}
 					}
 
@@ -919,12 +918,12 @@ abstract class Collector
 	public function GetErrorStatus($sStep)
 	{
 		return [
-			'status'      => false,
+			'status' => false,
 			'exit_status' => false,
-			'project'     => $this->GetProjectName(),
-			'collector'   => get_class($this),
-			'message'     => '',
-			'step'        => $sStep,
+			'project' => $this->GetProjectName(),
+			'collector' => get_class($this),
+			'message' => '',
+			'step' => $sStep,
 		];
 	}
 
