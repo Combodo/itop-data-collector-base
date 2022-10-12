@@ -55,7 +55,6 @@ abstract class Collector
 
 	public function __construct()
 	{
-		$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
 		$this->sVersion = null;
 		$this->iSourceId = null;
 		$this->aFields = array();
@@ -124,6 +123,8 @@ abstract class Collector
 			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
 		} elseif (file_exists(APPROOT.'collectors/json/'.get_class($this).'.json')) {
 			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/extensions/json/'.get_class($this).'.json')) {
+			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/extensions/json/'.get_class($this).'.json';
 		} else {
 			return false;
 		}
