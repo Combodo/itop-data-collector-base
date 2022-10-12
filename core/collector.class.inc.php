@@ -120,13 +120,17 @@ abstract class Collector
 
 	public function GetSynchroDataSourceDefinition($aPlaceHolders = array())
 	{
-		if (file_exists($this->sSynchroDataSourceDefinitionFile)) {
-			$aPlaceHolders['$version$'] = $this->GetVersion();
-			$sSynchroDataSourceDefinition = file_get_contents($this->sSynchroDataSourceDefinitionFile);
-			$sSynchroDataSourceDefinition = str_replace(array_keys($aPlaceHolders), array_values($aPlaceHolders), $sSynchroDataSourceDefinition);
+		if (file_exists(APPROOT.'collectors/'.get_class($this).'.json')) {
+			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/json/'.get_class($this).'.json')) {
+			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/json/'.get_class($this).'.json';
 		} else {
-			$sSynchroDataSourceDefinition = false;
+			return false;
 		}
+
+		$aPlaceHolders['$version$'] = $this->GetVersion();
+		$sSynchroDataSourceDefinition = file_get_contents($this->sSynchroDataSourceDefinitionFile);
+		$sSynchroDataSourceDefinition = str_replace(array_keys($aPlaceHolders), array_values($aPlaceHolders), $sSynchroDataSourceDefinition);
 
 		return $sSynchroDataSourceDefinition;
 	}
