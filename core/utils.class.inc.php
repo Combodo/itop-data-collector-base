@@ -232,6 +232,9 @@ class Utils
 		if (file_exists(APPROOT.'collectors/params.distrib.xml')) {
 			self::MergeConfFile(APPROOT.'collectors/params.distrib.xml');
 		}
+		if (file_exists(APPROOT.'collectors/extensions/params.distrib.xml')) {
+			self::MergeConfFile(APPROOT.'collectors/extensions/params.distrib.xml');
+		}
 		if ($sCustomConfigFile !== null) {
 			// A custom config file was supplied on the command line
 			if (file_exists($sCustomConfigFile)) {
