@@ -127,7 +127,7 @@ class Orchestrator
 		$aPlaceholders['$contact_to_notify$'] = 0;
 		if ($sEmailToNotify != '') {
 			$oRestClient = new RestClient();
-			$aRes = $oRestClient->Get('Person', array('email' => $sEmailToNotify));
+			$aRes = $oRestClient->Get('Contact', array('email' => $sEmailToNotify));
 			if ($aRes['code'] == 0) {
 				if (!is_array($aRes['objects'])) {
 					Utils::Log(LOG_WARNING, "Contact to notify ($sEmailToNotify) not found in iTop. Nobody will be notified of the results of the synchronization.");
