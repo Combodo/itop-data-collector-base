@@ -223,7 +223,7 @@ abstract class CSVCollector extends Collector
 			$aCsvHeaderColumns = $oNextLineArr->getValues();
 
 			$this->Configure($aCsvHeaderColumns);
-			$this->CheckColumns($this->aSynchroColumns, [], 'csv file');
+			$this->CheckColumns(array_fill_keys($this->aSynchroColumns, ''), [], 'csv file');
 
 			if ($this->bHasHeader) {
 				$this->iIdx++;
