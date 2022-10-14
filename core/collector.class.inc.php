@@ -935,7 +935,7 @@ abstract class Collector
 	/**
 	 * Check if the keys of the supplied hash array match the expected fields listed in the data synchro
 	 *
-	 * @param $aSynchroColumns : Data to check
+	 * @param array<string, string> $aSynchroColumns attribute name as key, attribute's value as value (value not used)
 	 * @paral $aColumnsToIgnore : Elements to ignore
 	 * @param $sSource : Source of the request (Json file, SQL query, csv file...)
 	 *

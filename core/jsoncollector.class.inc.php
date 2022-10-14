@@ -294,7 +294,7 @@ abstract class JsonCollector extends Collector
 			}
 
 			if ($this->iIdx == 0) {
-				$this->CheckColumns($aDataToSynchronize, [], 'Json file');
+				$this->CheckColumns($aDataToSynchronize, [], 'json file');
 			}
 			//check if all expected fields are in array. If not add it with null value
 			foreach ($this->aCSVHeaders as $sHeader) {

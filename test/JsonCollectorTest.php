@@ -154,8 +154,7 @@ class JsonCollectorTest extends TestCase
 			$bResult = $oOrgCollector->Collect();
 
 			$this->assertEquals($sErrorMsg ? false : true, $bResult);
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$this->assertEquals($sExceptionMsg, $e->getMessage());
 		}
 	}
@@ -165,8 +164,8 @@ class JsonCollectorTest extends TestCase
 		return array(
 			"error_json_1" => array(
 				"error_json_1",
-				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.",
-				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file.",
+				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing in the json file.",
+				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the json file.",
 			),
 			"error_json_2" => array(
 				"error_json_2",
@@ -190,8 +189,7 @@ class JsonCollectorTest extends TestCase
 		try {
 			$bResult = $oiTopCollector->Fetch();
 			$this->assertEquals(false, $bResult, "JsonCollector::Fetch returns true though CollectoClass::aJson is empty");
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$this->fail($e->getMessage());
 		}
 
