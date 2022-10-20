@@ -96,6 +96,7 @@ class JsonCollectorTest extends TestCase
 			->method("Log");
 
 		$oOrgCollector = new \ITopPersonJsonCollector();
+		$oOrgCollector->Init();
 		\Utils::LoadConfig();
 
 		$this->assertTrue($oOrgCollector->Collect());
@@ -132,6 +133,7 @@ class JsonCollectorTest extends TestCase
 
 		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
 		$oOrgCollector = new \ITopPersonJsonCollector();
+		$oOrgCollector->Init();
 		\Utils::LoadConfig();
 
 		if ($sExceptionMsg3) {
@@ -186,6 +188,7 @@ class JsonCollectorTest extends TestCase
 		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
 
 		$oiTopCollector = new \ITopPersonJsonCollector();
+		$oiTopCollector->Init();
 		try {
 			$bResult = $oiTopCollector->Fetch();
 			$this->assertEquals(false, $bResult, "JsonCollector::Fetch returns true though CollectoClass::aJson is empty");

@@ -67,6 +67,7 @@ class CsvCollectorTest extends TestCase
 			->method("Log");
 
 		$oOrgCollector = new iTopPersonCsvCollector();
+		$oOrgCollector->Init();
 		Utils::LoadConfig();
 
 		$this->assertTrue($oOrgCollector->Collect());
@@ -136,6 +137,7 @@ class CsvCollectorTest extends TestCase
 			->method("Log");
 
 		$oOrgCollector = new iTopPersonCsvCollector();
+		$oOrgCollector->Init();
 		Utils::LoadConfig();
 
 		$this->assertTrue($oOrgCollector->Collect());
@@ -160,6 +162,7 @@ class CsvCollectorTest extends TestCase
 
 		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
 		$orgCollector = new iTopPersonCsvCollector();
+		$orgCollector->Init();
 		Utils::LoadConfig();
 
 		if ($sExceptionMsg) {

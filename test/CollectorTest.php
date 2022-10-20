@@ -2,7 +2,6 @@
 
 namespace UnitTestFiles\Test;
 
-use IOException;
 use iTopPersonCollector;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Runner\Exception;
@@ -39,7 +38,8 @@ class CollectorTest extends TestCase
 		}
 	}
 
-	public function AttributeIsNullifiedProvider(){
+	public function AttributeIsNullifiedProvider()
+	{
 		$sEmptyConfig = '<iTopPersonCollector_nullified_attributes></iTopPersonCollector_nullified_attributes>';
 		$sOtherAttributeNulllified = <<<XML
 <iTopPersonCollector_nullified_attributes type="array">
@@ -53,7 +53,7 @@ XML;
 XML;
 
 		return [
-			'no nullify config' => [ ''],
+			'no nullify config' => [''],
 			'empty nullify config' => [$sEmptyConfig],
 			'other attributes nullified' => [$sOtherAttributeNulllified],
 			'phone nullified' => [$sPhoneNullifiedSection, true],
@@ -63,7 +63,8 @@ XML;
 	/**
 	 * @dataProvider AttributeIsNullifiedProvider
 	 */
-	public function testAttributeIsNullified($sCollectorXmlSubSection, $bExpectedIsNullified=false){
+	public function testAttributeIsNullified($sCollectorXmlSubSection, $bExpectedIsNullified = false)
+	{
 		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
 
 		$sXml = <<<XML
@@ -86,11 +87,12 @@ XML;
 </parameters>
 XML;
 
-		file_put_contents(self::$sCollectorPath . "params.distrib.xml", $sXml);
+		file_put_contents(self::$sCollectorPath."params.distrib.xml", $sXml);
 
 		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
 		Utils::LoadConfig();
 		$oCollector = new iTopPersonCollector();
+		$oCollector->Init();
 
 		$this->assertEquals($bExpectedIsNullified, $oCollector->AttributeIsNullified('phone'));
 
@@ -106,7 +108,7 @@ primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;func
 
 CSV;
 
-		if ($bExpectedIsNullified){
+		if ($bExpectedIsNullified) {
 			$this->assertEquals($sExpectedNullifiedCsv, file_get_contents(APPROOT."/data/iTopPersonCollector-1.csv"));
 		} else {
 			$this->assertEquals($sExpectedCsv, file_get_contents(APPROOT."/data/iTopPersonCollector-1.csv"));
