@@ -52,7 +52,7 @@ class Orchestrator
 	{
 		if (!array_key_exists($sExtension, self::$aMinVersions)) {
 			// This is the first call to add some requirements for this extension, record it as-is
-		} else if (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
+		} elseif (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
 			// This requirement is stricter than the previously requested one
 			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
 		}
@@ -75,7 +75,7 @@ class Orchestrator
 				} else {
 					Utils::Log(LOG_DEBUG, "OK, the required PHP version to run this application is $sRequiredVersion. The current PHP version is $sCurrentVersion.");
 				}
-			} else if (extension_loaded($sExtension)) {
+			} elseif (extension_loaded($sExtension)) {
 				$sCurrentVersion = phpversion($sExtension);
 				if (version_compare($sCurrentVersion, $sRequiredVersion, '<')) {
 					$bResult = false;
