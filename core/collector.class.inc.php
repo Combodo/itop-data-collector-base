@@ -129,15 +129,28 @@ abstract class Collector
 		}
 	}
 
+	/*
+	 * Look for the synchro data source definition file in the different possible collector directories
+	 *
+	 * @return false|string
+	 */
+	public function GetSynchroDataSourceDefinitionFile()
+	{
+		if (file_exists(APPROOT.'collectors/extensions/json/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/extensions/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/json/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/'.get_class($this).'.json';
+		} else {
+			return false;
+		}
+	}
+
 	public function GetSynchroDataSourceDefinition($aPlaceHolders = array())
 	{
-		if (file_exists(APPROOT.'collectors/'.get_class($this).'.json')) {
-			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
-		} elseif (file_exists(APPROOT.'collectors/json/'.get_class($this).'.json')) {
-			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/json/'.get_class($this).'.json';
-		} elseif (file_exists(APPROOT.'collectors/extensions/json/'.get_class($this).'.json')) {
-			$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/extensions/json/'.get_class($this).'.json';
-		} else {
+		$this->sSynchroDataSourceDefinitionFile = $this->GetSynchroDataSourceDefinitionFile();
+		if ($this->sSynchroDataSourceDefinitionFile === false) {
 			return false;
 		}
 
@@ -709,12 +722,6 @@ abstract class Collector
 		return Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	//
-	// Protected methods
-	//
-	/////////////////////////////////////////////////////////////////////////
-
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
 	{
 		$oClient = new RestClient();
@@ -991,6 +998,16 @@ abstract class Collector
 		if ($iError > 0) {
 			throw new Exception("Missing columns in the ".$sSource.'.');
 		}
+	}
+
+	/**
+	 * Tells if the collector can be launched
+	 *
+	 * @return bool
+	 */
+	public function IsToBeLaunched(): bool
+	{
+		return true;
 	}
 
 }
