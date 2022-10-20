@@ -48,15 +48,46 @@ abstract class CollectionPlan
 	}
 
 	/**
-	 * Tells if a collector needs to be orchestrated or not
+	 * Provide the launch sequence as defined in the configuration files
 	 *
-	 * @param $sCollectorClass
-	 *
-	 * @return bool
+	 * @return array|false
 	 * @throws \Exception
 	 */
-	public function IsCollectorToBeLaunched($sCollectorClass): bool
+	public function GetSortedLaunchSequence(): array
 	{
+		$aCollectorsLaunchSequence = utils::GetConfigurationValue('collectors_launch_sequence', []);
+		$aExtensionsCollectorsLaunchSequence = utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
+		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
+		if (!empty($aCollectorsLaunchSequence)) {
+			// Sort sequence
+			foreach ($aCollectorsLaunchSequence as $sCollector) {
+				$aRank[] = $sCollector['rank'];
+			}
+			array_multisort($aRank, SORT_ASC, $aCollectorsLaunchSequence);
+		}
+
+		return $aCollectorsLaunchSequence;
+	}
+
+	/**
+	 * Look for the collector definition file in the different possible collector directories
+	 *
+	 * @param $sCollector
+	 *
+	 * @return bool
+	 */
+	public function GetCollectorDefinitionFile($sCollector): bool
+	{
+		if (file_exists(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php')) {
+			require_once(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php');
+		} elseif (file_exists(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php')) {
+			require_once(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php');
+		} elseif (file_exists(APPROOT.'collectors/'.$sCollector.'.class.inc.php')) {
+			require_once(APPROOT.'collectors/'.$sCollector.'.class.inc.php');
+		} else {
+			return false;
+		}
+
 		return true;
 	}
 
@@ -68,38 +99,33 @@ abstract class CollectionPlan
 	 */
 	public function AddCollectorsToOrchestrator(): bool
 	{
-		$aCollectorsLaunchSequence = utils::GetConfigurationValue('collectors_launch_sequence', []);
-		$aExtensionsCollectorsLaunchSequence = utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
-		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
+		$aCollectorsLaunchSequence = $this->GetSortedLaunchSequence();
 		if (empty($aCollectorsLaunchSequence)) {
 			Utils::Log(LOG_INFO, "---------- No Launch sequence has been found, no collector has been orchestrated ----------");
 
 			return false;
-		} else {
-			// Sort sequence
-			foreach ($aCollectorsLaunchSequence as $sCollector) {
-				$aRank[] = $sCollector['rank'];
-			}
-			array_multisort($aRank, SORT_ASC, $aCollectorsLaunchSequence);
-
-			// Orchestrate collectors
-			$iIndex = 1;
-			foreach ($aCollectorsLaunchSequence as $sCollector) {
-				if (file_exists(APPROOT.'collectors/extensions/src/'.$sCollector['name'].'.class.inc.php')) {
-					require_once(APPROOT.'collectors/extensions/src/'.$sCollector['name'].'.class.inc.php');
-				} elseif (file_exists(APPROOT.'collectors/src/'.$sCollector['name'].'.class.inc.php')) {
-					require_once(APPROOT.'collectors/src/'.$sCollector['name'].'.class.inc.php');
-				} else {
-					require_once(APPROOT.'collectors/'.$sCollector['name'].'.class.inc.php');
-				}
-				if ($this->IsCollectorToBeLaunched($sCollector['name'])) {
-					Orchestrator::AddCollector($iIndex++, $sCollector['name']);
-				}
-			}
-			Utils::Log(LOG_INFO, "---------- Collectors have been orchestrated ----------");
-
-			return true;
 		}
+
+		$iIndex = 1;
+		foreach ($aCollectorsLaunchSequence as $aCollector) {
+			if (!$this->GetCollectorDefinitionFile($aCollector['name'])) {
+				Utils::Log(LOG_INFO, "---------- No file definition has been found for the collector ".$aCollector['name']." ----------");
+
+				return false;
+			}
+
+			$oCollector = new $aCollector['name'];
+			$oCollector->Init();
+			$bIsCollectorToBeLaunched = $oCollector->IsToBeLaunched();
+			unset($oCollector);
+			if ($bIsCollectorToBeLaunched) {
+				Utils::Log(LOG_INFO, $aCollector['name'].' will be launched !');
+				Orchestrator::AddCollector($iIndex++, $aCollector['name']);
+			}
+		}
+		Utils::Log(LOG_INFO, "---------- Collectors have been orchestrated ----------");
+
+		return true;
 	}
 
 }
