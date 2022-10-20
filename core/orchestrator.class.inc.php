@@ -105,7 +105,10 @@ class Orchestrator
 		uasort(self::$aCollectors, array("Orchestrator", "CompareCollectors"));
 
 		foreach (self::$aCollectors as $aCollectorData) {
-			$aResults[] = new $aCollectorData['class']();
+			$oClass = new $aCollectorData['class']();
+			$oClass->Init();
+			$aResults[] = $oClass;
+			//$aResults[] = new $aCollectorData['class']();
 		}
 
 		return $aResults;

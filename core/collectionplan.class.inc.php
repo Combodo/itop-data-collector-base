@@ -30,6 +30,16 @@ abstract class CollectionPlan
 	}
 
 	/**
+	 * Initialize collection plan
+	 *
+	 * @return void
+	 * @throws \IOException
+	 */
+	public function Init()
+	{
+	}
+
+	/**
 	 * @return \CollectionPlan
 	 */
 	public static function GetPlan()

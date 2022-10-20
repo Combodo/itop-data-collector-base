@@ -53,6 +53,9 @@ abstract class Collector
 	protected $aSkippedAttributes;
 	protected $aNullifiedAttributes;
 
+	/**
+	 * Construction
+	 */
 	public function __construct()
 	{
 		$this->sVersion = null;
@@ -64,7 +67,16 @@ abstract class Collector
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
 		$this->aSkippedAttributes = array();
+	}
 
+	/**
+	 * Initialization
+	 *
+	 * @return void
+	 * @throws \Exception
+	 */
+	public function Init(): void
+	{
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
 			Utils::Log(LOG_ERR, "Empty Synchro Data Source definition for the collector '".$this->GetName()."'");
