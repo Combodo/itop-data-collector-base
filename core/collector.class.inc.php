@@ -1001,11 +1001,11 @@ abstract class Collector
 	}
 
 	/**
-	 * Tells if the collector can be launched
+	 * Check if the collector can be launched
 	 *
 	 * @return bool
 	 */
-	public function IsToBeLaunched(): bool
+	public function CheckToLaunch(): bool
 	{
 		return true;
 	}
