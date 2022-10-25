@@ -60,8 +60,13 @@ abstract class CollectionPlan
 		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
 		if (!empty($aCollectorsLaunchSequence)) {
 			// Sort sequence
-			foreach ($aCollectorsLaunchSequence as $sCollector) {
-				$aRank[] = $sCollector['rank'];
+			foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
+				if (array_key_exists('rank', $aCollector)) {
+					$aRank[] = $aCollector['rank'];
+				} else {
+					unset($aCollectorsLaunchSequence[$iKey]);
+					Utils::Log(LOG_INFO, "> Rank is missing from the launch_sequence of ".$aCollector['name']." It will not be launched.");
+				}
 			}
 			array_multisort($aRank, SORT_ASC, $aCollectorsLaunchSequence);
 		}
@@ -99,6 +104,7 @@ abstract class CollectionPlan
 	 */
 	public function AddCollectorsToOrchestrator(): bool
 	{
+		// Read and order launch sequence
 		$aCollectorsLaunchSequence = $this->GetSortedLaunchSequence();
 		if (empty($aCollectorsLaunchSequence)) {
 			Utils::Log(LOG_INFO, "---------- No Launch sequence has been found, no collector has been orchestrated ----------");
@@ -107,18 +113,24 @@ abstract class CollectionPlan
 		}
 
 		$iIndex = 1;
-		foreach ($aCollectorsLaunchSequence as $aCollector) {
-			if (!$this->GetCollectorDefinitionFile($aCollector['name'])) {
-				Utils::Log(LOG_INFO, "---------- No file definition has been found for the collector ".$aCollector['name']." ----------");
+		foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
+			// Skip disabled collectors
+			if (!array_key_exists('enable', $aCollector) || ($aCollector['enable'] != 'yes')) {
+				Utils::Log(LOG_INFO, "> ".$aCollector['name']." is disabled and will not be launched.");
+				continue;
+			}
 
-				return false;
+			// Read collector php definition file
+			if (!$this->GetCollectorDefinitionFile($aCollector['name'])) {
+				Utils::Log(LOG_INFO, "> No file definition file has been found for ".$aCollector['name']." It will not be launched.");
+				continue;
 			}
 
 			$oCollector = new $aCollector['name'];
 			$oCollector->Init();
-			$bIsCollectorToBeLaunched = $oCollector->IsToBeLaunched();
+			$bCanCollectorBeLaunched = $oCollector->CheckToLaunch();
 			unset($oCollector);
-			if ($bIsCollectorToBeLaunched) {
+			if ($bCanCollectorBeLaunched) {
 				Utils::Log(LOG_INFO, $aCollector['name'].' will be launched !');
 				Orchestrator::AddCollector($iIndex++, $aCollector['name']);
 			}
