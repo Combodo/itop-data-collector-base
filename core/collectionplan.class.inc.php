@@ -25,7 +25,6 @@ abstract class CollectionPlan
 
 	public function __construct()
 	{
-		Utils::Log(LOG_INFO, "---------- Build collection plan ----------");
 		self::$oCollectionPlan = $this;
 	}
 
@@ -35,14 +34,15 @@ abstract class CollectionPlan
 	 * @return void
 	 * @throws \IOException
 	 */
-	public function Init()
+	public function Init(): void
 	{
+		Utils::Log(LOG_INFO, "---------- Build collection plan ----------");
 	}
 
 	/**
 	 * @return \CollectionPlan
 	 */
-	public static function GetPlan()
+	public static function GetPlan(): CollectionPlan
 	{
 		return self::$oCollectionPlan;
 	}
@@ -114,26 +114,28 @@ abstract class CollectionPlan
 
 		$iIndex = 1;
 		foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
+			$sCollectorName = $aCollector['name'];
+
 			// Skip disabled collectors
 			if (!array_key_exists('enable', $aCollector) || ($aCollector['enable'] != 'yes')) {
-				Utils::Log(LOG_INFO, "> ".$aCollector['name']." is disabled and will not be launched.");
+				Utils::Log(LOG_INFO, "> ".$sCollectorName." is disabled and will not be launched.");
 				continue;
 			}
 
 			// Read collector php definition file
-			if (!$this->GetCollectorDefinitionFile($aCollector['name'])) {
-				Utils::Log(LOG_INFO, "> No file definition file has been found for ".$aCollector['name']." It will not be launched.");
+			if (!$this->GetCollectorDefinitionFile($sCollectorName)) {
+				Utils::Log(LOG_INFO, "> No file definition file has been found for ".$sCollectorName." It will not be launched.");
 				continue;
 			}
 
-			$oCollector = new $aCollector['name'];
+			// Instantiate collector
+			$oCollector = new $sCollectorName;
 			$oCollector->Init();
-			$bCanCollectorBeLaunched = $oCollector->CheckToLaunch();
-			unset($oCollector);
-			if ($bCanCollectorBeLaunched) {
-				Utils::Log(LOG_INFO, $aCollector['name'].' will be launched !');
-				Orchestrator::AddCollector($iIndex++, $aCollector['name']);
+			if ($oCollector->CheckToLaunch()) {
+				Utils::Log(LOG_INFO, $sCollectorName.' will be launched !');
+				Orchestrator::AddCollector($iIndex++, $sCollectorName);
 			}
+			unset($oCollector);
 		}
 		Utils::Log(LOG_INFO, "---------- Collectors have been orchestrated ----------");
 
