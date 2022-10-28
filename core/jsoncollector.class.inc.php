@@ -70,7 +70,7 @@ abstract class JsonCollector extends Collector
 
 		//**** step 1 : get all parameters from config file
 		$aParamsSourceJson = Utils::GetConfigurationValue(get_class($this), array());
-		if (empty($this->sJsonCliCommand)) {
+		if (empty($aParamsSourceJson)) {
 			$aParamsSourceJson = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
 		}
 		Utils::Log(LOG_DEBUG, "aParamsSourceJson [".json_encode($aParamsSourceJson)."]");
