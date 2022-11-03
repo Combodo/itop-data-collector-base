@@ -303,6 +303,12 @@ abstract class JsonCollector extends Collector
 				}
 			}
 
+			foreach ($this->aNullifiedAttributes as $sHeader) {
+				if (!isset($aDataToSynchronize[$sHeader])) {
+					$aDataToSynchronize[$sHeader] = null;
+				}
+			}
+
 			$this->iIdx++;
 
 			return $aDataToSynchronize;

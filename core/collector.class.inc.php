@@ -961,6 +961,10 @@ abstract class Collector
 				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
 				$iError++;
 			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+				if ($this->AttributeIsNullified($sCode)){
+					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
+					continue;
+				}
 				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
 				$iError++;
 			}

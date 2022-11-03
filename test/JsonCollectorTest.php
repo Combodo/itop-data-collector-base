@@ -95,8 +95,8 @@ class JsonCollectorTest extends TestCase
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
-		$oOrgCollector = new \ITopPersonJsonCollector();
 		\Utils::LoadConfig();
+		$oOrgCollector = new \ITopPersonJsonCollector();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -112,6 +112,8 @@ class JsonCollectorTest extends TestCase
 			"format_json_1" => array("format_json_1"),
 			"format_json_2" => array("format_json_2"),
 			"format_json_3" => array("format_json_3"),
+			"first row nullified function" => array("nullified_json_1"),
+			"another row nullified function" => array("nullified_json_2"),
 		);
 	}
 
