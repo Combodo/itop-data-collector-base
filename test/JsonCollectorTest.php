@@ -95,9 +95,10 @@ class JsonCollectorTest extends TestCase
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
+		// WARNING: must call LoadConfig before Init.
+		\Utils::LoadConfig();
 		$oOrgCollector = new \ITopPersonJsonCollector();
 		$oOrgCollector->Init();
-		\Utils::LoadConfig();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
