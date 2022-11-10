@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -31,6 +31,7 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/jsoncollector.class.inc.php');
+require_once(APPROOT.'core/polyfill.inc.php');
 
 $aOptionalParams = array(
 	'configure_only' => 'boolean',

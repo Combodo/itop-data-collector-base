@@ -56,17 +56,17 @@ abstract class Collector
 	/**
 	 * Construction
 	 */
-	public function __construct()
-	{
+	public function __construct() {
 		$this->sVersion = null;
 		$this->iSourceId = null;
-		$this->aFields = array();
-		$this->aCSVHeaders = array();
+		$this->aFields = [];
+		$this->aCSVHeaders = [];
 		$this->aCSVFile = array();
 		$this->iFileIndex = null;
+		$this->aCollectorConfig = [];
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
-		$this->aSkippedAttributes = array();
+		$this->aSkippedAttributes = [];
 	}
 
 	/**
@@ -79,7 +79,11 @@ abstract class Collector
 	{
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
-			Utils::Log(LOG_ERR, "Empty Synchro Data Source definition for the collector '".$this->GetName()."'");
+			Utils::Log(LOG_ERR,
+				sprintf("Empty Synchro Data Source definition for the collector '%s' (file to check/create: %s)",
+					$this->GetName(),
+					$this->sSynchroDataSourceDefinitionFile)
+			);
 			throw new Exception('Cannot create Collector (empty JSON definition)');
 		}
 		$aSourceDefinition = json_decode($sJSONSourceDefinition, true);
@@ -89,14 +93,33 @@ abstract class Collector
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
-			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
+			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0)];
 		}
 
-		$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
-		if ($this->aNullifiedAttributes === null) {
-			// Try all lowercase
-			$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+		$this->ReadCollectorConfig();
+		if (array_key_exists('nullified_attributes', $this->aCollectorConfig)){
+			$this->aNullifiedAttributes = $this->aCollectorConfig['nullified_attributes'];
+		} else {
+			$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
+
+			if ($this->aNullifiedAttributes === null) {
+				// Try all lowercase
+				$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+			}
 		}
+	}
+
+	public function ReadCollectorConfig() {
+		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this),  []);
+		if (empty($this->aCollectorConfig)) {
+			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), []);
+		}
+		Utils::Log(LOG_DEBUG,
+			sprintf("aCollectorConfig %s:  [%s]",
+				get_class($this),
+				json_encode($this->aCollectorConfig)
+			)
+		);
 	}
 
 	public function GetErrorMessage()
