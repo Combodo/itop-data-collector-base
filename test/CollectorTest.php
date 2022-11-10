@@ -53,7 +53,7 @@ XML;
 XML;
 
 		$sPhoneNullifiedSubSection = <<<XML
-<iTopPersonCollec>
+<iTopPersonCollector>
 	<nullified_attributes type="array">
 		<attribute>phone</attribute>
 	</nullified_attributes>
