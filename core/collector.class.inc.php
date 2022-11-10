@@ -62,13 +62,18 @@ abstract class Collector
 		$this->aCSVHeaders = array();
 		$this->aCSVFile = array();
 		$this->iFileIndex = null;
+		$this->aCollectorConfig = array();
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
 		$this->aSkippedAttributes = array();
 
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
-			Utils::Log(LOG_ERR, "Empty Synchro Data Source definition for the collector '".$this->GetName()."'");
+			Utils::Log(LOG_ERR,
+				sprintf("Empty Synchro Data Source definition for the collector '%s' (file to check/create: %s)",
+					$this->GetName(),
+					$this->sSynchroDataSourceDefinitionFile)
+			);
 			throw new Exception('Cannot create Collector (empty JSON definition)');
 		}
 		$aSourceDefinition = json_decode($sJSONSourceDefinition, true);
@@ -81,11 +86,30 @@ abstract class Collector
 			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
 		}
 
-		$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
-		if ($this->aNullifiedAttributes === null) {
-			// Try all lowercase
-			$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+		$this->ReadCollectorConfig();
+		if (array_key_exists('nullified_attributes', $this->aCollectorConfig)){
+			$this->aNullifiedAttributes = $this->aCollectorConfig['nullified_attributes'];
+		} else {
+			$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
+
+			if ($this->aNullifiedAttributes === null) {
+				// Try all lowercase
+				$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+			}
 		}
+	}
+
+	public function ReadCollectorConfig() {
+		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this), array());
+		if (empty($this->aCollectorConfig)) {
+			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
+		}
+		Utils::Log(LOG_DEBUG,
+			sprintf("aCollectorConfig %s:  [%s]",
+				get_class($this),
+				json_encode($this->aCollectorConfig)
+			)
+		);
 	}
 
 	public function GetErrorMessage()

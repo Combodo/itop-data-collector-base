@@ -133,8 +133,9 @@ class JsonCollectorTest extends TestCase
 		$this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$sAdditionalDir);
 
 		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
-		$oOrgCollector = new \ITopPersonJsonCollector();
+
 		\Utils::LoadConfig();
+		$oOrgCollector = new \ITopPersonJsonCollector();
 
 		if ($sExceptionMsg3) {
 			$this->oMockedLogger->expects($this->exactly(3))

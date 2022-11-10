@@ -66,8 +66,8 @@ class CsvCollectorTest extends TestCase
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
-		$oOrgCollector = new iTopPersonCsvCollector();
 		Utils::LoadConfig();
+		$oOrgCollector = new iTopPersonCsvCollector();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -135,8 +135,8 @@ class CsvCollectorTest extends TestCase
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
-		$oOrgCollector = new iTopPersonCsvCollector();
 		Utils::LoadConfig();
+		$oOrgCollector = new iTopPersonCsvCollector();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -159,8 +159,8 @@ class CsvCollectorTest extends TestCase
 		copy(APPROOT."/test/single_csv/csv_errors/$sErrorFile", self::$sCollectorPath."iTopPersonCsvCollector.csv");
 
 		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
-		$orgCollector = new iTopPersonCsvCollector();
 		Utils::LoadConfig();
+		$orgCollector = new iTopPersonCsvCollector();
 
 		if ($sExceptionMsg) {
 			$this->oMockedLogger->expects($this->exactly(2))

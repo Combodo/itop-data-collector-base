@@ -59,42 +59,37 @@ abstract class CSVCollector extends Collector
 	{
 		$bRet = parent::Prepare();
 
-		$aClassConfig = Utils::GetConfigurationValue(get_class($this));
-		if ($aClassConfig == '') {
-			$aClassConfig = Utils::GetConfigurationValue(strtolower(get_class($this)));
-		}
-
 		$this->sCsvSeparator = ';';
 		$this->sCsvEncoding = 'UTF-8';
 		$this->sCsvCliCommand = '';
 		$this->aSynchroFieldsToDefaultValues = array();
 		$this->bHasHeader = true;
 
-		if (is_array($aClassConfig)) {
-			if (array_key_exists('csv_file', $aClassConfig)) {
-				$sCsvFilePath = $aClassConfig['csv_file'];
+		if (is_array($this->aCollectorConfig)) {
+			if (array_key_exists('csv_file', $this->aCollectorConfig)) {
+				$sCsvFilePath = $this->aCollectorConfig['csv_file'];
 			}
 
-			if (array_key_exists('separator', $aClassConfig)) {
-				$this->sCsvSeparator = $aClassConfig['separator'];
+			if (array_key_exists('separator', $this->aCollectorConfig)) {
+				$this->sCsvSeparator = $this->aCollectorConfig['separator'];
 				if ($this->sCsvSeparator === 'TAB') {
 					$this->sCsvSeparator = "\t";
 				}
 			}
-			if (array_key_exists('encoding', $aClassConfig)) {
-				$this->sCsvEncoding = $aClassConfig['encoding'];
+			if (array_key_exists('encoding', $this->aCollectorConfig)) {
+				$this->sCsvEncoding = $this->aCollectorConfig['encoding'];
 			}
-			if (array_key_exists('command', $aClassConfig)) {
-				$this->sCsvCliCommand = $aClassConfig['command'];
+			if (array_key_exists('command', $this->aCollectorConfig)) {
+				$this->sCsvCliCommand = $this->aCollectorConfig['command'];
 			}
-			if (array_key_exists('has_header', $aClassConfig)) {
-				$this->bHasHeader = ($aClassConfig['has_header'] !== 'no');
+			if (array_key_exists('has_header', $this->aCollectorConfig)) {
+				$this->bHasHeader = ($this->aCollectorConfig['has_header'] !== 'no');
 			}
 
 
-			if (array_key_exists('defaults', $aClassConfig)) {
-				if ($aClassConfig['defaults'] !== '') {
-					$this->aSynchroFieldsToDefaultValues = $aClassConfig['defaults'];
+			if (array_key_exists('defaults', $this->aCollectorConfig)) {
+				if ($this->aCollectorConfig['defaults'] !== '') {
+					$this->aSynchroFieldsToDefaultValues = $this->aCollectorConfig['defaults'];
 					if (!is_array($this->aSynchroFieldsToDefaultValues)) {
 						Utils::Log(LOG_ERR,
 							"[".get_class($this)."] defaults section configuration is not correct. please see documentation.");
@@ -104,21 +99,21 @@ abstract class CSVCollector extends Collector
 				}
 			}
 
-			if (array_key_exists('ignored_columns', $aClassConfig)) {
-				if ($aClassConfig['ignored_columns'] !== '') {
-					if (!is_array($aClassConfig['ignored_columns'])) {
+			if (array_key_exists('ignored_columns', $this->aCollectorConfig)) {
+				if ($this->aCollectorConfig['ignored_columns'] !== '') {
+					if (!is_array($this->aCollectorConfig['ignored_columns'])) {
 						Utils::Log(LOG_ERR,
 							"[".get_class($this)."] ignored_columns section configuration is not correct. please see documentation.");
 
 						return false;
 					}
-					$this->aIgnoredCsvColumns = array_values($aClassConfig['ignored_columns']);
+					$this->aIgnoredCsvColumns = array_values($this->aCollectorConfig['ignored_columns']);
 				}
 			}
 
-			if (array_key_exists('fields', $aClassConfig)) {
-				if ($aClassConfig['fields'] !== '') {
-					$aCurrentConfiguredHeaderColumns = $aClassConfig['fields'];
+			if (array_key_exists('fields', $this->aCollectorConfig)) {
+				if ($this->aCollectorConfig['fields'] !== '') {
+					$aCurrentConfiguredHeaderColumns = $this->aCollectorConfig['fields'];
 					if (!is_array($aCurrentConfiguredHeaderColumns)) {
 						Utils::Log(LOG_ERR,
 							"[".get_class($this)."] fields section configuration is not correct. please see documentation.");

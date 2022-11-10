@@ -69,11 +69,7 @@ abstract class JsonCollector extends Collector
 		}
 
 		//**** step 1 : get all parameters from config file
-		$aParamsSourceJson = Utils::GetConfigurationValue(get_class($this), array());
-		if (empty($aParamsSourceJson)) {
-			$aParamsSourceJson = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
-		}
-		Utils::Log(LOG_DEBUG, "aParamsSourceJson [".json_encode($aParamsSourceJson)."]");
+		$aParamsSourceJson = $this->aCollectorConfig;
 		if (isset($aParamsSourceJson["command"])) {
 			$this->sJsonCliCommand = $aParamsSourceJson["command"];
 		}
@@ -141,6 +137,8 @@ abstract class JsonCollector extends Collector
 			Utils::Log(LOG_DEBUG, 'Get params for uploading data file ');
 			if (isset($aParamsSourceJson["jsonpost"])) {
 				$aDataGet = $aParamsSourceJson['jsonpost'];
+			} else {
+				$aDataGet = [];
 			}
 			$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
@@ -172,7 +170,6 @@ abstract class JsonCollector extends Collector
 
 			return false;
 		}
-
 
 		//**** step 2 : read json file
 		$this->aJson = json_decode($this->sFileJson, true);
@@ -256,6 +253,8 @@ abstract class JsonCollector extends Collector
 							$aValue = $aValue[$sTag];
 							$bFind = true;
 						}
+					} else if (is_array($aValue) && array_key_exists((int) $sTag, $aValue)) {
+						$aValue = $aValue[(int) $sTag];
 					} else {
 						$aNewValue = array();
 						foreach ($aValue as $aElement) {

@@ -52,11 +52,20 @@ XML;
 </iTopPersonCollector_nullified_attributes>
 XML;
 
+		$sPhoneNullifiedSubSection = <<<XML
+<iTopPersonCollec>
+	<nullified_attributes type="array">
+		<attribute>phone</attribute>
+	</nullified_attributes>
+</iTopPersonCollector>
+XML;
+
 		return [
 			'no nullify config' => [ ''],
 			'empty nullify config' => [$sEmptyConfig],
 			'other attributes nullified' => [$sOtherAttributeNulllified],
-			'phone nullified' => [$sPhoneNullifiedSection, true],
+			'phone nullified in iTopPersonCollector_nullified_attributes section' => [$sPhoneNullifiedSection, true],
+			'phone nullified in nullified_attributes sub section' => [$sPhoneNullifiedSubSection, true],
 		];
 	}
 
