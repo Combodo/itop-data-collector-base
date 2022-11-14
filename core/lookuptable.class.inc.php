@@ -67,7 +67,7 @@ class LookupTable
 						$aMappingKeys[] = $aObj['fields'][$sField];
 					}
 				}
-				$sMappingKey = implode($aMappingKeys, '_');
+				$sMappingKey = implode( '_', $aMappingKeys);
 				if (!$this->bCaseSensitive) {
 					if (function_exists('mb_strtolower')) {
 						$sMappingKey = mb_strtolower($sMappingKey);

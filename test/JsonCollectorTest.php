@@ -19,7 +19,7 @@ class JsonCollectorTest extends TestCase
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		parent::setUp();
 
@@ -33,7 +33,7 @@ class JsonCollectorTest extends TestCase
 
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
