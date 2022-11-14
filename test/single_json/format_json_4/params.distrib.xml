@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default values for parameters. Do NOT alter this file, use params.local.xml in the conf folder instead -->
+<parameters>
+	<itoppersonjsoncollector>
+		<jsonfile>APPROOT/collectors/dataTest.json</jsonfile>
+		<path>objects/Person/*/blop</path>
+		<fields>
+			<primary_key>Person/key</primary_key>
+			<name>Person/name</name>
+			<status>Person/status</status>
+			<first_name>Person/first_nameyo</first_name>
+			<email>Person/email</email>
+			<phone>Person/phone</phone>
+			<mobile_phone>Person/mobile</mobile_phone>
+			<function>Person/function</function>
+			<employee_number>Person/employeenumber</employee_number>
+			<org_id>Person/org_id</org_id>
+		</fields>
+	</itoppersonjsoncollector>
+	<json_placeholders>
+		<!-- For compatibility with the version 1.1.x of the collector, define the data table names as following:
+		<prefix></prefix>
+		<persons_data_table>synchro_data_PersonAD</persons_data_table>
+		<users_data_table></users_data_table>
+		 -->
+		<prefix>$prefix$</prefix>
+		<persons_data_table>synchro_data_person_1</persons_data_table>
+	</json_placeholders>
+</parameters>

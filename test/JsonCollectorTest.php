@@ -112,6 +112,8 @@ class JsonCollectorTest extends TestCase
 			"format_json_1" => array("format_json_1"),
 			"format_json_2" => array("format_json_2"),
 			"format_json_3" => array("format_json_3"),
+			"sort of object xpath parsing via a key" => array("format_json_4"),
+			"sort of object xpath parsing via an index" => array("format_json_5"),
 			"first row nullified function" => array("nullified_json_1"),
 			"another row nullified function" => array("nullified_json_2"),
 		);

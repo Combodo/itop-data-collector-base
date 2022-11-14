@@ -237,56 +237,7 @@ abstract class JsonCollector extends Collector
 			$aData = $this->aJson[$this->aJsonKey[$this->iIdx]];
 			Utils::Log(LOG_DEBUG, '$aData: '.json_encode($aData));
 
-			$aDataToSynchronize = array();
-			foreach ($this->aFieldsKey as $key => $sPath) {
-				if ($this->iIdx == 0) {
-					Utils::Log(LOG_DEBUG, $key.":".array_search($key, $this->aFieldsKey));
-				}
-				//
-				$aJsonKeyPath = explode('/', $sPath);
-				$aValue = $aData;
-				$bFind = false;
-				foreach ($aJsonKeyPath as $sTag) {
-					//if $aValue is not an array and $Tag !='*'
-					if (!array_key_exists(0, $aValue) && $sTag != '*') {
-						if (isset($aValue[$sTag])) {
-							$aValue = $aValue[$sTag];
-							$bFind = true;
-						}
-					} else if (is_array($aValue) && array_key_exists((int) $sTag, $aValue)) {
-						$aValue = $aValue[(int) $sTag];
-					} else {
-						$aNewValue = array();
-						foreach ($aValue as $aElement) {
-							if ($sTag == '*') //Any tag
-							{
-								array_push($aNewValue, $aElement);
-								$bFind = true;
-							} else {
-								if (isset($aElement[$sTag])) {
-									array_push($aNewValue, $aElement[$sTag]);
-									$bFind = true;
-								}
-							}
-						}
-						$aValue = $aNewValue;
-					}
-				}
-				if ($bFind) {
-					Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: ".json_encode($aValue));
-					if (empty ($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
-						$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
-					} else {
-						$aDataToSynchronize[$key] = $aValue;
-					}
-				} else {
-					if (array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
-						$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
-					}
-				}
-			}
-			Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
-
+			$aDataToSynchronize = $this->SearchFieldValues($aData);
 
 			foreach ($this->aSkippedAttributes as $sCode) {
 				unset($aDataToSynchronize[$sCode]);
@@ -314,6 +265,68 @@ abstract class JsonCollector extends Collector
 		}
 
 		return false;
+	}
+
+	/**
+	 * @param array $aData
+	 *
+	 * @return array
+	 * @throws \Exception
+	 */
+	private function SearchFieldValues($aData) {
+		$aDataToSynchronize = array();
+
+		foreach ($this->aFieldsKey as $key => $sPath) {
+			if ($this->iIdx == 0) {
+				Utils::Log(LOG_DEBUG, $key.":".array_search($key, $this->aFieldsKey));
+			}
+			//
+			$aJsonKeyPath = explode('/', $sPath);
+			$aValue = $aData;
+			$bFind = false;
+			foreach ($aJsonKeyPath as $sTag) {
+				//if $aValue is not an array and $Tag !='*'
+				if (!array_key_exists(0, $aValue) && $sTag != '*') {
+					if (isset($aValue[$sTag])) {
+						$aValue = $aValue[$sTag];
+						$bFind = true;
+					}
+				} else if (is_array($aValue) && array_key_exists((int) $sTag, $aValue)) {
+					$aValue = $aValue[(int) $sTag];
+					$bFind = true;
+				} else {
+					$aNewValue = array();
+					foreach ($aValue as $aElement) {
+						if ($sTag == '*') //Any tag
+						{
+							array_push($aNewValue, $aElement);
+							$bFind = true;
+						} else {
+							if (isset($aElement[$sTag])) {
+								array_push($aNewValue, $aElement[$sTag]);
+								$bFind = true;
+							}
+						}
+					}
+					$aValue = $aNewValue;
+				}
+			}
+			if ($bFind) {
+				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: ".json_encode($aValue));
+				if (empty ($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
+					$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
+				} else {
+					$aDataToSynchronize[$key] = $aValue;
+				}
+			} else {
+				if (array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
+					$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
+				}
+			}
+		}
+		
+		Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
+		return $aDataToSynchronize;
 	}
 
 	/**
