@@ -19,7 +19,7 @@ class CollectorTest extends TestCase
 {
 	private static $sCollectorPath = APPROOT."/collectors/";
 
-	public function setUp()
+	public function setUp(): void
 	{
 		parent::setUp();
 
@@ -29,7 +29,7 @@ class CollectorTest extends TestCase
 		}
 	}
 
-	public function tearDown()
+    public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");

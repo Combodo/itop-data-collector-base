@@ -719,7 +719,7 @@ abstract class Collector
 		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
 		$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
 
-		return Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
+		return Utils::DoPostRequest($sUrl, $aData, '', $aResponseHeaders, $aCurlOptions);
 	}
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)

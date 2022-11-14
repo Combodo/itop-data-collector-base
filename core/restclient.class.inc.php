@@ -125,7 +125,7 @@ class RestClient
 			$iValue = ((!is_numeric($value)) && defined((string)$value)) ? constant((string)$value) : (int)$value;
 			$aCurlOptions[$iKey] = $iValue;
 		}
-		$response = Utils::DoPostRequest($sUrl, $aData, null, $aHeaders, $aCurlOptions);
+		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
 		$aResults = json_decode($response, true);
 		if (!$aResults) {
 			throw new Exception("rest.php replied: $response");
