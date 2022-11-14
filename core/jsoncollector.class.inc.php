@@ -273,12 +273,13 @@ abstract class JsonCollector extends Collector
 	 * @return array
 	 * @throws \Exception
 	 */
-	private function SearchFieldValues($aData) {
+	private function SearchFieldValues($aData, $aTestOnlyFieldsKey=null) {
 		$aDataToSynchronize = array();
 
-		foreach ($this->aFieldsKey as $key => $sPath) {
+		$aCurrentFieldKeys = (is_null($aTestOnlyFieldsKey)) ? $this->aFieldsKey : $aTestOnlyFieldsKey;
+		foreach ($aCurrentFieldKeys as $key => $sPath) {
 			if ($this->iIdx == 0) {
-				Utils::Log(LOG_DEBUG, $key.":".array_search($key, $this->aFieldsKey));
+				Utils::Log(LOG_DEBUG, $key.":".array_search($key, $aCurrentFieldKeys));
 			}
 			//
 			$aJsonKeyPath = explode('/', $sPath);
@@ -324,7 +325,7 @@ abstract class JsonCollector extends Collector
 				}
 			}
 		}
-		
+
 		Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
 		return $aDataToSynchronize;
 	}

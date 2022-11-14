@@ -197,6 +197,64 @@ class JsonCollectorTest extends TestCase
 		} catch (Exception $e) {
 			$this->fail($e->getMessage());
 		}
-
 	}
+
+
+	public function SearchFieldValuesProvider(){
+		return [
+			'simple search by key' => [
+				'json' => '{ "Id": "1", "Shadok" : { "name": "gabuzomeu" } }',
+				'aFieldPaths' => [
+					'primary_key' => "Id",
+					'name' => "Shadok/name"
+				]
+			],
+			'search by key using * tag' => [
+				'json' => '[ { "Id": "1", "Shadok" : { "name": "gabuzomeu" } } ]',
+				'aFieldPaths' => [
+					'primary_key' => "*/Id",
+					'name' => "*/Shadok/name"
+				]
+			],
+			'search by key index' => [
+				'json' => '[ { "Id": "1" }, { "Shadok" : { "name": "gabuzomeu" } } ]',
+				'aFieldPaths' => [
+					'primary_key' => "0/Id",
+					'name' => "1/Shadok/name"
+				]
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider SearchFieldValuesProvider
+	 */
+	public function testSearchFieldValues($sJson, $aTestOnlyFieldsKey)
+	{
+		$this->copy(APPROOT."/test/single_json/common/*");
+		$this->copy(APPROOT."/test/single_json/format_json_1/*");
+		$this->replaceTranslateRelativePathInParam("/test/single_json/format_json_1");
+
+		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
+
+		$this->oMockedLogger->expects($this->exactly(0))
+			->method("Log");
+
+		\Utils::LoadConfig();
+		$oOrgCollector = new \ITopPersonJsonCollector();
+
+		$this->assertTrue($oOrgCollector->Prepare());
+
+		$aData = json_decode($sJson, true);
+
+		$class = new \ReflectionClass("JsonCollector");
+		$method = $class->getMethod("SearchFieldValues");
+		$method->setAccessible(true);
+		$aFetchFields = $method->invokeArgs($oOrgCollector, [$aData, $aTestOnlyFieldsKey]);
+
+		//$aFetchFields = $oOrgCollector->SearchFieldValues($aData, $aTestOnlyFieldsKey);
+
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'], $aFetchFields, var_export($aFetchFields, true));
+	}
+
 }
