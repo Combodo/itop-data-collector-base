@@ -244,6 +244,30 @@ JSON;
 		);
 	}
 
+	public function testSearchInItopJsonStructure(){
+		$sJson = <<<JSON
+{
+	"Obj::1": {
+	  "Id": 1,
+	  "Shadok": {
+	    "name": "gabuzomeu"
+	  }
+	}
+}
+JSON;
+
+		$aFieldPaths = [
+			'primary_key' => "*/Id",
+			'name' => "*/Shadok/name"
+		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
+	}
+
 	public function testSearchByKeyAndStar2(){
 		$sJson = <<<JSON
 [
