@@ -292,7 +292,7 @@ abstract class JsonCollector extends Collector
 						$aValue = $aValue[$sTag];
 						$bFind = true;
 					}
-				} else if (is_array($aValue) && array_key_exists((int) $sTag, $aValue)) {
+				} else if (array_is_list($aValue) && array_key_exists((int) $sTag, $aValue)) {
 					$aValue = $aValue[(int) $sTag];
 					$bFind = true;
 				} else {
