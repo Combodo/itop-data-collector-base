@@ -5,16 +5,16 @@
 		<jsonfile>APPROOT/collectors/dataTest.json</jsonfile>
 		<path>objects/Person/*/blop</path>
 		<fields>
-			<primary_key>Person/key</primary_key>
-			<name>Person/name</name>
-			<status>Person/status</status>
-			<first_name>Person/first_nameyo</first_name>
-			<email>Person/email</email>
-			<phone>Person/phone</phone>
-			<mobile_phone>Person/mobile</mobile_phone>
-			<function>Person/function</function>
-			<employee_number>Person/employeenumber</employee_number>
-			<org_id>Person/org_id</org_id>
+			<primary_key>key</primary_key>
+			<name>name</name>
+			<status>status</status>
+			<first_name>first_nameyo</first_name>
+			<email>email</email>
+			<phone>phone</phone>
+			<mobile_phone>mobile</mobile_phone>
+			<function>function</function>
+			<employee_number>employeenumber</employee_number>
+			<org_id>org_id</org_id>
 		</fields>
 	</itoppersonjsoncollector>
 	<json_placeholders>

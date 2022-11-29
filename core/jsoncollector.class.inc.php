@@ -283,51 +283,54 @@ abstract class JsonCollector extends Collector
 			}
 			//
 			$aJsonKeyPath = explode('/', $sPath);
-			$aValue = $aData;
-			$bFind = false;
-			foreach ($aJsonKeyPath as $sTag) {
-				//if $aValue is not an array and $Tag !='*'
-				if (!array_key_exists(0, $aValue) && $sTag != '*') {
-					if (isset($aValue[$sTag])) {
-						$aValue = $aValue[$sTag];
-						$bFind = true;
-					}
-				} else if (array_is_list($aValue) && array_key_exists((int) $sTag, $aValue)) {
-					$aValue = $aValue[(int) $sTag];
-					$bFind = true;
-				} else {
-					$aNewValue = array();
-					foreach ($aValue as $aElement) {
-						if ($sTag == '*') //Any tag
-						{
-							array_push($aNewValue, $aElement);
-							$bFind = true;
-						} else {
-							if (isset($aElement[$sTag])) {
-								array_push($aNewValue, $aElement[$sTag]);
-								$bFind = true;
-							}
-						}
-					}
-					$aValue = $aNewValue;
-				}
-			}
-			if ($bFind) {
-				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: ".json_encode($aValue));
-				if (empty ($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
-					$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
-				} else {
-					$aDataToSynchronize[$key] = $aValue;
-				}
-			} else {
-				if (array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
-					$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
-				}
+			$aValue = $this->SearchValue($aJsonKeyPath, $aData);
+
+			if (empty($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)){
+				$sDefaultValue = $this->aSynchroFieldsToDefaultValues[$key];
+				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: $sDefaultValue");
+				$aDataToSynchronize[$key] = $sDefaultValue;
+			} else if (! is_null($aValue)){
+				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: $aValue");
+				$aDataToSynchronize[$key] = $aValue;
 			}
 		}
 
 		Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
 		return $aDataToSynchronize;
+	}
+
+	private function SearchValue($aJsonKeyPath, $aData){
+		$sTag = array_shift($aJsonKeyPath);
+
+		if($sTag === '*'){
+			foreach ($aData as $sKey => $aDataValue){
+				$aCurrentValue = $this->SearchValue($aJsonKeyPath, $aDataValue);
+				if (null !== $aCurrentValue){
+					return $aCurrentValue;
+				}
+			}
+			return null;
+		}
+
+		if (is_int($sTag)
+			&& array_is_list($aData)
+			&&  array_key_exists((int) $sTag, $aData)
+		) {
+			$aValue = $aData[(int) $sTag];
+		} else if(($sTag != '*')
+			&& is_array($aData)
+			&& isset($aData[$sTag])
+		){
+			$aValue = $aData[$sTag];
+		} else {
+			return null;
+		}
+
+		if (empty($aJsonKeyPath)){
+			return (is_array($aValue)) ? null : $aValue;
+		}
+
+		return $this->SearchValue($aJsonKeyPath, $aValue);
 	}
 
 	/**
