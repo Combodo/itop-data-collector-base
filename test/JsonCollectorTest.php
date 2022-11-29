@@ -199,37 +199,152 @@ class JsonCollectorTest extends TestCase
 		}
 	}
 
-
-	public function SearchFieldValuesProvider(){
-		return [
-			'simple search by key' => [
-				'json' => '{ "Id": "1", "Shadok" : { "name": "gabuzomeu" } }',
-				'aFieldPaths' => [
-					'primary_key' => "Id",
-					'name' => "Shadok/name"
-				]
-			],
-			'search by key using * tag' => [
-				'json' => '[ { "Id": "1", "Shadok" : { "name": "gabuzomeu" } } ]',
-				'aFieldPaths' => [
-					'primary_key' => "*/Id",
-					'name' => "*/Shadok/name"
-				]
-			],
-			'search by key index' => [
-				'json' => '[ { "Id": "1" }, { "Shadok" : { "name": "gabuzomeu" } } ]',
-				'aFieldPaths' => [
-					'primary_key' => "0/Id",
-					'name' => "1/Shadok/name"
-				]
-			],
+	public function testSearchByKey(){
+		$sJson = <<<JSON
+{
+  "Id": "1",
+  "Shadok": {
+    "name": "gabuzomeu"
+  }
+}
+JSON;
+		$aFieldPaths = [
+			'primary_key' => "Id",
+			'name' => "Shadok/name"
 		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
 	}
 
-	/**
-	 * @dataProvider SearchFieldValuesProvider
-	 */
-	public function testSearchFieldValues($sJson, $aTestOnlyFieldsKey)
+	public function testSearchByKeyAndStar(){
+		$sJson = <<<JSON
+[
+  {
+    "Id": "1",
+    "Shadok": {
+      "name": "gabuzomeu"
+    }
+  }
+]
+JSON;
+		$aFieldPaths = [
+			'primary_key' => "*/Id",
+			'name' => "*/Shadok/name"
+		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
+	}
+
+	public function testSearchByKeyAndStar2(){
+		$sJson = <<<JSON
+[
+  {
+    "Id": "1"
+  },
+  {
+    "Shadok": {
+      "name": "gabuzomeu"
+    }
+  }
+]
+JSON;
+		$aFieldPaths = [
+			'primary_key' => "*/Id",
+			'name' => "*/Shadok/name"
+		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
+	}
+
+	public function testSearchByKeyAndStar3(){
+		$sJson = <<<JSON
+{
+  "XXX": {
+    "Id": "1"
+  },
+  "YYY": {
+    "Shadok": {
+      "name": "gabuzomeu"
+    }
+  }
+}
+JSON;
+		$aFieldPaths = [
+			'primary_key' => "*/Id",
+			'name' => "*/Shadok/name"
+		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
+	}
+
+	public function testSearchByKeyAndStar4(){
+		$sJson = <<<JSON
+{
+  "XXX": {
+    "Id": "1"
+  },
+  "YYY": {
+    "Shadok": {
+      "name": "gabuzomeu"
+    }
+  }
+}
+JSON;
+		$aFieldPaths = [
+			'primary_key' => "*/Id",
+			'name' => "*/Shadok/name"
+		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
+	}
+
+	public function testSearchByKeyAndIndex(){
+		$sJson = <<<JSON
+[
+  {
+    "Id": "1"
+  },
+  {
+    "Shadok": {
+      "name": "gabuzomeu"
+    }
+  }
+]
+JSON;
+		$aFieldPaths =[
+			'primary_key' => "0/Id",
+			'name' => "1/Shadok/name"
+		];
+
+		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
+		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+			$aFetchedFields,
+			var_export($aFetchedFields, true)
+		);
+	}
+
+
+	public function CallSearchFieldValues($sJson, $aFieldPaths)
 	{
 		$this->copy(APPROOT."/test/single_json/common/*");
 		$this->copy(APPROOT."/test/single_json/format_json_1/*");
@@ -250,11 +365,6 @@ class JsonCollectorTest extends TestCase
 		$class = new \ReflectionClass("JsonCollector");
 		$method = $class->getMethod("SearchFieldValues");
 		$method->setAccessible(true);
-		$aFetchFields = $method->invokeArgs($oOrgCollector, [$aData, $aTestOnlyFieldsKey]);
-
-		//$aFetchFields = $oOrgCollector->SearchFieldValues($aData, $aTestOnlyFieldsKey);
-
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'], $aFetchFields, var_export($aFetchFields, true));
+		return $method->invokeArgs($oOrgCollector, [$aData, $aFieldPaths]);
 	}
-
 }
