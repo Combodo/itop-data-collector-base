@@ -13,7 +13,7 @@ require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/jsoncollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
-require_once(APPROOT.'core/array_polyfill.php');
+require_once(APPROOT.'core/polyfill.inc.php');
 
 class JsonCollectorTest extends TestCase
 {

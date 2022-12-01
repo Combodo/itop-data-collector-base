@@ -30,7 +30,7 @@ require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/jsoncollector.class.inc.php');
-require_once(APPROOT.'core/array_polyfill.php');
+require_once(APPROOT.'core/polyfill.inc.php');
 
 $aOptionalParams = array(
 	'configure_only'       => 'boolean',
