@@ -108,16 +108,16 @@ class JsonCollectorTest extends TestCase
 
 	public function OrgCollectorProvider()
 	{
-		return array(
-			"default_value" => array("default_value"),
-			"format_json_1" => array("format_json_1"),
-			"format_json_2" => array("format_json_2"),
-			"format_json_3" => array("format_json_3"),
-			"sort of object xpath parsing via a key" => array("format_json_4"),
-			"sort of object xpath parsing via an index" => array("format_json_5"),
-			"first row nullified function" => array("nullified_json_1"),
-			"another row nullified function" => array("nullified_json_2"),
-		);
+		return [
+			"default_value" => [ "default_value" ],
+			"format_json_1" => [ "format_json_1" ],
+			"format_json_2" => [ "format_json_2" ],
+			"format_json_3" => [ "format_json_3" ],
+			"sort of object xpath parsing via a key" => [ "format_json_4" ],
+			"sort of object xpath parsing via an index" => [ "format_json_5" ],
+			"first row nullified function" => [ "nullified_json_1" ],
+			"another row nullified function" => [ "nullified_json_2" ],
+		];
 	}
 
 	/**
@@ -143,15 +143,15 @@ class JsonCollectorTest extends TestCase
 		if ($sExceptionMsg3) {
 			$this->oMockedLogger->expects($this->exactly(3))
 				->method("Log")
-				->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg), array(LOG_ERR, $sExceptionMsg3));
+				->withConsecutive([LOG_ERR, $sErrorMsg], [LOG_ERR, $sExceptionMsg], [LOG_ERR, $sExceptionMsg3]);
 		} elseif ($sExceptionMsg) {
 			$this->oMockedLogger->expects($this->exactly(2))
 				->method("Log")
-				->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
+				->withConsecutive([LOG_ERR, $sErrorMsg], [LOG_ERR, $sExceptionMsg]);
 		} elseif ($sErrorMsg) {
 			$this->oMockedLogger->expects($this->exactly(1))
 				->method("Log")
-				->withConsecutive(array(LOG_ERR, $sErrorMsg));
+				->withConsecutive([LOG_ERR, $sErrorMsg]);
 		} else {
 			$this->oMockedLogger->expects($this->exactly(0))
 				->method("Log");
@@ -167,23 +167,23 @@ class JsonCollectorTest extends TestCase
 
 	public function ErrorFileProvider()
 	{
-		return array(
-			"error_json_1" => array(
+		return [
+			"error_json_1" => [
 				"error_json_1",
 				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing in the json file.",
 				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the json file.",
-			),
-			"error_json_2" => array(
+			],
+			"error_json_2" => [
 				"error_json_2",
 				"[ITopPersonJsonCollector] Failed to find path objects/*/blop until data in json file:  ".APPROOT."/collectors/dataTest.json.",
 				"ITopPersonJsonCollector::Prepare() returned false",
-			),
-			"error_json_3" => array(
+			],
+			"error_json_3" => [
 				"error_json_3",
 				'[ITopPersonJsonCollector] Failed to translate data from JSON file: \''.APPROOT.'/collectors/dataTest.json\'. Reason: Syntax error',
 				"ITopPersonJsonCollector::Prepare() returned false",
-			),
-		);
+			],
+		];
 	}
 
 	public function testFetchWithEmptyJson()

@@ -58,14 +58,14 @@ abstract class Collector
 		$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
 		$this->sVersion = null;
 		$this->iSourceId = null;
-		$this->aFields = array();
-		$this->aCSVHeaders = array();
+		$this->aFields = [];
+		$this->aCSVHeaders = [];
 		$this->aCSVFile = array();
 		$this->iFileIndex = null;
-		$this->aCollectorConfig = array();
+		$this->aCollectorConfig = [];
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
-		$this->aSkippedAttributes = array();
+		$this->aSkippedAttributes = [];
 
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
@@ -83,7 +83,7 @@ abstract class Collector
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
-			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
+			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0)];
 		}
 
 		$this->ReadCollectorConfig();
@@ -100,9 +100,9 @@ abstract class Collector
 	}
 
 	public function ReadCollectorConfig() {
-		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this), array());
+		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this),  []);
 		if (empty($this->aCollectorConfig)) {
-			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
+			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), []);
 		}
 		Utils::Log(LOG_DEBUG,
 			sprintf("aCollectorConfig %s:  [%s]",

@@ -274,7 +274,7 @@ abstract class JsonCollector extends Collector
 	 * @throws \Exception
 	 */
 	private function SearchFieldValues($aData, $aTestOnlyFieldsKey=null) {
-		$aDataToSynchronize = array();
+		$aDataToSynchronize = [];
 
 		$aCurrentFieldKeys = (is_null($aTestOnlyFieldsKey)) ? $this->aFieldsKey : $aTestOnlyFieldsKey;
 		foreach ($aCurrentFieldKeys as $key => $sPath) {
