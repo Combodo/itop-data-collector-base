@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @link https://www.php.net/manual/en/function.array-is-list.php
+ * @see https://www.php.net/manual/en/function.array-is-list.php
  * Make this function available even for (PHP 8 < 8.1.0)
  */
 if (!function_exists("array_is_list")) {
