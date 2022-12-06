@@ -70,7 +70,7 @@ abstract class JsonCollector extends Collector
 
 		//**** step 1 : get all parameters from config file
 		$aParamsSourceJson = Utils::GetConfigurationValue(get_class($this), array());
-		if (empty($this->sJsonCliCommand)) {
+		if (empty($aParamsSourceJson)) {
 			$aParamsSourceJson = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
 		}
 		Utils::Log(LOG_DEBUG, "aParamsSourceJson [".json_encode($aParamsSourceJson)."]");
@@ -139,6 +139,7 @@ abstract class JsonCollector extends Collector
 		//get Json file
 		if ($this->sURL != '') {
 			Utils::Log(LOG_DEBUG, 'Get params for uploading data file ');
+            $aDataGet = [];
 			if (isset($aParamsSourceJson["jsonpost"])) {
 				$aDataGet = $aParamsSourceJson['jsonpost'];
 			}
@@ -157,7 +158,7 @@ abstract class JsonCollector extends Collector
 
 			//logs
 			Utils::Log(LOG_DEBUG, 'Source aDataGet: '.json_encode($aDataGet));
-			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, null, $aResponseHeaders, $aCurlOptions);
+			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, '', $aResponseHeaders, $aCurlOptions);
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
 			Utils::Log(LOG_INFO, 'Synchro URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
 		} else {
@@ -174,7 +175,7 @@ abstract class JsonCollector extends Collector
 		}
 
 
-		//**** step 2 : read json file
+		//**** step 3 : read json file
 		$this->aJson = json_decode($this->sFileJson, true);
 		if ($this->aJson == null) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to translate data from JSON file: '".$this->sURL.$this->sFilePath."'. Reason: ".json_last_error_msg());
@@ -294,19 +295,16 @@ abstract class JsonCollector extends Collector
 			}
 
 			if ($this->iIdx == 0) {
-				$aChecks = $this->CheckJSONFields($aDataToSynchronize);
-				foreach ($aChecks['errors'] as $sError) {
-					Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
-				}
-				foreach ($aChecks['warnings'] as $sWarning) {
-					Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
-				}
-				if (count($aChecks['errors']) > 0) {
-					throw new Exception("Missing columns in the Json file.");
-				}
+				$this->CheckColumns($aDataToSynchronize, [], 'json file');
 			}
 			//check if all expected fields are in array. If not add it with null value
 			foreach ($this->aCSVHeaders as $sHeader) {
+				if (!isset($aDataToSynchronize[$sHeader])) {
+					$aDataToSynchronize[$sHeader] = null;
+				}
+			}
+
+			foreach ($this->aNullifiedAttributes as $sHeader) {
 				if (!isset($aDataToSynchronize[$sHeader])) {
 					$aDataToSynchronize[$sHeader] = null;
 				}
@@ -349,38 +347,6 @@ abstract class JsonCollector extends Collector
 		}
 
 		return parent::AttributeIsOptional($sAttCode);
-	}
-
-	/**
-	 * Check if the keys of the supplied hash array match the expected fields
-	 *
-	 * @param array $aData
-	 *
-	 * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings
-	 */
-	protected function CheckJSONFields($aData)
-	{
-		$aRet = array('errors' => array(), 'warnings' => array());
-
-		if (!array_key_exists('primary_key', $aData)) {
-			$aRet['errors'][] = 'The mandatory column "primary_key" is missing from the query.';
-		}
-		foreach ($this->aFields as $sCode => $aDefs) {
-			// Check for missing columns
-			if (!array_key_exists($sCode, $aData) && $aDefs['reconcile']) {
-				$aRet['errors'][] = 'The column "'.$sCode.'", used for reconciliation, is missing from the query.';
-			} else if (!array_key_exists($sCode, $aData) && $aDefs['update']) {
-				$aRet['errors'][] = 'The column "'.$sCode.'", used for update, is missing from the query.';
-			}
-
-			// Check for useless columns
-			if (array_key_exists($sCode, $aData) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				$aRet['warnings'][] = 'The column "'.$sCode.'" is used neither for update nor for reconciliation.';
-			}
-
-		}
-
-		return $aRet;
 	}
 
 }

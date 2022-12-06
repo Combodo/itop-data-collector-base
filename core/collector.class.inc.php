@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -13,6 +13,8 @@
 //
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
+
+define('NULL_VALUE', '<NULL>');
 
 /**
  * Special kind of exception to tell the collector to ignore the row of data being processed
@@ -49,6 +51,7 @@ abstract class Collector
 	protected $sErrorMessage;
 	protected $sSeparator;
 	protected $aSkippedAttributes;
+	protected $aNullifiedAttributes;
 
 	public function __construct()
 	{
@@ -76,6 +79,12 @@ abstract class Collector
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
 			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
+		}
+
+		$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
+		if ($this->aNullifiedAttributes === null) {
+			// Try all lowercase
+			$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
 		}
 	}
 
@@ -135,6 +144,36 @@ abstract class Collector
 	public function AttributeIsOptional($sAttCode)
 	{
 		return false; // By default no attribute is optional
+	}
+
+	/**
+	 * Determine if a given attribute null value is allowed to be transformed between collect and data synchro steps.
+	 *
+	 *  If transformed, its null value is replaced by '<NULL>' and sent to iTop data synchro.
+	 *  It means that existing value on iTop side will be kept as is.
+	 *
+	 *  Otherwise if not transformed, empty string value will be sent to datasynchro which means resetting current value on iTop side.
+	 *
+	 * Best practice:
+	 * for fields like decimal, integer or enum, we recommend to configure transformation as resetting will fail on iTop side (Bug N°776).
+	 *
+	 * The implementation is based on a predefined configuration parameter named from the
+	 * class of the collector (all lowercase) with _nullified_attributes appended.
+	 *
+	 * Example: here is the configuration to "nullify" the attribute 'location_id' for the class MyCollector:
+	 * <mycollector_nullified_attributes type="array">
+	 *    <attribute>location_id</attribute>
+	 * </mycollector_nullified_attributes>
+	 *
+	 * @param string $sAttCode
+	 *
+	 * @return boolean True if the attribute can be skipped, false otherwise
+	 */
+	public function AttributeIsNullified($sAttCode) {
+		if (is_array($this->aNullifiedAttributes)) {
+			return in_array($sAttCode, $this->aNullifiedAttributes);
+		}
+		return false;
 	}
 
 	public function GetName()
@@ -489,9 +528,16 @@ abstract class Collector
 	{
 		$aData = array();
 		foreach ($this->aCSVHeaders as $sHeader) {
-			$aData[] = $aRow[$sHeader];
+			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader))
+			{
+				$aData[] = NULL_VALUE;
+			}
+			else
+			{
+				$aData[] = $aRow[$sHeader];
+			}
 		}
-		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");	
+		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");
 		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator);
 	}
 
@@ -646,7 +692,7 @@ abstract class Collector
 		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
 		$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
 
-		return Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
+		return Utils::DoPostRequest($sUrl, $aData, '', $aResponseHeaders, $aCurlOptions);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
@@ -730,7 +776,7 @@ abstract class Collector
 					Utils::Log(LOG_INFO, "Skipping optional attribute {$aAttr['attcode']}.");
 					$this->aSkippedAttributes[] = $aAttr['attcode']; // record that this attribute was skipped
 				} else {
-					// Update only the SynchroAttributes which are really different			
+					// Update only the SynchroAttributes which are really different
 					// Ignore read-only fields
 					unset($aAttr['friendlyname']);
 					$sTargetClass = $aAttr['finalclass'];
@@ -881,4 +927,58 @@ abstract class Collector
 			'step'        => $sStep,
 		];
 	}
+
+	/**
+	 * Check if the keys of the supplied hash array match the expected fields listed in the data synchro
+	 *
+	 * @param array<string, string> $aSynchroColumns attribute name as key, attribute's value as value (value not used)
+	 * @paral $aColumnsToIgnore : Elements to ignore
+	 * @param $sSource : Source of the request (Json file, SQL query, csv file...)
+	 *
+	 * @throws \Exception
+	 */
+	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
+	{
+		$sClass = get_class($this);
+		$iError = 0;
+
+		if (!array_key_exists('primary_key', $aSynchroColumns)) {
+			Utils::Log(LOG_ERR, '['.$sClass.'] The mandatory column "primary_key" is missing in the '.$sSource.'.');
+			$iError++;
+		}
+		foreach ($this->aFields as $sCode => $aDefs) {
+			// Skip attributes to ignore
+			if (in_array($sCode, $aColumnsToIgnore)) {
+				continue;
+			}
+			// Skip optional attributes
+			if ($this->AttributeIsOptional($sCode)) {
+				continue;
+			}
+
+			// Check for missing columns
+			if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+				$iError++;
+			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+				if ($this->AttributeIsNullified($sCode)){
+					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
+					continue;
+				}
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+				$iError++;
+			}
+
+			// Check for useless columns
+			if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+			}
+
+		}
+
+		if ($iError > 0) {
+			throw new Exception("Missing columns in the ".$sSource.'.');
+		}
+	}
+
 }

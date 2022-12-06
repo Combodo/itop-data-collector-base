@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -109,6 +109,20 @@ class Utils
 	}
 
 	/**
+	 * Init the console log level.
+	 *
+	 * Defaults to LOG_INFO if `console_log_level` is not configured
+	 * Can be overridden by `console_log_level` commandline argument.
+	 *
+	 * @throws Exception
+	 */
+	public static function InitConsoleLogLevel()
+	{
+		$iDefaultConsoleLogLevel = static::GetConfigurationValue('console_log_level', LOG_INFO);
+		static::$iConsoleLogLevel = static::ReadParameter('console_log_level', $iDefaultConsoleLogLevel);
+	}
+
+	/**
 	 * Logs a message to the centralized log for the application, with the given priority
 	 *
 	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see:
@@ -123,6 +137,7 @@ class Utils
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
 			if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR) {
+				var_dump($sMessage);
 				self::$oMockedLogger->Log($iPriority, $sMessage);
 			}
 		}

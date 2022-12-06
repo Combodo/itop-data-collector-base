@@ -19,7 +19,7 @@ class JsonCollectorTest extends TestCase
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		parent::setUp();
 
@@ -33,7 +33,7 @@ class JsonCollectorTest extends TestCase
 
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -95,8 +95,8 @@ class JsonCollectorTest extends TestCase
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
-		$oOrgCollector = new \ITopPersonJsonCollector();
 		\Utils::LoadConfig();
+		$oOrgCollector = new \ITopPersonJsonCollector();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -112,6 +112,8 @@ class JsonCollectorTest extends TestCase
 			"format_json_1" => array("format_json_1"),
 			"format_json_2" => array("format_json_2"),
 			"format_json_3" => array("format_json_3"),
+			"first row nullified function" => array("nullified_json_1"),
+			"another row nullified function" => array("nullified_json_2"),
 		);
 	}
 
@@ -154,8 +156,7 @@ class JsonCollectorTest extends TestCase
 			$bResult = $oOrgCollector->Collect();
 
 			$this->assertEquals($sErrorMsg ? false : true, $bResult);
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$this->assertEquals($sExceptionMsg, $e->getMessage());
 		}
 	}
@@ -165,8 +166,8 @@ class JsonCollectorTest extends TestCase
 		return array(
 			"error_json_1" => array(
 				"error_json_1",
-				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing from the query.",
-				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the Json file.",
+				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing in the json file.",
+				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the json file.",
 			),
 			"error_json_2" => array(
 				"error_json_2",
@@ -190,8 +191,7 @@ class JsonCollectorTest extends TestCase
 		try {
 			$bResult = $oiTopCollector->Fetch();
 			$this->assertEquals(false, $bResult, "JsonCollector::Fetch returns true though CollectoClass::aJson is empty");
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$this->fail($e->getMessage());
 		}
 
