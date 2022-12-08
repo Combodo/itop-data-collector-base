@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
+<parameters>
+	<!-- StandardCollector -->
+	<standardcollector>
+		<ms_class>StandardCollector</ms_class>
+		<fields>
+			<primary_key>id</primary_key>
+		</fields>
+		<defaults>
+			<org_id>Demo</org_id>
+			<status>implementation</status>
+		</defaults>
+	</standardcollector>
+
+	<!-- LegacyCollector -->
+	<legacycollector>
+		<ms_class>LegacyCollector</ms_class>
+		<fields>
+			<primary_key>id</primary_key>
+		</fields>
+		<defaults>
+			<org_id>Demo</org_id>
+			<status>implementation</status>
+		</defaults>
+	</legacycollector>
+
+	<!-- Class collection sequence -->
+	<collectors_launch_sequence type="array">
+		<collector>
+			<!-- StandardCollector -->
+			<name>StandardCollector</name>
+			<enable>yes</enable>
+			<rank>10</rank>
+		</collector>
+		<collector>
+			<!-- StandardCollectorWithNoRank -->
+			<name>StandardCollectorWithNoRank</name>
+			<enable>yes</enable>
+		</collector>
+		<collector>
+			<!-- StandardCollectorDisabled -->
+			<name>StandardCollectorDisabled</name>
+			<enable>no</enable>
+			<rank>30</rank>
+		</collector>
+		<collector>
+			<!-- LegacyCollector -->
+			<name>LegacyCollector</name>
+			<enable>yes</enable>
+			<rank>40</rank>
+		</collector>
+	</collectors_launch_sequence>
+
+</parameters>

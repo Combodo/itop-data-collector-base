@@ -25,6 +25,7 @@ require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
 require_once(APPROOT.'core/lookuptable.class.inc.php');
 require_once(APPROOT.'core/mappingtable.class.inc.php');
+require_once(APPROOT.'core/collectionplan.class.inc.php');
 require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/sqlcollector.class.inc.php'); // Depends on Orchestrator for settings a minimum version for PHP because of the use of PDO
@@ -32,15 +33,15 @@ require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/jsoncollector.class.inc.php');
 
 $aOptionalParams = array(
-	'configure_only'       => 'boolean',
-	'collect_only'         => 'boolean',
-	'synchro_only'         => 'boolean',
-	'dump_config_only'     => 'boolean',
-	'console_log_level'    => 'integer',
+	'configure_only' => 'boolean',
+	'collect_only' => 'boolean',
+	'synchro_only' => 'boolean',
+	'dump_config_only' => 'boolean',
+	'console_log_level' => 'integer',
 	'eventissue_log_level' => 'integer',
-	'max_chunk_size'       => 'integer',
-	'help'                 => 'boolean',
-	'config_file'          => 'string',
+	'max_chunk_size' => 'integer',
+	'help' => 'boolean',
+	'config_file' => 'string',
 );
 $bHelp = (Utils::ReadBooleanParameter('help', false) == true);
 $aUnknownParameters = Utils::CheckParameters($aOptionalParams);
@@ -124,8 +125,7 @@ try {
 	if ($bResult && !$bConfigureOnly && !$bCollectOnly) {
 		$bResult = $oOrchestrator->Synchronize($aCollectors);
 	}
-}
-catch (Exception $e) {
+} catch (Exception $e) {
 	$bResult = false;
 	Utils::Log(LOG_ERR, "Exception: ".$e->getMessage());
 }

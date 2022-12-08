@@ -61,6 +61,7 @@ class OrchestratorTest extends TestCase
 			->method("Log");
 
 		$oOrgCollector = new iTopPersonCsvCollector();
+		$oOrgCollector->Init();
 		$this->assertEquals($sExpectedProjectName, $oOrgCollector->GetProjectName());
 	}
 
@@ -85,7 +86,7 @@ class OrchestratorTest extends TestCase
 	{
 		return array(
 			"empty_module_file" => array("myproject"),
-			"module"            => array("centreon-collector", "module"),
+			"module" => array("centreon-collector", "module"),
 		);
 	}
 }
