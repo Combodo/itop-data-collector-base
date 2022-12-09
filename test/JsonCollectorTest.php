@@ -20,7 +20,7 @@ class JsonCollectorTest extends TestCase
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		parent::setUp();
 
@@ -34,7 +34,7 @@ class JsonCollectorTest extends TestCase
 
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -96,8 +96,10 @@ class JsonCollectorTest extends TestCase
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
+		// WARNING: must call LoadConfig before Init.
 		\Utils::LoadConfig();
 		$oOrgCollector = new \ITopPersonJsonCollector();
+		$oOrgCollector->Init();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -136,9 +138,9 @@ class JsonCollectorTest extends TestCase
 		$this->replaceTranslateRelativePathInParam("/test/single_json/json_error/".$sAdditionalDir);
 
 		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
-
 		\Utils::LoadConfig();
 		$oOrgCollector = new \ITopPersonJsonCollector();
+		$oOrgCollector->Init();
 
 		if ($sExceptionMsg3) {
 			$this->oMockedLogger->expects($this->exactly(3))
@@ -192,6 +194,7 @@ class JsonCollectorTest extends TestCase
 		require_once self::$sCollectorPath."ITopPersonJsonCollector.class.inc.php";
 
 		$oiTopCollector = new \ITopPersonJsonCollector();
+		$oiTopCollector->Init();
 		try {
 			$bResult = $oiTopCollector->Fetch();
 			$this->assertEquals(false, $bResult, "JsonCollector::Fetch returns true though CollectoClass::aJson is empty");
@@ -382,6 +385,7 @@ JSON;
 
 		\Utils::LoadConfig();
 		$oOrgCollector = new \ITopPersonJsonCollector();
+		$oOrgCollector->Init();
 
 		$this->assertTrue($oOrgCollector->Prepare());
 

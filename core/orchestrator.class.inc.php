@@ -52,7 +52,7 @@ class Orchestrator
 	{
 		if (!array_key_exists($sExtension, self::$aMinVersions)) {
 			// This is the first call to add some requirements for this extension, record it as-is
-		} else if (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
+		} elseif (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
 			// This requirement is stricter than the previously requested one
 			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
 		}
@@ -75,7 +75,7 @@ class Orchestrator
 				} else {
 					Utils::Log(LOG_DEBUG, "OK, the required PHP version to run this application is $sRequiredVersion. The current PHP version is $sCurrentVersion.");
 				}
-			} else if (extension_loaded($sExtension)) {
+			} elseif (extension_loaded($sExtension)) {
 				$sCurrentVersion = phpversion($sExtension);
 				if (version_compare($sCurrentVersion, $sRequiredVersion, '<')) {
 					$bResult = false;
@@ -105,7 +105,10 @@ class Orchestrator
 		uasort(self::$aCollectors, array("Orchestrator", "CompareCollectors"));
 
 		foreach (self::$aCollectors as $aCollectorData) {
-			$aResults[] = new $aCollectorData['class']();
+			$oClass = new $aCollectorData['class']();
+			$oClass->Init();
+			$aResults[] = $oClass;
+			//$aResults[] = new $aCollectorData['class']();
 		}
 
 		return $aResults;
@@ -127,7 +130,7 @@ class Orchestrator
 		$aPlaceholders['$contact_to_notify$'] = 0;
 		if ($sEmailToNotify != '') {
 			$oRestClient = new RestClient();
-			$aRes = $oRestClient->Get('Person', array('email' => $sEmailToNotify));
+			$aRes = $oRestClient->Get('Contact', array('email' => $sEmailToNotify));
 			if ($aRes['code'] == 0) {
 				if (!is_array($aRes['objects'])) {
 					Utils::Log(LOG_WARNING, "Contact to notify ($sEmailToNotify) not found in iTop. Nobody will be notified of the results of the synchronization.");

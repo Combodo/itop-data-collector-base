@@ -135,10 +135,9 @@ abstract class JsonCollector extends Collector
 		//get Json file
 		if ($this->sURL != '') {
 			Utils::Log(LOG_DEBUG, 'Get params for uploading data file ');
+            $aDataGet = [];
 			if (isset($aParamsSourceJson["jsonpost"])) {
 				$aDataGet = $aParamsSourceJson['jsonpost'];
-			} else {
-				$aDataGet = [];
 			}
 			$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
@@ -155,7 +154,7 @@ abstract class JsonCollector extends Collector
 
 			//logs
 			Utils::Log(LOG_DEBUG, 'Source aDataGet: '.json_encode($aDataGet));
-			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, null, $aResponseHeaders, $aCurlOptions);
+			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, '', $aResponseHeaders, $aCurlOptions);
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
 			Utils::Log(LOG_INFO, 'Synchro URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
 		} else {
@@ -171,7 +170,8 @@ abstract class JsonCollector extends Collector
 			return false;
 		}
 
-		//**** step 2 : read json file
+
+		//**** step 3 : read json file
 		$this->aJson = json_decode($this->sFileJson, true);
 		if ($this->aJson == null) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to translate data from JSON file: '".$this->sURL.$this->sFilePath."'. Reason: ".json_last_error_msg());

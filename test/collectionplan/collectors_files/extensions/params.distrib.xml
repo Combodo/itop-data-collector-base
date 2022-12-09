@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
+<parameters>
+	<!-- ExtendedCollector -->
+	<extendedcollector>
+		<ms_class>ExtendedCollector</ms_class>
+		<fields>
+			<primary_key>id</primary_key>
+		</fields>
+		<defaults>
+			<org_id>Demo</org_id>
+			<status>implementation</status>
+		</defaults>
+	</extendedcollector>
+
+	<!-- Class collection sequence -->
+	<extensions_collectors_launch_sequence type="array">
+		<collector>
+			<!-- ExtendedCollector -->
+			<name>ExtendedCollector</name>
+			<enable>yes</enable>
+			<rank>20</rank>
+		</collector>
+	</extensions_collectors_launch_sequence>
+
+</parameters>

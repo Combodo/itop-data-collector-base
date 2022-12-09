@@ -65,6 +65,7 @@ abstract class CSVCollector extends Collector
 		$this->aSynchroFieldsToDefaultValues = array();
 		$this->bHasHeader = true;
 
+		$sCsvFilePath = '';
 		if (is_array($this->aCollectorConfig)) {
 			if (array_key_exists('csv_file', $this->aCollectorConfig)) {
 				$sCsvFilePath = $this->aCollectorConfig['csv_file'];

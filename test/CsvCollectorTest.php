@@ -22,7 +22,7 @@ class CsvCollectorTest extends TestCase
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		parent::setUp();
 
@@ -35,7 +35,7 @@ class CsvCollectorTest extends TestCase
 		Utils::MockLog($this->oMockedLogger);
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -68,6 +68,7 @@ class CsvCollectorTest extends TestCase
 
 		Utils::LoadConfig();
 		$oOrgCollector = new iTopPersonCsvCollector();
+		$oOrgCollector->Init();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -137,6 +138,7 @@ class CsvCollectorTest extends TestCase
 
 		Utils::LoadConfig();
 		$oOrgCollector = new iTopPersonCsvCollector();
+		$oOrgCollector->Init();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -161,6 +163,7 @@ class CsvCollectorTest extends TestCase
 		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
 		Utils::LoadConfig();
 		$orgCollector = new iTopPersonCsvCollector();
+		$orgCollector->Init();
 
 		if ($sExceptionMsg) {
 			$this->oMockedLogger->expects($this->exactly(2))
