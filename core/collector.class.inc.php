@@ -1004,14 +1004,15 @@ abstract class Collector
 		}
 	}
 
-	/**
-	 * Check if the collector can be launched
-	 *
-	 * @return bool
-	 */
-	public function CheckToLaunch(): bool
-	{
-		return true;
-	}
+    /*
+     * Check if the collector can be launched
+     *
+     * @param $aOrchestratedCollectors = list of collectors already orchestrated
+     *
+     * @return bool
+     */
+    public function CheckToLaunch($aOrchestratedCollectors): bool {
+        return true;
+    }
 
 }
