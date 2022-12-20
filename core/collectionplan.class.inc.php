@@ -116,6 +116,7 @@ abstract class CollectionPlan
 		}
 
 		$iIndex = 1;
+		$aOrchestratedCollectors = [];
 		foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
 			$sCollectorName = $aCollector['name'];
 
@@ -134,9 +135,12 @@ abstract class CollectionPlan
 			// Instantiate collector
 			$oCollector = new $sCollectorName;
 			$oCollector->Init();
-			if ($oCollector->CheckToLaunch()) {
+			if ($oCollector->CheckToLaunch($aOrchestratedCollectors)) {
 				Utils::Log(LOG_INFO, $sCollectorName.' will be launched !');
 				Orchestrator::AddCollector($iIndex++, $sCollectorName);
+				$aOrchestratedCollectors[$sCollectorName] = true;
+			} else {
+				$aOrchestratedCollectors[$sCollectorName] = false;
 			}
 			unset($oCollector);
 		}
