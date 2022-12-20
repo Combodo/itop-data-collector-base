@@ -60,15 +60,18 @@ abstract class CollectionPlan
 		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
 		if (!empty($aCollectorsLaunchSequence)) {
 			// Sort sequence
-			foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
+			$aSortedCollectorsLaunchSequence = [];
+			foreach ($aCollectorsLaunchSequence as $aCollector) {
 				if (array_key_exists('rank', $aCollector)) {
 					$aRank[] = $aCollector['rank'];
+					$aSortedCollectorsLaunchSequence[] = $aCollector;
 				} else {
-					unset($aCollectorsLaunchSequence[$iKey]);
 					Utils::Log(LOG_INFO, "> Rank is missing from the launch_sequence of ".$aCollector['name']." It will not be launched.");
 				}
 			}
-			array_multisort($aRank, SORT_ASC, $aCollectorsLaunchSequence);
+			array_multisort($aRank, SORT_ASC, $aSortedCollectorsLaunchSequence);
+
+			return $aSortedCollectorsLaunchSequence;
 		}
 
 		return $aCollectorsLaunchSequence;
