@@ -22,7 +22,7 @@ class CollectionPlanTest extends TestCase
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp():void
+	public function setUp(): void
 	{
 		parent::setUp();
 
