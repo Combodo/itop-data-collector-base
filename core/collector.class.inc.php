@@ -1011,7 +1011,7 @@ abstract class Collector
      *
      * @return bool
      */
-    public function CheckToLaunch($aOrchestratedCollectors): bool {
+    public function CheckToLaunch(array $aOrchestratedCollectors): bool {
         return true;
     }
 
