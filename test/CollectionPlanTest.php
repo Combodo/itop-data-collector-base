@@ -29,7 +29,7 @@ class CollectionPlanTest extends TestCase
 		$this->CleanCollectorsFiles();
 	}
 
-	public function tearDown():void
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$this->CleanCollectorsFiles();
