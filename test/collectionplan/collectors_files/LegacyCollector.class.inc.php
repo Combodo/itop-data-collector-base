@@ -2,7 +2,10 @@
 
 class LegacyCollector extends Collector
 {
-	public function CheckToLaunch(): bool
+	/**
+	 * @inheritDoc
+	 */
+	public function CheckToLaunch(array $aOrchestratedCollectors): bool
 	{
 		return false;
 	}
