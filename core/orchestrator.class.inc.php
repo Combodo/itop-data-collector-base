@@ -41,6 +41,26 @@ class Orchestrator
 	}
 
 	/**
+	 * @param string $sCollectionPlanClass The class name of the CollectionPlan. Must be a subclass of {@link CollectionPlan}
+	 *
+	 * @return void
+	 * @throws \ReflectionException
+	 */
+	static function UseCollectionPlan($sCollectionPlanClass)
+	{
+		$oReflection = new ReflectionClass($sCollectionPlanClass);
+		if (!$oReflection->IsSubclassOf(CollectionPlan::class)) {
+			throw new Exception('Cannot register a CollectionPlan class ('.$sCollectionPlanClass.') which is not derived from CollectionPlan.');
+		}
+		if ($oReflection->IsAbstract()) {
+			throw new Exception('Cannot register an CollectionPlan class ('.$sCollectionPlanClass.') as a CollectionPlan.');
+		}
+		$oCollectionPlan = new $sCollectionPlanClass();
+		$oCollectionPlan->Init();
+		$oCollectionPlan->AddCollectorsToOrchestrator();
+	}
+
+	/**
 	 * Specify a requirement for a minimum version: either for PHP or for a specific extension
 	 *
 	 * @param string $sMinRequiredVersion The minimum version number required
