@@ -170,8 +170,13 @@ class CsvCollectorTest extends TestCase
 				->method("Log")
 				->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
 		} else {
-			$this->oMockedLogger->expects($this->exactly(0))
-				->method("Log");
+			if ($sErrorMsg) {
+				$this->oMockedLogger->expects($this->exactly(1))
+					->method("Log");
+			} else {
+				$this->oMockedLogger->expects($this->exactly(0))
+					->method("Log");
+			}
 		}
 		try {
 			$bResult = $orgCollector->Collect();
@@ -199,6 +204,16 @@ class CsvCollectorTest extends TestCase
 				"no_email.csv",
 				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing in the csv file.",
 				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
+			),
+			"empty csv" => array(
+				"empty_file.csv",
+				"[iTopPersonCsvCollector] CSV file is empty. Data collection stops here.",
+				"",
+			),
+			"empty csv with header" => array(
+				"empty_file_with_header.csv",
+				"[iTopPersonCsvCollector] CSV file is empty. Data collection stops here.",
+				"",
 			),
 			"OK" => array("../nominal/iTopPersonCsvCollector.csv", ""),
 		);
