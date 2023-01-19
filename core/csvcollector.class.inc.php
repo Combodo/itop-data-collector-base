@@ -214,7 +214,7 @@ abstract class CSVCollector extends Collector
 			return false;
 		}
 		if ($this->iIdx >= $iCount) {
-			
+
 			return false;
 		}
 
