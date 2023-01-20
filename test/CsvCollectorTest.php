@@ -22,7 +22,7 @@ class CsvCollectorTest extends TestCase
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
 
-	public function setUp()
+	public function setUp(): void
 	{
 		parent::setUp();
 
@@ -35,7 +35,7 @@ class CsvCollectorTest extends TestCase
 		Utils::MockLog($this->oMockedLogger);
 	}
 
-	public function tearDown()
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -68,6 +68,7 @@ class CsvCollectorTest extends TestCase
 
 		$oOrgCollector = new iTopPersonCsvCollector();
 		Utils::LoadConfig();
+		$oOrgCollector->Init();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -96,18 +97,18 @@ class CsvCollectorTest extends TestCase
 	public function OrgCollectorProvider()
 	{
 		return array(
-			"nominal"                    => array("nominal"),
-			"charset_ISO"                => array("charset_ISO"),
-			"separator"                  => array("separator"),
-			"separator_tab"              => array("separator_tab"),
-			"clicommand"                 => array("clicommand"),
-			"adding hardcoded values"    => array("hardcoded_values_add"),
+			"nominal" => array("nominal"),
+			"charset_ISO" => array("charset_ISO"),
+			"separator" => array("separator"),
+			"separator_tab" => array("separator_tab"),
+			"clicommand" => array("clicommand"),
+			"adding hardcoded values" => array("hardcoded_values_add"),
 			"replacing hardcoded values" => array("hardcoded_values_replace"),
-			"ignored attributes"         => array("ignored_attributes"),
-			"configured header"          => array("configured_header"),
-			"mapping"                    => array("mapping"),
-			"separator_incolumns"        => array("separator_incolumns"),
-			"return_in_fieldvalues"      => array("return_in_fieldvalues"),
+			"ignored attributes" => array("ignored_attributes"),
+			"configured header" => array("configured_header"),
+			"mapping" => array("mapping"),
+			"separator_incolumns" => array("separator_incolumns"),
+			"return_in_fieldvalues" => array("return_in_fieldvalues"),
 		);
 	}
 
@@ -137,6 +138,7 @@ class CsvCollectorTest extends TestCase
 
 		$oOrgCollector = new iTopPersonCsvCollector();
 		Utils::LoadConfig();
+		$oOrgCollector->Init();
 
 		$this->assertTrue($oOrgCollector->Collect());
 
@@ -161,6 +163,7 @@ class CsvCollectorTest extends TestCase
 		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
 		$orgCollector = new iTopPersonCsvCollector();
 		Utils::LoadConfig();
+		$orgCollector->Init();
 
 		if ($sExceptionMsg) {
 			$this->oMockedLogger->expects($this->exactly(2))
@@ -174,8 +177,7 @@ class CsvCollectorTest extends TestCase
 			$bResult = $orgCollector->Collect();
 
 			$this->assertEquals($sExceptionMsg ? false : true, $bResult);
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$this->assertEquals($sExceptionMsg, $e->getMessage());
 		}
 	}
@@ -188,17 +190,17 @@ class CsvCollectorTest extends TestCase
 				"[iTopPersonCsvCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa",
 				'iTopPersonCsvCollector::Collect() got an exception: Invalid CSV file.',
 			),
-			"no primary key"       => array(
+			"no primary key" => array(
 				"no_primarykey.csv",
-				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing from the csv.",
-				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.',
+				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing in the csv file.",
+				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.',
 			),
-			"no email"             => array(
+			"no email" => array(
 				"no_email.csv",
-				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing from the csv.",
-				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the CSV file.",
+				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing in the csv file.",
+				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
 			),
-			"OK"                   => array("../nominal/iTopPersonCsvCollector.csv", ""),
+			"OK" => array("../nominal/iTopPersonCsvCollector.csv", ""),
 		);
 	}
 

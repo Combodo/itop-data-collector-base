@@ -53,22 +53,37 @@ abstract class Collector
 	protected $aSkippedAttributes;
 	protected $aNullifiedAttributes;
 
-	public function __construct()
-	{
-		$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
+	/**
+	 * Construction
+	 */
+	public function __construct() {
 		$this->sVersion = null;
 		$this->iSourceId = null;
-		$this->aFields = array();
-		$this->aCSVHeaders = array();
+		$this->aFields = [];
+		$this->aCSVHeaders = [];
 		$this->aCSVFile = array();
 		$this->iFileIndex = null;
+		$this->aCollectorConfig = [];
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
-		$this->aSkippedAttributes = array();
+		$this->aSkippedAttributes = [];
+	}
 
+	/**
+	 * Initialization
+	 *
+	 * @return void
+	 * @throws \Exception
+	 */
+	public function Init(): void
+	{
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
-			Utils::Log(LOG_ERR, "Empty Synchro Data Source definition for the collector '".$this->GetName()."'");
+			Utils::Log(LOG_ERR,
+				sprintf("Empty Synchro Data Source definition for the collector '%s' (file to check/create: %s)",
+					$this->GetName(),
+					$this->sSynchroDataSourceDefinitionFile)
+			);
 			throw new Exception('Cannot create Collector (empty JSON definition)');
 		}
 		$aSourceDefinition = json_decode($sJSONSourceDefinition, true);
@@ -78,14 +93,33 @@ abstract class Collector
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
-			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
+			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0)];
 		}
 
-		$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
-		if ($this->aNullifiedAttributes === null) {
-			// Try all lowercase
-			$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+		$this->ReadCollectorConfig();
+		if (array_key_exists('nullified_attributes', $this->aCollectorConfig)){
+			$this->aNullifiedAttributes = $this->aCollectorConfig['nullified_attributes'];
+		} else {
+			$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
+
+			if ($this->aNullifiedAttributes === null) {
+				// Try all lowercase
+				$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+			}
 		}
+	}
+
+	public function ReadCollectorConfig() {
+		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this),  []);
+		if (empty($this->aCollectorConfig)) {
+			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), []);
+		}
+		Utils::Log(LOG_DEBUG,
+			sprintf("aCollectorConfig %s:  [%s]",
+				get_class($this),
+				json_encode($this->aCollectorConfig)
+			)
+		);
 	}
 
 	public function GetErrorMessage()
@@ -118,15 +152,34 @@ abstract class Collector
 		}
 	}
 
+	/*
+	 * Look for the synchro data source definition file in the different possible collector directories
+	 *
+	 * @return false|string
+	 */
+	public function GetSynchroDataSourceDefinitionFile()
+	{
+		if (file_exists(APPROOT.'collectors/extensions/json/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/extensions/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/json/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/'.get_class($this).'.json';
+		} else {
+			return false;
+		}
+	}
+
 	public function GetSynchroDataSourceDefinition($aPlaceHolders = array())
 	{
-		if (file_exists($this->sSynchroDataSourceDefinitionFile)) {
-			$aPlaceHolders['$version$'] = $this->GetVersion();
-			$sSynchroDataSourceDefinition = file_get_contents($this->sSynchroDataSourceDefinitionFile);
-			$sSynchroDataSourceDefinition = str_replace(array_keys($aPlaceHolders), array_values($aPlaceHolders), $sSynchroDataSourceDefinition);
-		} else {
-			$sSynchroDataSourceDefinition = false;
+		$this->sSynchroDataSourceDefinitionFile = $this->GetSynchroDataSourceDefinitionFile();
+		if ($this->sSynchroDataSourceDefinitionFile === false) {
+			return false;
 		}
+
+		$aPlaceHolders['$version$'] = $this->GetVersion();
+		$sSynchroDataSourceDefinition = file_get_contents($this->sSynchroDataSourceDefinitionFile);
+		$sSynchroDataSourceDefinition = str_replace(array_keys($aPlaceHolders), array_values($aPlaceHolders), $sSynchroDataSourceDefinition);
 
 		return $sSynchroDataSourceDefinition;
 	}
@@ -169,10 +222,12 @@ abstract class Collector
 	 *
 	 * @return boolean True if the attribute can be skipped, false otherwise
 	 */
-	public function AttributeIsNullified($sAttCode) {
+	public function AttributeIsNullified($sAttCode)
+	{
 		if (is_array($this->aNullifiedAttributes)) {
 			return in_array($sAttCode, $this->aNullifiedAttributes);
 		}
+
 		return false;
 	}
 
@@ -264,8 +319,7 @@ abstract class Collector
 							$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
 							// Write the CSV data
 							fputcsv($hOutputCSV, $aData, $this->sSeparator);
-						}
-						catch (IgnoredRowException $e) {
+						} catch (IgnoredRowException $e) {
 							// Skip this line
 							Utils::Log(LOG_DEBUG, "Ignoring the line $iLineIndex. Reason: ".$e->getMessage());
 						}
@@ -321,8 +375,7 @@ abstract class Collector
 			if ($bRet === false) {
 				Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			// Continue...
 			Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: ".$e->getMessage());
 		}
@@ -461,8 +514,7 @@ abstract class Collector
 						$bResult = false;
 				}
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			Utils::Log(LOG_ERR, $e->getMessage());
 			$bResult = false;
 		}
@@ -499,8 +551,7 @@ abstract class Collector
 			} else {
 				Utils::Log(LOG_ERR, get_class($this)."::Prepare() returned false");
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$bResult = false;
 			Utils::Log(LOG_ERR, get_class($this)."::Collect() got an exception: ".$e->getMessage());
 		}
@@ -513,7 +564,7 @@ abstract class Collector
 		$this->aCSVHeaders = array();
 		foreach ($aHeaders as $sHeader) {
 			if (($sHeader != 'primary_key') && !array_key_exists($sHeader, $this->aFields)) {
-				if (!in_array($sHeader, $this->aSkippedAttributes)) {
+				if (!$this->AttributeIsOptional($sHeader)) {
 					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
 				}
 			} else {
@@ -528,12 +579,9 @@ abstract class Collector
 	{
 		$aData = array();
 		foreach ($this->aCSVHeaders as $sHeader) {
-			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader))
-			{
+			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader)) {
 				$aData[] = NULL_VALUE;
-			}
-			else
-			{
+			} else {
 				$aData[] = $aRow[$sHeader];
 			}
 		}
@@ -603,13 +651,13 @@ abstract class Collector
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk
 			$aData = array(
-				'separator'               => ';',
-				'data_source_id'          => $this->iSourceId,
-				'synchronize'             => '0',
+				'separator' => ';',
+				'data_source_id' => $this->iSourceId,
+				'synchronize' => '0',
 				'no_stop_on_import_error' => 1,
-				'output'                  => 'retcode',
-				'csvdata'                 => file_get_contents($sDataFile),
-				'charset'                 => $this->GetCharset(),
+				'output' => 'retcode',
+				'csvdata' => file_get_contents($sDataFile),
+				'charset' => $this->GetCharset(),
 			);
 
 			$sResult = self::CallItopViaHttp('/synchro/synchro_import.php?login_mode=form',
@@ -645,18 +693,20 @@ abstract class Collector
 			Utils::Log(LOG_ERR, "Failed to login to iTop. Invalid (or insufficent) credentials.");
 			$this->sErrorMessage .= "Failed to login to iTop. Invalid (or insufficent) credentials.\n";
 			$iErrorsCount = 1;
-		} else if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
-			foreach ($aMatches[2] as $idx => $sErrCount) {
-				$iErrorsCount += (int)$sErrCount;
-				if ((int)$sErrCount > 0) {
-					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
-					$this->sErrorMessage .= $aMatches[0][$idx]."\n";
-				}
-			}
 		} else {
-			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
-			$this->sErrorMessage .= $sResult;
-			$iErrorsCount = 1;
+			if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
+				foreach ($aMatches[2] as $idx => $sErrCount) {
+					$iErrorsCount += (int)$sErrCount;
+					if ((int)$sErrCount > 0) {
+						Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
+						$this->sErrorMessage .= $aMatches[0][$idx]."\n";
+					}
+				}
+			} else {
+				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
+				$this->sErrorMessage .= $sResult;
+				$iErrorsCount = 1;
+			}
 		}
 		if ($iErrorsCount == 0) {
 			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
@@ -676,7 +726,7 @@ abstract class Collector
 		$aData = array_merge(
 			array(
 				'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-				'auth_pwd'  => Utils::GetConfigurationValue('itop_password', ''),
+				'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 			),
 			$aAdditionalData
 		);
@@ -692,14 +742,8 @@ abstract class Collector
 		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
 		$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
 
-		return Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
+		return Utils::DoPostRequest($sUrl, $aData, '', $aResponseHeaders, $aCurlOptions);
 	}
-
-	/////////////////////////////////////////////////////////////////////////
-	//
-	// Protected methods
-	//
-	/////////////////////////////////////////////////////////////////////////
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
 	{
@@ -857,11 +901,13 @@ abstract class Collector
 								return false;
 							}
 
-						} else if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
-							// Definitions are different
-							Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
+						} else {
+							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
+								// Definitions are different
+								Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
 
-							return false;
+								return false;
+							}
 						}
 					}
 
@@ -919,12 +965,77 @@ abstract class Collector
 	public function GetErrorStatus($sStep)
 	{
 		return [
-			'status'      => false,
+			'status' => false,
 			'exit_status' => false,
-			'project'     => $this->GetProjectName(),
-			'collector'   => get_class($this),
-			'message'     => '',
-			'step'        => $sStep,
+			'project' => $this->GetProjectName(),
+			'collector' => get_class($this),
+			'message' => '',
+			'step' => $sStep,
 		];
 	}
+
+	/**
+	 * Check if the keys of the supplied hash array match the expected fields listed in the data synchro
+	 *
+	 * @param array<string, string> $aSynchroColumns attribute name as key, attribute's value as value (value not used)
+	 * @paral $aColumnsToIgnore : Elements to ignore
+	 * @param $sSource : Source of the request (Json file, SQL query, csv file...)
+	 *
+	 * @throws \Exception
+	 */
+	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
+	{
+		$sClass = get_class($this);
+		$iError = 0;
+
+		if (!array_key_exists('primary_key', $aSynchroColumns)) {
+			Utils::Log(LOG_ERR, '['.$sClass.'] The mandatory column "primary_key" is missing in the '.$sSource.'.');
+			$iError++;
+		}
+		foreach ($this->aFields as $sCode => $aDefs) {
+			// Skip attributes to ignore
+			if (in_array($sCode, $aColumnsToIgnore)) {
+				continue;
+			}
+			// Skip optional attributes
+			if ($this->AttributeIsOptional($sCode)) {
+				continue;
+			}
+
+			// Check for missing columns
+			if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+				$iError++;
+			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+				if ($this->AttributeIsNullified($sCode)){
+					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
+					continue;
+				}
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+				$iError++;
+			}
+
+			// Check for useless columns
+			if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+			}
+
+		}
+
+		if ($iError > 0) {
+			throw new Exception("Missing columns in the ".$sSource.'.');
+		}
+	}
+
+    /*
+     * Check if the collector can be launched
+     *
+     * @param $aOrchestratedCollectors = list of collectors already orchestrated
+     *
+     * @return bool
+     */
+    public function CheckToLaunch(array $aOrchestratedCollectors): bool {
+        return true;
+    }
+
 }
