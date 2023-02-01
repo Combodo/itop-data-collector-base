@@ -37,6 +37,7 @@ $aOptionalParams = array(
 	'configure_only' => 'boolean',
 	'collect_only' => 'boolean',
 	'synchro_only' => 'boolean',
+	'synchro_details' => 'boolean',
 	'dump_config_only' => 'boolean',
 	'console_log_level' => 'integer',
 	'eventissue_log_level' => 'integer',
@@ -73,6 +74,7 @@ $bResult = true;
 $bConfigureOnly = (Utils::ReadBooleanParameter('configure_only', false) == true);
 $bCollectOnly = (Utils::ReadBooleanParameter('collect_only', false) == true);
 $bSynchroOnly = (Utils::ReadBooleanParameter('synchro_only', false) == true);
+$bSynchroDetails = (Utils::ReadBooleanParameter('synchro_details', false) == true);
 $bDumpConfigOnly = (Utils::ReadBooleanParameter('dump_config_only', false) == true);
 
 try {
@@ -124,7 +126,7 @@ try {
 	}
 
 	if ($bResult && !$bConfigureOnly && !$bCollectOnly) {
-		$bResult = $oOrchestrator->Synchronize($aCollectors);
+		$bResult = $oOrchestrator->Synchronize($aCollectors, $bSynchroDetails);
 	}
 } catch (Exception $e) {
 	$bResult = false;

@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -248,10 +248,11 @@ class Orchestrator
 	 * Run the final pass of the collection: synchronizing the data into iTop
 	 *
 	 * @param string[] $aCollectors list of classes implementing {@link Collector}
+	 * @param boolean $bSynchroDetails choose details output
 	 *
 	 * @return boolean
 	 */
-	public function Synchronize($aCollectors)
+	public function Synchronize($aCollectors, $bSynchroDetails)
 	{
 		$bResult = true;
 		$sStopOnError = Utils::GetConfigurationValue('stop_on_synchro_error', 'no');
@@ -262,7 +263,7 @@ class Orchestrator
 		/** @var \Collector $oCollector */
 		foreach ($aCollectors as $oCollector) {
 			Utils::SetCollector($oCollector, "Synchronize");
-			$bResult = $oCollector->Synchronize();
+			$bResult = $oCollector->Synchronize($bSynchroDetails);
 			if (!$bResult) {
 				if ($bStopOnError) {
 					break;
