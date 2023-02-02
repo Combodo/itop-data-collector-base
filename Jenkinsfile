@@ -1,5 +1,9 @@
 
 pipeline {
+    options {
+            buildDiscarder(logRotator(numToKeepStr: "100"))
+    }
+
   agent any
   stages {
     stage('composer install') {
