@@ -25,6 +25,7 @@ class InvalidParameterException extends Exception
 class Parameters
 {
 	protected $aData = null;
+	protected $sParametersFile;
 
 	public function __construct($sInputFile = null)
 	{

@@ -52,6 +52,7 @@ abstract class Collector
 	protected $sSeparator;
 	protected $aSkippedAttributes;
 	protected $aNullifiedAttributes;
+	protected $sSourceName;
 
 	/**
 	 * Construction
@@ -298,8 +299,10 @@ abstract class Collector
 			if (preg_match($sPattern, $sDataFile, $aMatches)) {
 				$idx = $aMatches[1];
 				$sOutputFile = Utils::GetDataFilePath(get_class($this).'-'.$idx.'.csv');
+
 				Utils::Log(LOG_DEBUG, "Converting '$sDataFile' to '$sOutputFile'...");
-				ini_set('auto_detect_line_endings', true);
+				//only usefull of files from old mac system deprecated in php 8.1
+				//ini_set('auto_detect_line_endings', true);
 
 				$hCSV = fopen($sDataFile, 'r');
 				if ($hCSV === false) {
@@ -529,7 +532,6 @@ abstract class Collector
 			$bResult = $this->Prepare();
 			if ($bResult) {
 				$idx = 0;
-				$aColumns = array();
 				$aHeaders = null;
 				while ($aRow = $this->Fetch()) {
 					if ($aHeaders == null) {
@@ -568,6 +570,7 @@ abstract class Collector
 					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
 				}
 			} else {
+
 				$this->aCSVHeaders[] = $sHeader;
 			}
 		}
@@ -819,6 +822,7 @@ abstract class Collector
 				if ($this->AttributeIsOptional($aAttr['attcode'])) {
 					Utils::Log(LOG_INFO, "Skipping optional attribute {$aAttr['attcode']}.");
 					$this->aSkippedAttributes[] = $aAttr['attcode']; // record that this attribute was skipped
+
 				} else {
 					// Update only the SynchroAttributes which are really different
 					// Ignore read-only fields
