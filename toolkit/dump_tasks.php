@@ -97,12 +97,7 @@ if ($sTaskName == '*') {
 					$aCurrentTaskDefinition['database_table_name'] = "";
 				}
 
-				if (defined('JSON_PRETTY_PRINT')) {
-					echo json_encode($aCurrentTaskDefinition, JSON_PRETTY_PRINT);
-				} else {
-					$sDefinition = json_encode($aCurrentTaskDefinition);
-					echo Utils::JSONPrettyPrint($sDefinition)."\n";
-				}
+				echo json_encode($aCurrentTaskDefinition, JSON_PRETTY_PRINT);
 			}
 		} else {
 			echo "Sorry, no SynchroDataSource named '$sTaskName' found in iTop.\n";
