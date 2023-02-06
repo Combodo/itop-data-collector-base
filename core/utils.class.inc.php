@@ -551,7 +551,7 @@ class Utils
 	 * @return false|string
 	 * @throws \Exception
 	 */
-	function Exec($sCmd)
+	public static function Exec($sCmd)
 	{
 		$iBeginTime = time();
 		$sWorkDir = APPROOT;
