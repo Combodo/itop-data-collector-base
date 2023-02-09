@@ -396,4 +396,30 @@ JSON;
 		$method->setAccessible(true);
 		return $method->invokeArgs($oOrgCollector, [$aData, $aFieldPaths]);
 	}
+
+	public function testFetchWithIgnoredAttributesJson()
+	{
+		$this->copy(APPROOT."/test/single_json/common/*");
+		$this->copy(APPROOT."/test/single_json/ignored_attributes/*");
+		require_once self::$sCollectorPath."/ITopPersonJsonCollector.class.inc.php";
+		$this->replaceTranslateRelativePathInParam("/test/single_json/ignored_attributes/");
+
+		$this->oMockedLogger->expects($this->exactly(0))->method("Log");
+
+		// WARNING: must call LoadConfig before Init.
+		\Utils::LoadConfig();
+
+		$oiTopCollector = new \ITopPersonJsonCollector();
+		$oiTopCollector->Init();
+		//test private method DataSourcesAreEquivalent
+		//this method  filled the array aSkippedAttributes used in Collect method
+		$oiTopCollector->testDataSourcesAreEquivalent([]);
+
+		$this->assertTrue($oiTopCollector->Collect());
+
+		$sExpected_content = file_get_contents(self::$sCollectorPath."expected_generated.csv");
+
+		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/ITopPersonJsonCollector-1.csv"));
+
+	}
 }

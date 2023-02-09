@@ -893,6 +893,7 @@ abstract class Collector
 							if ($this->AttributeIsOptional($sAttCode)) {
 								// Ignore missing optional attributes
 								Utils::Log(LOG_DEBUG, "Comparison: ignoring the missing, but optional, attribute: '$sAttCode'.");
+								$this->aSkippedAttributes[] = $sAttCode;
 								continue;
 							} else {
 								// Missing non-optional attribute
@@ -1028,14 +1029,14 @@ abstract class Collector
 	}
 
     /*
-     * Check if the collector can be launched
-     *
+	 * Check if the collector can be launched
+	 *
      * @param $aOrchestratedCollectors = list of collectors already orchestrated
      *
-     * @return bool
-     */
+	 * @return bool
+	 */
     public function CheckToLaunch(array $aOrchestratedCollectors): bool {
-        return true;
-    }
+		return true;
+	}
 
 }
