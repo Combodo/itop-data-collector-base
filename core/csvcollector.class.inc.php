@@ -207,7 +207,14 @@ abstract class CSVCollector extends Collector
 	 */
 	public function Fetch()
 	{
-		if ($this->iIdx >= count($this->aCsvFieldsPerLine)) {
+		$iCount = count($this->aCsvFieldsPerLine);
+		if (($iCount == 0) || (($iCount == 1) && $this->bHasHeader)) {
+			Utils::Log(LOG_ERR, "[".get_class($this)."] CSV file is empty. Data collection stops here.");
+
+			return false;
+		}
+		if ($this->iIdx >= $iCount) {
+
 			return false;
 		}
 
