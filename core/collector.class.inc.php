@@ -299,10 +299,7 @@ abstract class Collector
 			if (preg_match($sPattern, $sDataFile, $aMatches)) {
 				$idx = $aMatches[1];
 				$sOutputFile = Utils::GetDataFilePath(get_class($this).'-'.$idx.'.csv');
-
 				Utils::Log(LOG_DEBUG, "Converting '$sDataFile' to '$sOutputFile'...");
-				//only usefull of files from old mac system deprecated in php 8.1
-				//ini_set('auto_detect_line_endings', true);
 
 				$hCSV = fopen($sDataFile, 'r');
 				if ($hCSV === false) {
