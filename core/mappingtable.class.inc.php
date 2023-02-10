@@ -27,7 +27,7 @@ class MappingTable
 	/**
 	 * @var string[][]
 	 */
-	protected $aMappingTable;
+	protected $aMappingTable = array();
 
 	/**
 	 * Creates a new MappingTable
