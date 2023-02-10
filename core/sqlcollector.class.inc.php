@@ -33,6 +33,7 @@ abstract class SQLCollector extends Collector
 {
 	protected $oDB;
 	protected $oStatement;
+	protected $idx;
 
 	/**
 	 * Initalization
@@ -144,6 +145,7 @@ abstract class SQLCollector extends Collector
 	public function Fetch()
 	{
 		if ($aData = $this->oStatement->fetch(PDO::FETCH_ASSOC)) {
+
 			foreach ($this->aSkippedAttributes as $sCode) {
 				unset($aData[$sCode]);
 			}

@@ -573,7 +573,7 @@ class Utils
 
 		$iElapsed = time() - $iBeginTime;
 		if (0 === $iCode) {
-			Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $sStdOut");
+			Utils::Log(LOG_INFO, "elapsed:{$iElapsed}s output: $sStdOut");
 
 			return $sStdOut;
 		} else {
