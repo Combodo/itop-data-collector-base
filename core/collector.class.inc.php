@@ -14,6 +14,8 @@
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
+require_once(APPROOT.'core/callitopservice.class.inc.php');
+
 define('NULL_VALUE', '<NULL>');
 
 /**
@@ -53,6 +55,9 @@ abstract class Collector
 	protected $aSkippedAttributes;
 	protected $aNullifiedAttributes;
 
+	/** @var \CallItopService  $oCallItopService */
+	protected static $oCallItopService;
+
 	/**
 	 * Construction
 	 */
@@ -68,6 +73,15 @@ abstract class Collector
 		$this->sSeparator = ';';
 		$this->aSkippedAttributes = [];
 	}
+
+	public static function SetCallItopService($oCurrentCallItopService=null){
+		if (null === $oCurrentCallItopService){
+			$oCurrentCallItopService = new CallItopService();
+		}
+
+		Collector::$oCallItopService = $oCurrentCallItopService;
+	}
+
 
 	/**
 	 * Initialization
@@ -650,12 +664,19 @@ abstract class Collector
 		foreach ($aFiles as $sDataFile) {
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk
+
+			if (LOG_DEBUG <= Utils::$iConsoleLogLevel) {
+				$sOutput = 'details';
+			} else {
+				$sOutput = 'retcode';
+			}
+
 			$aData = array(
 				'separator' => ';',
 				'data_source_id' => $this->iSourceId,
 				'synchronize' => '0',
 				'no_stop_on_import_error' => 1,
-				'output' => 'retcode',
+				'output' => $sOutput,
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
 			);
@@ -717,32 +738,10 @@ abstract class Collector
 
 	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
 	{
-		$iCurrentTimeOut = ($iTimeOut !== -1) ? $iTimeOut : (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
-
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').$sUri;
-
-		$aResponseHeaders = null;
-
-		$aData = array_merge(
-			array(
-				'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-				'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
-			),
-			$aAdditionalData
-		);
-
-		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
-		$aCurlOptions = array();
-		foreach ($aRawCurlOptions as $key => $value) {
-			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
-			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int)$value;
-			$aCurlOptions[$iKey] = $iValue;
+		if (null === Collector::$oCallItopService){
+			self::SetCallItopService();
 		}
-		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
-		$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
-
-		return Utils::DoPostRequest($sUrl, $aData, '', $aResponseHeaders, $aCurlOptions);
+		return Collector::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
 	}
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
