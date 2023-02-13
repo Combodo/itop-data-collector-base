@@ -636,15 +636,7 @@ abstract class Collector
 		}
 	}
 
-
-	/**
-	 * @param bool $bSynchroDetails
-	 * @param $iMaxChunkSize
-	 *
-	 * @return bool
-	 * @throws \Exception
-	 */
-	public function Synchronize(bool $bSynchroDetails, $iMaxChunkSize = 0)
+	public function Synchronize($iMaxChunkSize = 0)
 	{
 		// Let a chance to the collector to alter/reprocess the CSV file
 		// before running the synchro. This is useful for performing advanced lookups
@@ -657,16 +649,13 @@ abstract class Collector
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
 		foreach ($aFiles as $sDataFile) {
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
-
-			$sOutput = $bSynchroDetails ? 'details' : 'retcode';
-
 			// Load by chunk
 			$aData = array(
 				'separator' => ';',
 				'data_source_id' => $this->iSourceId,
 				'synchronize' => '0',
 				'no_stop_on_import_error' => 1,
-				'output' => $sOutput,
+				'output' => 'retcode',
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
 			);
