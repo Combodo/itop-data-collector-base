@@ -78,7 +78,7 @@ abstract class Collector
 	 * @since 1.3.0
 	 */
 	public static function SetCallItopService(CallItopService $oCurrentCallItopService){
-		Collector::$oCallItopService = $oCurrentCallItopService;
+		static::$oCallItopService = $oCurrentCallItopService;
 	}
 
 
@@ -738,7 +738,7 @@ abstract class Collector
 	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
 	{
 		if (null === static::$oCallItopService){
-			self::SetCallItopService(new CallItopService());
+			static::$oCallItopService = new CallItopService();
 		}
 		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
 	}
