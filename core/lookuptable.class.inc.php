@@ -111,12 +111,16 @@ class LookupTable
 	 *
 	 * @return bool true if the mapping succeeded, false otherwise
 	 */
-	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex)
+	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex, $bSkipIfEmpty = false )
 	{
 		$bRet = true;
 		if ($iLineIndex == 0) {
 			$this->InitLineMappings($aLineData, array_merge($aLookupFields, array($sDestField)));
 		} else {
+			$iPos = $this->aFieldsPos[$sDestField];
+			if ($bSkipIfEmpty && $iPos !== null && $aLineData[$iPos] === '' ) {
+				return false;
+			}
 			$aLookupKey = array();
 			foreach ($aLookupFields as $sField) {
 				$iPos = $this->aFieldsPos[$sField];
