@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @since 1.3.0
+ */
 class CallItopService
 {
 	public function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)

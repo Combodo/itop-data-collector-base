@@ -74,11 +74,10 @@ abstract class Collector
 		$this->aSkippedAttributes = [];
 	}
 
-	public static function SetCallItopService($oCurrentCallItopService=null){
-		if (null === $oCurrentCallItopService){
-			$oCurrentCallItopService = new CallItopService();
-		}
-
+	/**
+	 * @since 1.3.0
+	 */
+	public static function SetCallItopService(CallItopService $oCurrentCallItopService){
 		Collector::$oCallItopService = $oCurrentCallItopService;
 	}
 
@@ -738,10 +737,10 @@ abstract class Collector
 
 	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
 	{
-		if (null === Collector::$oCallItopService){
-			self::SetCallItopService();
+		if (null === static::$oCallItopService){
+			self::SetCallItopService(new CallItopService());
 		}
-		return Collector::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
+		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
 	}
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
