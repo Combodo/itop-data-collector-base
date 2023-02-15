@@ -56,45 +56,65 @@ class LookupTable
 		}
 		$aRes = $oRestClient->Get($sClass, $sOQL, implode(',', $aRestFields));
 		if ($aRes['code'] == 0) {
-			foreach ($aRes['objects'] as $sObjKey => $aObj) {
-				$iObjKey = 0;
-				$aMappingKeys = array();
-				foreach ($aKeyFields as $sField) {
-					if (!array_key_exists($sField, $aObj['fields'])) {
-						Utils::Log(LOG_ERR, "field '$sField' does not exist in '".json_encode($aObj['fields'])."'");
-						$aMappingKeys[] = '';
-					} else {
-						$aMappingKeys[] = $aObj['fields'][$sField];
-					}
-				}
-				$sMappingKey = implode( '_', $aMappingKeys);
-				if (!$this->bCaseSensitive) {
-					if (function_exists('mb_strtolower')) {
-						$sMappingKey = mb_strtolower($sMappingKey);
-					} else {
-						$sMappingKey = strtolower($sMappingKey);
-					}
-				}
-				if ($this->sReturnAttCode !== 'id') {
-					// If the return attcode is not the ID of the object, check that it exists
-					if (!array_key_exists($this->sReturnAttCode, $aObj['fields'])) {
-						Utils::Log(LOG_ERR, "field '{$this->sReturnAttCode}' does not exist in '".json_encode($aObj['fields'])."'");
-						$iObjKey = 0;
-					} else {
-						$iObjKey = $aObj['fields'][$this->sReturnAttCode];
-					}
-				} else {
-					// The return value is the ID of the object
-					if (!array_key_exists('key', $aObj)) {
-						// Emulate the behavior for older versions of the REST API
-						if (preg_match('/::([0-9]+)$/', $sObjKey, $aMatches)) {
-							$iObjKey = (int)$aMatches[1];
+			if ($aRes['objects'] != null) {
+				foreach ($aRes['objects'] as $sObjKey => $aObj) {
+					$iObjKey = 0;
+					$aMappingKeys = array();
+					foreach ($aKeyFields as $sField)
+					{
+						if (!array_key_exists($sField, $aObj['fields']))
+						{
+							Utils::Log(LOG_ERR, "field '$sField' does not exist in '".json_encode($aObj['fields'])."'");
+							$aMappingKeys[] = '';
 						}
-					} else {
-						$iObjKey = (int)$aObj['key'];
+						else
+						{
+							$aMappingKeys[] = $aObj['fields'][$sField];
+						}
 					}
+					$sMappingKey = implode('_', $aMappingKeys);
+					if (!$this->bCaseSensitive)
+					{
+						if (function_exists('mb_strtolower'))
+						{
+							$sMappingKey = mb_strtolower($sMappingKey);
+						}
+						else
+						{
+							$sMappingKey = strtolower($sMappingKey);
+						}
+					}
+					if ($this->sReturnAttCode !== 'id')
+					{
+						// If the return attcode is not the ID of the object, check that it exists
+						if (!array_key_exists($this->sReturnAttCode, $aObj['fields']))
+						{
+							Utils::Log(LOG_ERR, "field '{$this->sReturnAttCode}' does not exist in '".json_encode($aObj['fields'])."'");
+							$iObjKey = 0;
+						}
+						else
+						{
+							$iObjKey = $aObj['fields'][$this->sReturnAttCode];
+						}
+					}
+					else
+					{
+						// The return value is the ID of the object
+						if (!array_key_exists('key', $aObj))
+						{
+							// Emulate the behavior for older versions of the REST API
+							if (preg_match('/::([0-9]+)$/', $sObjKey, $aMatches))
+							{
+								$iObjKey = (int)$aMatches[1];
+							}
+						}
+						else
+						{
+							$iObjKey = (int)$aObj['key'];
+						}
+					}
+					$this->aData[$sMappingKey] = $iObjKey; // Store the mapping
 				}
-				$this->aData[$sMappingKey] = $iObjKey; // Store the mapping
 			}
 		} else {
 			Utils::Log(LOG_ERR, "Unable to retrieve the $sClass objects (query = $sOQL). Message: ".$aRes['message']);
