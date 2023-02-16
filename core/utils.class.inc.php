@@ -581,12 +581,18 @@ class Utils
 		}
 	}
 
+	/**
+	 * @since 1.3.0
+	 */
 	public static function GetCurlOptions(int $iCurrentTimeOut=-1) : array
 	{
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
 		return self::ComputeCurlOptions($aRawCurlOptions, $iCurrentTimeOut);
 	}
 
+	/**
+	 * @since 1.3.0
+	 */
 	public static function ComputeCurlOptions(array $aRawCurlOptions, int $iCurrentTimeOut) : array
 	{
 		$aCurlOptions = array();
