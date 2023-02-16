@@ -12,23 +12,35 @@ class UtilsTest extends TestCase
 {
 	public function ComputeCurlOptionsProvider(){
 		return [
-			'with timeout' => [
+			'nominal usecase: constant key/ constant int value' => [
+				'aRawCurlOptions' =>  [
+					CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3,
+				],
 				'aExpectedReturnedOptions' => [
 					32 => 3,
 					78 => 600,
 					13 => 600,
-					10022 => 'itop',
-					96 => true,
-				],
-				'iTimeout' => 600
+				]
 			],
-			'without timeout' => [
-				'aExpectedReturnedOptions' => [
-					32 => 3,
-					10022 => 'itop',
-					96 => true,
+			'string key/ string value' => [
+				'aRawCurlOptions' =>  [
+					'CURLOPT_COOKIE' => 'itop',
 				],
-				'iTimeout' => -1
+				'aExpectedReturnedOptions' => [
+					78 => 600,
+					13 => 600,
+					10022 => 'itop',
+				]
+			],
+			'constant key/ constant boolean value' => [
+				'aRawCurlOptions' =>  [
+					CURLOPT_COOKIESESSION => true,
+				],
+				'aExpectedReturnedOptions' => [
+					78 => 600,
+					13 => 600,
+					96 => true,
+				]
 			],
 		];
 	}
@@ -36,12 +48,34 @@ class UtilsTest extends TestCase
 	/**
 	 * @dataProvider ComputeCurlOptionsProvider
 	 */
-	public function testComputeCurlOptions($aExpectedReturnedOptions, $iTimeout){
-		$aRawCurlOptions = [
-			CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3,
-			'CURLOPT_COOKIE' => 'itop',
-			CURLOPT_COOKIESESSION => true
+	public function testComputeCurlOptions($aRawCurlOptions, $aExpectedReturnedOptions){
+		$aCurlOptions = \Utils::ComputeCurlOptions($aRawCurlOptions, 600);
+
+		$this->assertEquals($aExpectedReturnedOptions, $aCurlOptions);
+	}
+
+
+	public function ComputeCurlOptionsTimeoutProvider(){
+		return [
+			'with timeout' => [
+				'aExpectedReturnedOptions' => [
+					78 => 600,
+					13 => 600,
+				],
+				'iTimeout' => 600
+			],
+			'without timeout' => [
+				'aExpectedReturnedOptions' => [],
+				'iTimeout' => -1
+			],
 		];
+	}
+
+	/**
+	 * @dataProvider ComputeCurlOptionsTimeoutProvider
+	 */
+	public function testComputeCurlOptionsTimeoutProvider($aExpectedReturnedOptions, $iTimeout){
+		$aRawCurlOptions = [];
 
 		$aCurlOptions = \Utils::ComputeCurlOptions($aRawCurlOptions, $iTimeout);
 
