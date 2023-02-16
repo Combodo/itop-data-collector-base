@@ -580,6 +580,35 @@ class Utils
 			throw new Exception("Command failed : $sCmd \n\t\t=== with status:$iCode \n\t\t=== stderr:$sStdErr \n\t\t=== stdout: $sStdOut");
 		}
 	}
+
+	/**
+	 * @since 1.3.0
+	 */
+	public static function GetCurlOptions(int $iCurrentTimeOut=-1) : array
+	{
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+		return self::ComputeCurlOptions($aRawCurlOptions, $iCurrentTimeOut);
+	}
+
+	/**
+	 * @since 1.3.0
+	 */
+	public static function ComputeCurlOptions(array $aRawCurlOptions, int $iCurrentTimeOut) : array
+	{
+		$aCurlOptions = array();
+		foreach ($aRawCurlOptions as $key => $value) {
+			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
+			$aCurlOptions[$iKey] = (!is_numeric($value) && defined($value)) ? constant($value) : $value;
+		}
+
+		if ($iCurrentTimeOut !== -1) {
+			$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
+			$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
+		}
+
+		return $aCurlOptions;
+	}
 }
 
 class UtilsLogger
