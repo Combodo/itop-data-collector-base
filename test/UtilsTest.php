@@ -39,7 +39,7 @@ class UtilsTest extends TestCase
 	public function testComputeCurlOptions($aExpectedReturnedOptions, $iTimeout){
 		$aRawCurlOptions = [
 			CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3,
-			CURLOPT_COOKIE => 'itop',
+			'CURLOPT_COOKIE' => 'itop',
 			CURLOPT_COOKIESESSION => true
 		];
 
