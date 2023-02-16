@@ -22,7 +22,17 @@ class UtilsTest extends TestCase
 					13 => 600,
 				]
 			],
-			'string key/ string value' => [
+			'nominal usecase: constant key/ constant provided as a string' => [
+				'aRawCurlOptions' =>  [
+					CURLOPT_SSLVERSION => 'CURL_SSLVERSION_SSLv3',
+				],
+				'aExpectedReturnedOptions' => [
+					32 => 3,
+					78 => 600,
+					13 => 600,
+				]
+			],
+			'constant provided as a string key/ string value' => [
 				'aRawCurlOptions' =>  [
 					'CURLOPT_COOKIE' => 'itop',
 				],
