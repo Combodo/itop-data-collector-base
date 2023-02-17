@@ -29,6 +29,7 @@ class Utils
 	static public $oCollector = "";
 	static protected $oConfig = null;
 	static protected $aConfigFiles = array();
+	static protected $iMockLogLevel = LOG_ERR;
 
 	static protected $oMockedLogger;
 
@@ -136,7 +137,7 @@ class Utils
 	{
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
-			if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR) {
+			if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= self::$iMockLogLevel) {
 				var_dump($sMessage);
 				self::$oMockedLogger->Log($iPriority, $sMessage);
 			}
@@ -213,9 +214,10 @@ class Utils
 		$oClient->Create("EventIssue", $aFields, 'create event issue from collector $sCollectorName execution.');
 	}
 
-	static public function MockLog($oMockedLogger)
+	static public function MockLog($oMockedLogger,  $iMockLogLevel)
 	{
 		self::$oMockedLogger = $oMockedLogger;
+		self::$iMockLogLevel = $iMockLogLevel;
 	}
 
 	/**
