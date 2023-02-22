@@ -21,6 +21,17 @@ class CallItopServiceTest extends TestCase
 		parent::setUp();
 	}
 
+	public function tearDown(): void
+	{
+		parent::tearDown();
+		Utils::MockDoPostRequestService(null);
+
+		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
+		$reflection->setAccessible(true);
+		$reflection->setValue(null, null);
+	}
+
+
 	public function GetCredentialsProvider(){
 		return [
 			'login/password (nominal)' => [

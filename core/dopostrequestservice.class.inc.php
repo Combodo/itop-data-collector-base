@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @since 1.3.0
+ * @since 1.3.0 N°6012
  */
 class DoPostRequestService
 {

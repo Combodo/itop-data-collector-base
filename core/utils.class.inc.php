@@ -32,6 +32,10 @@ class Utils
 	static protected $aConfigFiles = array();
 
 	static protected $oMockedLogger;
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
 	static protected $oMockedDoPostRequestService;
 
 	static public function SetProjectName($sProjectName)
@@ -220,6 +224,11 @@ class Utils
 		self::$oMockedLogger = $oMockedLogger;
 	}
 
+	/**
+	 * @param DoPostRequestService|null $oMockedDoPostRequestService
+	 * @since 1.3.0 N°6012
+	 * @return void
+	 */
 	static public function MockDoPostRequestService($oMockedDoPostRequestService)
 	{
 		self::$oMockedDoPostRequestService = $oMockedDoPostRequestService;
@@ -286,7 +295,7 @@ class Utils
 	}
 
 	/**
-	 * @since 1.3.0
+	 * @since 1.3.0 N°6012
 	 */
 	static public function GetCredentials() : array {
 		$sToken = Utils::GetConfigurationValue('token', '');

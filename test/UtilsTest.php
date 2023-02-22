@@ -17,6 +17,16 @@ class UtilsTest extends TestCase
 		parent::setUp();
 	}
 
+	public function tearDown(): void
+	{
+		parent::tearDown();
+		Utils::MockDoPostRequestService(null);
+
+		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
+		$reflection->setAccessible(true);
+		$reflection->setValue(null, null);
+	}
+
 	public function ComputeCurlOptionsProvider(){
 		return [
 			'nominal usecase: constant key/ constant int value' => [
