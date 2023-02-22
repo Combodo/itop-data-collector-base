@@ -110,9 +110,7 @@ class RestClient
 
 	protected static function ExecOperation($aOperation, $sVersion = '1.0')
 	{
-		$aData = array();
-		$aData['auth_user'] = Utils::GetConfigurationValue('itop_login', '');
-		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
+		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?login_mode=form&version='.$sVersion;
 		$aHeaders = array();

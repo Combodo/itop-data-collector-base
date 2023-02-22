@@ -4,7 +4,9 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  
+  <rest-token/>
+  <token/>
+
   <!-- console_log_level: level of logging to console (std output)
   -1 : none, nothing will be logged to the console
    0 : System wide emergency errors only (LOG_EMERG)
@@ -68,11 +70,11 @@
   <NAME_OF_THE_OPTION1>VALUE_OF_THE_OPTION1</NAME_OF_THE_OPTION1>
   <NAME_OF_THE_OPTION2>VALUE_OF_THE_OPTION2</NAME_OF_THE_OPTION2>
   etc...
-  
+
   Where NAME_OF_THE_OPTIONx and VALUE_OF_THE_OPTIONx are either:
   - The numeric value of the option
   - or the string representation of the corresponding PHP "define" (case sensitive)
-  
+
   The four examples below are equivalent:
    <CURLOPT_SSLVERSION>CURL_SSLVERSION_TLSv1_2</CURLOPT_SSLVERSION>
   or
@@ -81,7 +83,7 @@
    <32>CURL_SSLVERSION_TLSv1_2</32>
   or
    <32>6</32>
-   
+
   Since in PHP we have:
   define ('CURLOPT_SSLVERSION', 32);
   define ('CURL_SSLVERSION_TLSv1_2', 6);

@@ -10,12 +10,8 @@ class CallItopService
 
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').$sUri;
 
-
 		$aData = array_merge(
-			array(
-				'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-				'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
-			),
+			Utils::GetCredentials(),
 			$aAdditionalData
 		);
 
