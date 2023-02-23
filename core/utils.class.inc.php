@@ -298,14 +298,14 @@ class Utils
 	 * @since 1.3.0 N°6012
 	 */
 	static public function GetCredentials() : array {
-		$sToken = Utils::GetConfigurationValue('token', '');
+		$sToken = Utils::GetConfigurationValue('itop_token', '');
 		if (! empty($sToken)){
 			return [
 				'token' => $sToken
 			];
 		}
 
-		$sToken = Utils::GetConfigurationValue('rest-token', '');
+		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
 		if (! empty($sToken)){
 			return [
 				'rest-token' => $sToken
@@ -316,6 +316,28 @@ class Utils
 			'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
 			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
 		];
+	}
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static public function GetLoginForm() : string {
+		$sLoginform = Utils::GetConfigurationValue('itop_login_form', '');
+		if (! empty($sLoginform)){
+			return $sLoginform;
+		}
+
+		$sToken = Utils::GetConfigurationValue('itop_token', '');
+		if (! empty($sToken)){
+			return 'token';
+		}
+
+		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
+		if (! empty($sToken)){
+			return 'rest-token';
+		}
+
+		return 'form';
 	}
 
 	/**

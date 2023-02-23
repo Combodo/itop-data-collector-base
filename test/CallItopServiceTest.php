@@ -2,10 +2,10 @@
 
 namespace UnitTestFiles\Test;
 
-use PHPUnit\Framework\TestCase;
 use CallItopService;
-use Utils;
 use DoPostRequestService;
+use PHPUnit\Framework\TestCase;
+use Utils;
 
 @define('APPROOT', dirname(__FILE__, 2).'/');
 
@@ -45,7 +45,7 @@ class CallItopServiceTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'rest-token' => 'admin3',
+					'itop_rest_token' => 'admin3',
 				],
 				'aExpectedCredentials' => ['rest-token'=> 'admin3']
 			],
@@ -53,7 +53,7 @@ class CallItopServiceTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'token' => 'admin4',
+					'itop_token' => 'admin4',
 				],
 				'aExpectedCredentials' => ['token'=> 'admin4']
 			],
@@ -61,8 +61,8 @@ class CallItopServiceTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'rest-token' => 'admin3',
-					'token' => 'admin4',
+					'itop_rest_token' => 'admin3',
+					'itop_token' => 'admin4',
 				],
 				'aExpectedCredentials' => ['token'=> 'admin4']
 			],

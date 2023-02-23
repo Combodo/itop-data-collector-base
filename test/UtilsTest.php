@@ -122,7 +122,7 @@ class UtilsTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'rest-token' => 'admin3',
+					'itop_rest_token' => 'admin3',
 				],
 				'aExpectedCredentials' => ['rest-token'=> 'admin3']
 			],
@@ -130,7 +130,7 @@ class UtilsTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'token' => 'admin4',
+					'itop_token' => 'admin4',
 				],
 				'aExpectedCredentials' => ['token'=> 'admin4']
 			],
@@ -138,8 +138,8 @@ class UtilsTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'rest-token' => 'admin3',
-					'token' => 'admin4',
+					'itop_rest_token' => 'admin3',
+					'itop_token' => 'admin4',
 				],
 				'aExpectedCredentials' => ['token'=> 'admin4']
 			],
@@ -168,4 +168,76 @@ class UtilsTest extends TestCase
 
 		$this->assertEquals($aExpectedCredentials, Utils::GetCredentials());
 	}
+
+	/**
+	 * @dataProvider GetLoginFormProvider
+	 */
+	public function testGetLoginForm($aParameters, $sExpectedLoginForm){
+		$oParametersMock = $this->createMock(\Parameters::class);
+		$oParametersMock->expects($this->atLeast(1))
+			->method('Get')
+			->will($this->returnCallback(
+				function($sKey, $aDefaultValue) use ($aParameters) {
+					if (array_key_exists($sKey, $aParameters)){
+						return $aParameters[$sKey];
+					}
+					return $aDefaultValue;
+				}
+			));
+
+		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
+		$reflection->setAccessible(true);
+		$reflection->setValue(null, $oParametersMock);
+
+		$this->assertEquals($sExpectedLoginForm, Utils::GetLoginForm());
+	}
+
+	public function GetLoginFormProvider(){
+		return [
+			'login/password (nominal)' => [
+				'aParameters' => [
+					'itop_login' => 'admin1',
+					'itop_password' => 'admin2'
+				],
+				'sExpectedLoginForm' => 'form'
+			],
+			'legacy rest-token' => [
+				'aParameters' => [
+					'itop_login' => 'admin1',
+					'itop_password' => 'admin2',
+					'itop_rest_token' => 'admin3',
+				],
+				'sExpectedLoginForm' => 'rest-token'
+			],
+			'new token' => [
+				'aParameters' => [
+					'itop_login' => 'admin1',
+					'itop_password' => 'admin2',
+					'itop_token' => 'admin4',
+				],
+				'sExpectedLoginForm' => 'token'
+			],
+			'new token over legacy one' => [
+				'aParameters' => [
+					'itop_login' => 'admin1',
+					'itop_password' => 'admin2',
+					'itop_rest_token' => 'admin3',
+					'itop_token' => 'admin4',
+				],
+				'sExpectedLoginForm' => 'token'
+			],
+			'login_form over others' => [
+				'aParameters' => [
+					'itop_login' => 'admin1',
+					'itop_password' => 'admin2',
+					'itop_rest-token' => 'admin3',
+					'itop_token' => 'admin4',
+					'itop_login_form' => 'newloginform',
+				],
+				'sExpectedLoginForm' => 'newloginform'
+			],
+		];
+	}
+
+
 }

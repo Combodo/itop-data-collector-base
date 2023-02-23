@@ -112,7 +112,12 @@ class RestClient
 	{
 		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?login_mode=form&version='.$sVersion;
+		$sLoginform = Utils::GetLoginForm();
+		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
+			Utils::GetConfigurationValue('itop_url', ''),
+			$sLoginform,
+			$sVersion
+		);
 		$aHeaders = array();
 		$aCurlOptions = Utils::GetCurlOptions();
 		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);

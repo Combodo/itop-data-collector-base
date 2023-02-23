@@ -2,10 +2,10 @@
 
 namespace UnitTestFiles\Test;
 
+use DoPostRequestService;
 use PHPUnit\Framework\TestCase;
 use RestClient;
 use Utils;
-use DoPostRequestService;
 
 @define('APPROOT', dirname(__FILE__, 2).'/');
 
@@ -39,35 +39,51 @@ class RestTest extends TestCase
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2'
 				],
-				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2']
+				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2'],
+				'url' => 'URI/webservices/rest.php?login_mode=form&version=1.0'
 			],
 			'legacy rest-token' => [
 				'aParameters' => [
 					'itop_url' => 'URI',
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'rest-token' => 'admin3',
+					'itop_rest_token' => 'admin3',
 				],
-				'aExpectedCredentials' => ['rest-token'=> 'admin3']
+				'aExpectedCredentials' => ['rest-token'=> 'admin3'],
+				'url' => 'URI/webservices/rest.php?login_mode=rest-token&version=1.0'
 			],
 			'new token' => [
 				'aParameters' => [
 					'itop_url' => 'URI',
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'token' => 'admin4',
+					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4']
+				'aExpectedCredentials' => ['token'=> 'admin4'],
+				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
 					'itop_url' => 'URI',
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'rest-token' => 'admin3',
-					'token' => 'admin4',
+					'itop_rest_token' => 'admin3',
+					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4']
+				'aExpectedCredentials' => ['token'=> 'admin4'],
+				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
+			],
+			'configured login_form' => [
+				'aParameters' => [
+					'itop_url' => 'URI',
+					'itop_login' => 'admin1',
+					'itop_password' => 'admin2',
+					'itop_rest_token' => 'admin3',
+					'itop_token' => 'admin4',
+					'itop_login_form' => 'newloginform',
+				],
+				'aExpectedCredentials' => ['token'=> 'admin4'],
+				'url' => 'URI/webservices/rest.php?login_mode=newloginform&version=1.0'
 			],
 		];
 	}
@@ -75,7 +91,7 @@ class RestTest extends TestCase
 	/**
 	 * @dataProvider GetCredentialsProvider
 	 */
-	public function testCallItopViaHttp($aParameters, $aExpectedCredentials){
+	public function testCallItopViaHttp($aParameters, $aExpectedCredentials, $sExpectedUrl){
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
@@ -95,7 +111,6 @@ class RestTest extends TestCase
 		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
 		Utils::MockDoPostRequestService($oMockedDoPostRequestService);
 
-		$uri = 'URI/webservices/rest.php?login_mode=form&version=1.0';
 		$aListParams = array(
 			'operation'     => 'list_operations', // operation code
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
@@ -103,7 +118,7 @@ class RestTest extends TestCase
 		$aAdditionalData = ['json_data' => json_encode($aListParams)];
 		$oMockedDoPostRequestService->expects($this->once())
 			->method('DoPostRequest')
-			->with($uri, array_merge($aExpectedCredentials, $aAdditionalData ))
+			->with($sExpectedUrl, array_merge($aExpectedCredentials, $aAdditionalData ))
 			->willReturn(json_encode(['retcode' => 0]));
 		;
 

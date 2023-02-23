@@ -680,7 +680,8 @@ abstract class Collector
 				'charset' => $this->GetCharset(),
 			);
 
-			$sResult = self::CallItopViaHttp('/synchro/synchro_import.php?login_mode=form',
+			$sLoginform = Utils::GetLoginForm();
+			$sResult = self::CallItopViaHttp("/synchro/synchro_import.php?login_mode=$sLoginform",
 				$aData);
 
 			// Read the status code from the last line
@@ -704,7 +705,8 @@ abstract class Collector
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
 
-		$sResult = self::CallItopViaHttp('/synchro/synchro_exec.php?login_mode=form',
+		$sLoginform = Utils::GetLoginForm();
+		$sResult = self::CallItopViaHttp("/synchro/synchro_exec.php?login_mode=$sLoginform",
 			$aData);
 
 		$iErrorsCount = 0;
