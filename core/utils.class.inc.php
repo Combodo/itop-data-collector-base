@@ -137,7 +137,7 @@ class Utils
 	{
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
-			if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= self::$iMockLogLevel) {
+			if ($iPriority <= self::$iMockLogLevel) {
 				var_dump($sMessage);
 				self::$oMockedLogger->Log($iPriority, $sMessage);
 			}
