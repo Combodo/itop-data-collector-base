@@ -56,7 +56,7 @@ class LookupTable
 		}
 		$aRes = $oRestClient->Get($sClass, $sOQL, implode(',', $aRestFields));
 		if ($aRes['code'] == 0) {
-			foreach ($aRes['objects'] as $sObjKey => $aObj) {
+			foreach ((array)$aRes['objects'] as $sObjKey => $aObj) {
 				$iObjKey = 0;
 				$aMappingKeys = array();
 				foreach ($aKeyFields as $sField) {
