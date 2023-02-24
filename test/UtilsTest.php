@@ -170,9 +170,9 @@ class UtilsTest extends TestCase
 	}
 
 	/**
-	 * @dataProvider GetLoginFormProvider
+	 * @dataProvider GetLoginModeProvider
 	 */
-	public function testGetLoginForm($aParameters, $sExpectedLoginForm){
+	public function testGetLoginForm($aParameters, $sExpectedLoginMode){
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
@@ -189,17 +189,17 @@ class UtilsTest extends TestCase
 		$reflection->setAccessible(true);
 		$reflection->setValue(null, $oParametersMock);
 
-		$this->assertEquals($sExpectedLoginForm, Utils::GetLoginForm());
+		$this->assertEquals($sExpectedLoginMode, Utils::GetLoginMode());
 	}
 
-	public function GetLoginFormProvider(){
+	public function GetLoginModeProvider(){
 		return [
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2'
 				],
-				'sExpectedLoginForm' => 'form'
+				'sExpectedLoginMode' => 'form'
 			],
 			'legacy rest-token' => [
 				'aParameters' => [
@@ -207,7 +207,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 				],
-				'sExpectedLoginForm' => 'rest-token'
+				'sExpectedLoginMode' => 'rest-token'
 			],
 			'new token' => [
 				'aParameters' => [
@@ -215,7 +215,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'sExpectedLoginForm' => 'token'
+				'sExpectedLoginMode' => 'token'
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -224,17 +224,17 @@ class UtilsTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'sExpectedLoginForm' => 'token'
+				'sExpectedLoginMode' => 'token'
 			],
-			'login_form over others' => [
+			'itop_login_mode over others' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
 					'itop_rest-token' => 'admin3',
 					'itop_token' => 'admin4',
-					'itop_login_form' => 'newloginform',
+					'itop_login_mode' => 'newloginform',
 				],
-				'sExpectedLoginForm' => 'newloginform'
+				'sExpectedLoginMode' => 'newloginform'
 			],
 		];
 	}

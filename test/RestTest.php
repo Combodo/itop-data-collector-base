@@ -73,14 +73,14 @@ class RestTest extends TestCase
 				'aExpectedCredentials' => ['token'=> 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
 			],
-			'configured login_form' => [
+			'configured login_mode' => [
 				'aParameters' => [
 					'itop_url' => 'URI',
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
-					'itop_login_form' => 'newloginform',
+					'itop_login_mode' => 'newloginform',
 				],
 				'aExpectedCredentials' => ['token'=> 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=newloginform&version=1.0'

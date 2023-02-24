@@ -321,8 +321,8 @@ class Utils
 	/**
 	 * @since 1.3.0 N°6012
 	 */
-	static public function GetLoginForm() : string {
-		$sLoginform = Utils::GetConfigurationValue('itop_login_form', '');
+	static public function GetLoginMode() : string {
+		$sLoginform = Utils::GetConfigurationValue('itop_login_mode', '');
 		if (! empty($sLoginform)){
 			return $sLoginform;
 		}

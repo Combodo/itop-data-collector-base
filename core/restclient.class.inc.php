@@ -112,7 +112,7 @@ class RestClient
 	{
 		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
-		$sLoginform = Utils::GetLoginForm();
+		$sLoginform = Utils::GetLoginMode();
 		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
 			Utils::GetConfigurationValue('itop_url', ''),
 			$sLoginform,
