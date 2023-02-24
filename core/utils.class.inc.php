@@ -214,7 +214,7 @@ class Utils
 		$oClient->Create("EventIssue", $aFields, 'create event issue from collector $sCollectorName execution.');
 	}
 
-	static public function MockLog($oMockedLogger,  $iMockLogLevel)
+	static public function MockLog($oMockedLogger,  $iMockLogLevel = LOG_ERR)
 	{
 		self::$oMockedLogger = $oMockedLogger;
 		self::$iMockLogLevel = $iMockLogLevel;
