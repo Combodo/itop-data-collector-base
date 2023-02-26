@@ -299,14 +299,14 @@ class Utils
 	 */
 	static public function GetCredentials() : array {
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
-		if (! empty($sToken)){
+		if (strlen($sToken) > 0){
 			return [
 				'token' => $sToken
 			];
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
-		if (! empty($sToken)){
+		if (strlen($sToken) > 0){
 			return [
 				'rest-token' => $sToken
 			];
@@ -323,17 +323,17 @@ class Utils
 	 */
 	static public function GetLoginMode() : string {
 		$sLoginform = Utils::GetConfigurationValue('itop_login_mode', '');
-		if (! empty($sLoginform)){
+		if (strlen($sLoginform) > 0){
 			return $sLoginform;
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
-		if (! empty($sToken)){
+		if (strlen($sToken) > 0){
 			return 'token';
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
-		if (! empty($sToken)){
+		if (strlen($sToken) > 0){
 			return 'rest-token';
 		}
 

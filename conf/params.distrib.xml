@@ -4,8 +4,8 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  <rest-token/>
-  <token/>
+  <itop_rest_token/>
+  <itop_token/>
 
   <!-- console_log_level: level of logging to console (std output)
   -1 : none, nothing will be logged to the console
