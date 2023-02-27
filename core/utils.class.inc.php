@@ -18,6 +18,7 @@ define('LOG_NONE', -1);
 
 define('CONF_DIR', APPROOT.'conf/');
 require_once(APPROOT.'core/ioexception.class.inc.php');
+require_once(APPROOT.'core/dopostrequestservice.class.inc.php');
 
 class Utils
 {
@@ -31,6 +32,11 @@ class Utils
 	static protected $aConfigFiles = array();
 
 	static protected $oMockedLogger;
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static protected $oMockedDoPostRequestService;
 
 	static public function SetProjectName($sProjectName)
 	{
@@ -219,6 +225,16 @@ class Utils
 	}
 
 	/**
+	 * @param DoPostRequestService|null $oMockedDoPostRequestService
+	 * @since 1.3.0 N°6012
+	 * @return void
+	 */
+	static public function MockDoPostRequestService($oMockedDoPostRequestService)
+	{
+		self::$oMockedDoPostRequestService = $oMockedDoPostRequestService;
+	}
+
+	/**
 	 * Load the configuration from the various XML configuration files
 	 *
 	 * @return Parameters
@@ -276,6 +292,40 @@ class Utils
 		$value = self::Substitute($value);
 
 		return $value;
+	}
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static public function GetCredentials() : array {
+		$sToken = Utils::GetConfigurationValue('itop_token', '');
+		if (strlen($sToken) > 0){
+			return [
+				'auth_token' => $sToken
+			];
+		}
+
+		return [
+			'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
+			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
+		];
+	}
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static public function GetLoginMode() : string {
+		$sLoginform = Utils::GetConfigurationValue('itop_login_mode', '');
+		if (strlen($sLoginform) > 0){
+			return $sLoginform;
+		}
+
+		$sToken = Utils::GetConfigurationValue('itop_token', '');
+		if (strlen($sToken) > 0){
+			return 'token';
+		}
+
+		return 'form';
 	}
 
 	/**
@@ -369,8 +419,12 @@ class Utils
 	 * @return string The result of the POST request
 	 * @throws Exception
 	 */
-	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = array())
+	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = [])
 	{
+		if (self::$oMockedDoPostRequestService) {
+			return self::$oMockedDoPostRequestService->DoPostRequest($sUrl, $aData, $sOptionnalHeaders, $aResponseHeaders, $aCurlOptions);
+		}
+
 		// $sOptionnalHeaders is a string containing additional HTTP headers that you would like to send in your request.
 
 		if (function_exists('curl_init')) {
@@ -586,7 +640,7 @@ class Utils
 	 */
 	public static function GetCurlOptions(int $iCurrentTimeOut=-1) : array
 	{
-		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', [CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3]);
 		return self::ComputeCurlOptions($aRawCurlOptions, $iCurrentTimeOut);
 	}
 

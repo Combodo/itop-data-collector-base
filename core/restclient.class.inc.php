@@ -110,11 +110,14 @@ class RestClient
 
 	protected static function ExecOperation($aOperation, $sVersion = '1.0')
 	{
-		$aData = array();
-		$aData['auth_user'] = Utils::GetConfigurationValue('itop_login', '');
-		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
+		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?login_mode=form&version='.$sVersion;
+		$sLoginform = Utils::GetLoginMode();
+		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
+			Utils::GetConfigurationValue('itop_url', ''),
+			$sLoginform,
+			$sVersion
+		);
 		$aHeaders = array();
 		$aCurlOptions = Utils::GetCurlOptions();
 		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
