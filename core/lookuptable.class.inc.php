@@ -24,6 +24,15 @@ class LookupTable
 	protected $bCaseSensitive;
 	protected $bIgnoreMappingErrors;
 	protected $sReturnAttCode;
+	protected static $oRestClient;
+
+	/**
+	 * @param RestClient $oRestClient
+	 */
+	public static function SetRestClient(RestClient $oRestClient)
+	{
+		static::$oRestClient = $oRestClient;
+	}
 
 	/**
 	 * Initialization of a LookupTable, based on an OQL query in iTop
@@ -48,7 +57,11 @@ class LookupTable
 			throw new Exception("Invalid OQL query: '$sOQL'. Expecting a query starting with 'SELECT xxx'");
 		}
 		$sClass = $aMatches[1];
-		$oRestClient = new RestClient();
+		if(static::$oRestClient != null) {
+			$oRestClient = static::$oRestClient;
+		} else {
+			$oRestClient = new RestClient();
+		}
 		$aRestFields = $aKeyFields;
 		if ($this->sReturnAttCode !== 'id') {
 			// If the return attcode is not the ID of the object, add it to the list of the required fields
@@ -111,12 +124,17 @@ class LookupTable
 	 *
 	 * @return bool true if the mapping succeeded, false otherwise
 	 */
-	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex)
+	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex, $bSkipIfEmpty = false )
 	{
 		$bRet = true;
 		if ($iLineIndex == 0) {
 			$this->InitLineMappings($aLineData, array_merge($aLookupFields, array($sDestField)));
 		} else {
+			$iPos = $this->aFieldsPos[$sDestField];
+			//skip search if field is empty
+			if ($bSkipIfEmpty && $iPos !== null && $aLineData[$iPos] === '' ) {
+				return false;
+			}
 			$aLookupKey = array();
 			foreach ($aLookupFields as $sField) {
 				$iPos = $this->aFieldsPos[$sField];
