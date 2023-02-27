@@ -47,7 +47,7 @@ class CallItopServiceTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 				],
-				'aExpectedCredentials' => ['rest-token'=> 'admin3']
+				'aExpectedCredentials' => ['auth_token'=> 'admin3']
 			],
 			'new token' => [
 				'aParameters' => [
@@ -55,7 +55,7 @@ class CallItopServiceTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token'=> 'admin4']
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -64,7 +64,7 @@ class CallItopServiceTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token'=> 'admin4']
 			],
 		];
 	}

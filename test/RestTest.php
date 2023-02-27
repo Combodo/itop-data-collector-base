@@ -42,16 +42,6 @@ class RestTest extends TestCase
 				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2'],
 				'url' => 'URI/webservices/rest.php?login_mode=form&version=1.0'
 			],
-			'legacy rest-token' => [
-				'aParameters' => [
-					'itop_url' => 'URI',
-					'itop_login' => 'admin1',
-					'itop_password' => 'admin2',
-					'itop_rest_token' => 'admin3',
-				],
-				'aExpectedCredentials' => ['rest-token'=> 'admin3'],
-				'url' => 'URI/webservices/rest.php?login_mode=rest-token&version=1.0'
-			],
 			'new token' => [
 				'aParameters' => [
 					'itop_url' => 'URI',
@@ -59,7 +49,7 @@ class RestTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4'],
+				'aExpectedCredentials' => ['auth_token'=> 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
 			],
 			'new token over legacy one' => [
@@ -70,7 +60,7 @@ class RestTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4'],
+				'aExpectedCredentials' => ['auth_token'=> 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
 			],
 			'configured login_mode' => [
@@ -82,7 +72,7 @@ class RestTest extends TestCase
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4'],
+				'aExpectedCredentials' => ['auth_token'=> 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=newloginform&version=1.0'
 			],
 		];

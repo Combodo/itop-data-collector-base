@@ -124,7 +124,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 				],
-				'aExpectedCredentials' => ['rest-token'=> 'admin3']
+				'aExpectedCredentials' => ['auth_token'=> 'admin3']
 			],
 			'new token' => [
 				'aParameters' => [
@@ -132,7 +132,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token'=> 'admin4']
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -141,7 +141,7 @@ class UtilsTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token'=> 'admin4']
 			],
 		];
 	}
@@ -201,15 +201,7 @@ class UtilsTest extends TestCase
 				],
 				'sExpectedLoginMode' => 'form'
 			],
-			'legacy rest-token' => [
-				'aParameters' => [
-					'itop_login' => 'admin1',
-					'itop_password' => 'admin2',
-					'itop_rest_token' => 'admin3',
-				],
-				'sExpectedLoginMode' => 'rest-token'
-			],
-			'new token' => [
+			'authent-token v2' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',

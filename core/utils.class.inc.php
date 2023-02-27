@@ -301,14 +301,14 @@ class Utils
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
 		if (strlen($sToken) > 0){
 			return [
-				'token' => $sToken
+				'auth_token' => $sToken
 			];
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
 		if (strlen($sToken) > 0){
 			return [
-				'rest-token' => $sToken
+				'auth_token' => $sToken
 			];
 		}
 
@@ -330,11 +330,6 @@ class Utils
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
 		if (strlen($sToken) > 0){
 			return 'token';
-		}
-
-		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
-		if (strlen($sToken) > 0){
-			return 'rest-token';
 		}
 
 		return 'form';
