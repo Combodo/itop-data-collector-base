@@ -305,13 +305,6 @@ class Utils
 			];
 		}
 
-		$sToken = Utils::GetConfigurationValue('itop_rest_token', '');
-		if (strlen($sToken) > 0){
-			return [
-				'auth_token' => $sToken
-			];
-		}
-
 		return [
 			'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
 			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),

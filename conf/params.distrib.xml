@@ -4,7 +4,6 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  <itop_rest_token/>
   <itop_token/>
   <itop_login_mode/>
 

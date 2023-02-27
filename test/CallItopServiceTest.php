@@ -41,14 +41,6 @@ class CallItopServiceTest extends TestCase
 				],
 				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2']
 			],
-			'legacy rest-token' => [
-				'aParameters' => [
-					'itop_login' => 'admin1',
-					'itop_password' => 'admin2',
-					'itop_rest_token' => 'admin3',
-				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin3']
-			],
 			'new token' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
