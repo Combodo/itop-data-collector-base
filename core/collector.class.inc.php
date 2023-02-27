@@ -50,6 +50,7 @@ abstract class Collector
 	protected $aCSVHeaders;
 	protected $aCSVFile;
 	protected $iFileIndex;
+	protected $aCollectorConfig;
 	protected $sErrorMessage;
 	protected $sSeparator;
 	protected $aSkippedAttributes;
