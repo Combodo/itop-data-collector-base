@@ -661,11 +661,17 @@ abstract class Collector
 		}
 
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
+
+		//use synchro detailed output for log level 7
+		//explanation: there is a weard behaviour with LOG level under windows (some PHP versions??)
+		// under linux LOG_DEBUG=7 and LOG_INFO=6
+		// under windows LOG_DEBUG=LOG_INFO=6...
+		$bDetailedOutput = ("7" === Utils::$iConsoleLogLevel);
 		foreach ($aFiles as $sDataFile) {
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk
 
-			if (LOG_DEBUG <= Utils::$iConsoleLogLevel) {
+			if ($bDetailedOutput) {
 				$sOutput = 'details';
 			} else {
 				$sOutput = 'retcode';
@@ -685,13 +691,13 @@ abstract class Collector
 			$sResult = self::CallItopViaHttp("/synchro/synchro_import.php?login_mode=$sLoginform",
 				$aData);
 
-			// Read the status code from the last line
-			$aLines = explode("\n", trim(strip_tags($sResult)));
-			$sLastLine = array_pop($aLines);
-			if ($sLastLine != '0') {
+			$sTrimmedOutput = trim(strip_tags($sResult));
+			$sErrorCount = self::ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput);
+
+			if ($sErrorCount != '0') {
 				// hmm something went wrong
-				Utils::Log(LOG_ERR, "Failed to import the data from '$sDataFile' into iTop. $sLastLine line(s) had errors.");
-				Utils::Log(LOG_ERR, trim(strip_tags($sResult)));
+				Utils::Log(LOG_ERR, "Failed to import the data from '$sDataFile' into iTop. $sErrorCount line(s) had errors.");
+				Utils::Log(LOG_ERR, $sTrimmedOutput);
 
 				return false;
 			}
@@ -736,6 +742,23 @@ abstract class Collector
 		}
 
 		return ($iErrorsCount == 0);
+	}
+
+	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string
+	{
+		if ($bDetailedOutput)
+		{
+			if (preg_match('/#Issues \(before synchro\): (\d+)/', $sTrimmedOutput, $aMatches)){
+				if (sizeof($aMatches)>0){
+					return $aMatches[1];
+				}
+			}
+			return -1;
+		}
+
+		// Read the status code from the last line
+		$aLines = explode("\n", $sTrimmedOutput);
+		return array_pop($aLines);
 	}
 
 	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)

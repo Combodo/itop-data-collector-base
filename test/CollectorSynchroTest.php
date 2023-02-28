@@ -2,10 +2,9 @@
 
 namespace UnitTestFiles\Test;
 
-use PHPUnit\Framework\TestCase;
-use PHPUnit\Runner\Exception;
-use Utils;
 use Collector;
+use PHPUnit\Framework\TestCase;
+use Utils;
 
 @define('APPROOT', dirname(__FILE__, 2).'/');
 
@@ -75,6 +74,52 @@ class CollectorSynchroTest extends TestCase
     public function tearDown(): void
 	{
 		parent::tearDown();
+	}
+
+	public function ParseSynchroOutputProvider(){
+		$sRetcodeOutput = <<<OUTPUT
+...
+%s
+OUTPUT;
+		$sDetailedNoError = <<<OUTPUT
+...
+ #Output format: details
+  #Simulate: 0
+  #Change tracking comment: 
+  #Issues (before synchro): %s
+  #Created (before synchro): 0
+  #Updated (before synchro): 1
+OUTPUT;
+
+		return [
+			'retcode no error' => [
+				'sOutput' => sprintf($sRetcodeOutput, 0),
+				'bDetailedOutput' => false,
+				'sExpectecCount' => 0
+			],
+			'retcode few errors' => [
+				'sOutput' => sprintf($sRetcodeOutput, 10),
+				'bDetailedOutput' => false,
+				'sExpectecCount' => 10
+			],
+			'detailed no error' => [
+				'sOutput' => sprintf($sDetailedNoError, 0),
+				'bDetailedOutput' => true,
+				'sExpectecCount' => 0
+			],
+			'detailed few errors' => [
+				'sOutput' => sprintf($sDetailedNoError, 10),
+				'bDetailedOutput' => true,
+				'sExpectecCount' => 10
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider ParseSynchroOutputProvider
+	 */
+	public function testParseSynchroOutput($sOutput, $bDetailedOutput, $sExpectecCount){
+		$this->assertEquals($sExpectecCount, Collector::ParseSynchroOutput($sOutput, $bDetailedOutput), $sOutput);
 	}
 
 }
