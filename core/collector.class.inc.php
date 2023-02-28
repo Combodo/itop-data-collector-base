@@ -666,7 +666,7 @@ abstract class Collector
 		//explanation: there is a weard behaviour with LOG level under windows (some PHP versions??)
 		// under linux LOG_DEBUG=7 and LOG_INFO=6
 		// under windows LOG_DEBUG=LOG_INFO=6...
-		$bDetailedOutput = ("7" === Utils::$iConsoleLogLevel);
+		$bDetailedOutput = ("7" === "" . Utils::$iConsoleLogLevel);
 		foreach ($aFiles as $sDataFile) {
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk

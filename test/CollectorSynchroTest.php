@@ -20,16 +20,38 @@ class CollectorSynchroTest extends TestCase
 	private $oMockedCallItopService;
 
 	public function SynchroOutputProvider(){
+		$sRetcodeOutput = <<<OUTPUT
+...
+%s
+OUTPUT;
+		$sDetailedNoError = <<<OUTPUT
+...
+ #Output format: details
+  #Simulate: 0
+  #Change tracking comment: 
+  #Issues (before synchro): %s
+  #Created (before synchro): 0
+  #Updated (before synchro): 1
+OUTPUT;
+
 		return [
-			'default output' => [ LOG_INFO, 'retcode' ],
-			'debug level' => [ LOG_DEBUG, 'details' ],
+			'default output' => [
+				'iConsoleLogLevel' => LOG_INFO,
+				'sExpectedOutputRequiredToItopSynchro' => 'retcode',
+				'sCallItopViaHttpOutput' => sprintf($sRetcodeOutput, 0)
+			],
+			'debug level' => [
+				'iConsoleLogLevel' => 7,
+				'sExpectedOutputRequiredToItopSynchro' => 'details',
+				'sCallItopViaHttpOutput' => sprintf($sDetailedNoError, 0)
+			],
 		];
 	}
 
 	/**
 	 * @dataProvider SynchroOutputProvider
 	 */
-	public function testSynchroOutput($iConsoleLogLevel, $sExpectedOutputRequiredToItopSynchro){
+	public function testSynchroOutput($iConsoleLogLevel, $sExpectedOutputRequiredToItopSynchro, $sCallItopViaHttpOutput){
 		$oCollector = new \FakeCollector();
 
 		Utils::$iConsoleLogLevel = $iConsoleLogLevel;
@@ -49,7 +71,7 @@ class CollectorSynchroTest extends TestCase
 				['/synchro/synchro_import.php?login_mode=form', $aAdditionalData],
 				['/synchro/synchro_exec.php?login_mode=form', ['data_sources' => 666], -1]
 			)
-			->willReturn("0")
+			->willReturn($sCallItopViaHttpOutput)
 		;
 
 		$oCollector->Synchronize();
