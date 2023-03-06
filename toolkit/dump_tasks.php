@@ -44,16 +44,17 @@ if ($sTaskName == '*') {
 		exit - 1;
 	}
 
+	echo "iTop $sITopUrl, ";
 	if (empty($aResult['objects'])) {
-		echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
+		echo "no SynchroDataSource defined.\n";
 	} else {
-		switch (count($aResult['objects'])){
+		switch (count($aResult['objects'])) {
 			case 1:
-				echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				echo "1 SynchroDataSource defined:\n";
 				break;
 
 			default:
-				echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				echo count($aResult['objects'])." SynchroDataSource defined:\n";
 				break;
 		}
 
@@ -62,7 +63,10 @@ if ($sTaskName == '*') {
 		echo "+--------------------------------+----------------------------------------------------+\n";
 		foreach ($aResult['objects'] as $aValues) {
 			$aCurrentTaskDefinition = $aValues['fields'];
-			echo sprintf("| %-30.30s | %-50.50s |\n", $aCurrentTaskDefinition['name'], $aCurrentTaskDefinition['description']);
+			echo sprintf("| %-30.30s | %-50.50s |\n",
+				$aValues['key'].':'.$aCurrentTaskDefinition['name'],
+				$aCurrentTaskDefinition['description']
+			);
 		}
 		echo "+--------------------------------+----------------------------------------------------+\n";
 	}
