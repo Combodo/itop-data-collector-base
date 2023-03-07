@@ -69,7 +69,7 @@ if ($sTaskName == '*') {
 				$aCurrentTaskDefinition['description']
 			);
 		}
-		echo "+-------+--------------------------------+----------------------------------------------------+\n";
+		echo "+--------+--------------------------------+----------------------------------------------------+\n";
 	}
 	$sMaxVersion = $oRestClient->GetNewestKnownVersion();
 	echo "iTop REST/API version: $sMaxVersion\n";
