@@ -63,7 +63,7 @@ if ($sTaskName == '*') {
 		echo "+--------+--------------------------------+----------------------------------------------------+\n";
 		foreach ($aResult['objects'] as $aValues) {
 			$aCurrentTaskDefinition = $aValues['fields'];
-			echo sprintf("| %-6.6s | %-30.30s | %-50.50s |\n",
+			echo sprintf("| %6d | %-30.30s | %-50.50s |\n",
 				$aValues['key'],
 				$aCurrentTaskDefinition['name'],
 				$aCurrentTaskDefinition['description']
