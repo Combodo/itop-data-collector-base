@@ -54,7 +54,7 @@ if ($sTaskName == '*') {
 				break;
 
 			default:
-				echo '   '.count($aResult['objects'])." SynchroDataSource objects defined\n";
+				echo "   ".count($aResult['objects'])." SynchroDataSource objects defined\n";
 				break;
 		}
 
