@@ -941,9 +941,7 @@ abstract class Collector
 					foreach ($aDS2['attribute_list'] as $sKey => $aDef) {
 						$sAttCode = $aDef['attcode'];
 						if (!$this->FindAttr($sAttCode, $aDS1['attribute_list']) && !$this->AttributeIsOptional($sAttCode)) {
-							Utils::Log(LOG_DEBUG, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ.");
-
-							return false;
+							Utils::Log(LOG_NOTICE, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ. Nothing to do. Update json definition if you want to update this field in iTop.");
 						}
 					}
 					break;
