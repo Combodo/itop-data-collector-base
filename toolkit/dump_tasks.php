@@ -92,11 +92,6 @@ if ($sTaskName == '*') {
 				$aCurrentTaskDefinition['user_id'] = '$synchro_user$';
 				$aCurrentTaskDefinition['notify_contact_id'] = '$contact_to_notify$';
 
-
-				if (isset($aCurrentTaskDefinition['database_table_name'])) {
-					$aCurrentTaskDefinition['database_table_name'] = "";
-				}
-
 				echo json_encode($aCurrentTaskDefinition, JSON_PRETTY_PRINT);
 			}
 		} else {
