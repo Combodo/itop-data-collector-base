@@ -82,7 +82,8 @@ class Parameters
 				}
 			}
 		} else {
-			$oNode = $oRoot->ownerDocument->createElement($sNodeName, $data);
+			$oNode = $oRoot->ownerDocument->createElement($sNodeName);
+			$oNode->appendChild($oRoot->ownerDocument->createTextNode($data));
 			$oRoot->appendChild($oNode);
 		}
 
