@@ -831,17 +831,20 @@ abstract class Collector
 		return $bRet;
 	}
 
-	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment)
+	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment, RestClient $oClient = null)
 	{
 		$bRet = true;
-		$oClient = new RestClient();
+		if ($oClient === null)
+		{
+			$oClient = new RestClient();
+		}
 
 		foreach ($aSynchroAttrDef as $aAttr) {
 			$aExpectedAttr = $this->FindAttr($aAttr['attcode'], $aExpectedAttrDef);
 
 			if ($aAttr != $aExpectedAttr) {
-				if ($this->AttributeIsOptional($aAttr['attcode'])) {
-					Utils::Log(LOG_INFO, "Skipping optional attribute {$aAttr['attcode']}.");
+                if (($aExpectedAttr === false) && $this->AttributeIsOptional($aAttr['attcode'])) {
+					Utils::Log(LOG_INFO, "Skipping optional (and not-present) attribute '{$aAttr['attcode']}'.");
 					$this->aSkippedAttributes[] = $aAttr['attcode']; // record that this attribute was skipped
 
 				} else {
@@ -854,7 +857,7 @@ abstract class Collector
 					$aAttr['update'] = ($aAttr['update'] == 1) ? "1" : "0";
 					$aAttr['reconcile'] = ($aAttr['reconcile'] == 1) ? "1" : "0";
 
-					Utils::Log(LOG_DEBUG, "Updating attribute {$aAttr['attcode']}.");
+					Utils::Log(LOG_DEBUG, "Updating attribute '{$aAttr['attcode']}'.");
 					$aResult = $oClient->Update($sTargetClass, array('sync_source_id' => $this->iSourceId, 'attcode' => $aAttr['attcode']), $aAttr, $sComment);
 					$bRet = ($aResult['code'] == 0);
 					if (!$bRet) {
