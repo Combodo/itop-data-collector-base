@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -13,6 +13,10 @@
 //
 //   You should have received a copy of the GNU Affero General Public License
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
+
+require_once(APPROOT.'core/callitopservice.class.inc.php');
+
+define('NULL_VALUE', '<NULL>');
 
 /**
  * Special kind of exception to tell the collector to ignore the row of data being processed
@@ -46,26 +50,55 @@ abstract class Collector
 	protected $aCSVHeaders;
 	protected $aCSVFile;
 	protected $iFileIndex;
+	protected $aCollectorConfig;
 	protected $sErrorMessage;
 	protected $sSeparator;
 	protected $aSkippedAttributes;
+	protected $aNullifiedAttributes;
+	protected $sSourceName;
 
-	public function __construct()
-	{
-		$this->sSynchroDataSourceDefinitionFile = APPROOT.'collectors/'.get_class($this).'.json';
+	/** @var \CallItopService  $oCallItopService */
+	protected static $oCallItopService;
+
+	/**
+	 * Construction
+	 */
+	public function __construct() {
 		$this->sVersion = null;
 		$this->iSourceId = null;
-		$this->aFields = array();
-		$this->aCSVHeaders = array();
+		$this->aFields = [];
+		$this->aCSVHeaders = [];
 		$this->aCSVFile = array();
 		$this->iFileIndex = null;
+		$this->aCollectorConfig = [];
 		$this->sErrorMessage = '';
 		$this->sSeparator = ';';
-		$this->aSkippedAttributes = array();
+		$this->aSkippedAttributes = [];
+	}
 
+	/**
+	 * @since 1.3.0
+	 */
+	public static function SetCallItopService(CallItopService $oCurrentCallItopService){
+		static::$oCallItopService = $oCurrentCallItopService;
+	}
+
+
+	/**
+	 * Initialization
+	 *
+	 * @return void
+	 * @throws \Exception
+	 */
+	public function Init(): void
+	{
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
-			Utils::Log(LOG_ERR, "Empty Synchro Data Source definition for the collector '".$this->GetName()."'");
+			Utils::Log(LOG_ERR,
+				sprintf("Empty Synchro Data Source definition for the collector '%s' (file to check/create: %s)",
+					$this->GetName(),
+					$this->sSynchroDataSourceDefinitionFile)
+			);
 			throw new Exception('Cannot create Collector (empty JSON definition)');
 		}
 		$aSourceDefinition = json_decode($sJSONSourceDefinition, true);
@@ -75,8 +108,33 @@ abstract class Collector
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
-			$this->aFields[$aAttr['attcode']] = array('class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0));
+			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0)];
 		}
+
+		$this->ReadCollectorConfig();
+		if (array_key_exists('nullified_attributes', $this->aCollectorConfig)){
+			$this->aNullifiedAttributes = $this->aCollectorConfig['nullified_attributes'];
+		} else {
+			$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
+
+			if ($this->aNullifiedAttributes === null) {
+				// Try all lowercase
+				$this->aNullifiedAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_nullified_attributes", []);
+			}
+		}
+	}
+
+	public function ReadCollectorConfig() {
+		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this),  []);
+		if (empty($this->aCollectorConfig)) {
+			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), []);
+		}
+		Utils::Log(LOG_DEBUG,
+			sprintf("aCollectorConfig %s:  [%s]",
+				get_class($this),
+				json_encode($this->aCollectorConfig)
+			)
+		);
 	}
 
 	public function GetErrorMessage()
@@ -109,15 +167,34 @@ abstract class Collector
 		}
 	}
 
+	/*
+	 * Look for the synchro data source definition file in the different possible collector directories
+	 *
+	 * @return false|string
+	 */
+	public function GetSynchroDataSourceDefinitionFile()
+	{
+		if (file_exists(APPROOT.'collectors/extensions/json/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/extensions/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/json/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/json/'.get_class($this).'.json';
+		} elseif (file_exists(APPROOT.'collectors/'.get_class($this).'.json')) {
+			return APPROOT.'collectors/'.get_class($this).'.json';
+		} else {
+			return false;
+		}
+	}
+
 	public function GetSynchroDataSourceDefinition($aPlaceHolders = array())
 	{
-		if (file_exists($this->sSynchroDataSourceDefinitionFile)) {
-			$aPlaceHolders['$version$'] = $this->GetVersion();
-			$sSynchroDataSourceDefinition = file_get_contents($this->sSynchroDataSourceDefinitionFile);
-			$sSynchroDataSourceDefinition = str_replace(array_keys($aPlaceHolders), array_values($aPlaceHolders), $sSynchroDataSourceDefinition);
-		} else {
-			$sSynchroDataSourceDefinition = false;
+		$this->sSynchroDataSourceDefinitionFile = $this->GetSynchroDataSourceDefinitionFile();
+		if ($this->sSynchroDataSourceDefinitionFile === false) {
+			return false;
 		}
+
+		$aPlaceHolders['$version$'] = $this->GetVersion();
+		$sSynchroDataSourceDefinition = file_get_contents($this->sSynchroDataSourceDefinitionFile);
+		$sSynchroDataSourceDefinition = str_replace(array_keys($aPlaceHolders), array_values($aPlaceHolders), $sSynchroDataSourceDefinition);
 
 		return $sSynchroDataSourceDefinition;
 	}
@@ -135,6 +212,38 @@ abstract class Collector
 	public function AttributeIsOptional($sAttCode)
 	{
 		return false; // By default no attribute is optional
+	}
+
+	/**
+	 * Determine if a given attribute null value is allowed to be transformed between collect and data synchro steps.
+	 *
+	 *  If transformed, its null value is replaced by '<NULL>' and sent to iTop data synchro.
+	 *  It means that existing value on iTop side will be kept as is.
+	 *
+	 *  Otherwise if not transformed, empty string value will be sent to datasynchro which means resetting current value on iTop side.
+	 *
+	 * Best practice:
+	 * for fields like decimal, integer or enum, we recommend to configure transformation as resetting will fail on iTop side (Bug N°776).
+	 *
+	 * The implementation is based on a predefined configuration parameter named from the
+	 * class of the collector (all lowercase) with _nullified_attributes appended.
+	 *
+	 * Example: here is the configuration to "nullify" the attribute 'location_id' for the class MyCollector:
+	 * <mycollector_nullified_attributes type="array">
+	 *    <attribute>location_id</attribute>
+	 * </mycollector_nullified_attributes>
+	 *
+	 * @param string $sAttCode
+	 *
+	 * @return boolean True if the attribute can be skipped, false otherwise
+	 */
+	public function AttributeIsNullified($sAttCode)
+	{
+		if (is_array($this->aNullifiedAttributes)) {
+			return in_array($sAttCode, $this->aNullifiedAttributes);
+		}
+
+		return false;
 	}
 
 	public function GetName()
@@ -205,7 +314,6 @@ abstract class Collector
 				$idx = $aMatches[1];
 				$sOutputFile = Utils::GetDataFilePath(get_class($this).'-'.$idx.'.csv');
 				Utils::Log(LOG_DEBUG, "Converting '$sDataFile' to '$sOutputFile'...");
-				ini_set('auto_detect_line_endings', true);
 
 				$hCSV = fopen($sDataFile, 'r');
 				if ($hCSV === false) {
@@ -225,8 +333,7 @@ abstract class Collector
 							$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
 							// Write the CSV data
 							fputcsv($hOutputCSV, $aData, $this->sSeparator);
-						}
-						catch (IgnoredRowException $e) {
+						} catch (IgnoredRowException $e) {
 							// Skip this line
 							Utils::Log(LOG_DEBUG, "Ignoring the line $iLineIndex. Reason: ".$e->getMessage());
 						}
@@ -282,8 +389,7 @@ abstract class Collector
 			if ($bRet === false) {
 				Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			// Continue...
 			Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: ".$e->getMessage());
 		}
@@ -422,8 +528,7 @@ abstract class Collector
 						$bResult = false;
 				}
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			Utils::Log(LOG_ERR, $e->getMessage());
 			$bResult = false;
 		}
@@ -438,7 +543,6 @@ abstract class Collector
 			$bResult = $this->Prepare();
 			if ($bResult) {
 				$idx = 0;
-				$aColumns = array();
 				$aHeaders = null;
 				while ($aRow = $this->Fetch()) {
 					if ($aHeaders == null) {
@@ -460,8 +564,7 @@ abstract class Collector
 			} else {
 				Utils::Log(LOG_ERR, get_class($this)."::Prepare() returned false");
 			}
-		}
-		catch (Exception $e) {
+		} catch (Exception $e) {
 			$bResult = false;
 			Utils::Log(LOG_ERR, get_class($this)."::Collect() got an exception: ".$e->getMessage());
 		}
@@ -474,10 +577,11 @@ abstract class Collector
 		$this->aCSVHeaders = array();
 		foreach ($aHeaders as $sHeader) {
 			if (($sHeader != 'primary_key') && !array_key_exists($sHeader, $this->aFields)) {
-				if (!in_array($sHeader, $this->aSkippedAttributes)) {
+				if (!$this->AttributeIsOptional($sHeader)) {
 					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
 				}
 			} else {
+
 				$this->aCSVHeaders[] = $sHeader;
 			}
 		}
@@ -489,9 +593,13 @@ abstract class Collector
 	{
 		$aData = array();
 		foreach ($this->aCSVHeaders as $sHeader) {
-			$aData[] = $aRow[$sHeader];
+			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader)) {
+				$aData[] = NULL_VALUE;
+			} else {
+				$aData[] = $aRow[$sHeader];
+			}
 		}
-		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");	
+		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");
 		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator);
 	}
 
@@ -553,29 +661,43 @@ abstract class Collector
 		}
 
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));
+
+		//use synchro detailed output for log level 7
+		//explanation: there is a weard behaviour with LOG level under windows (some PHP versions??)
+		// under linux LOG_DEBUG=7 and LOG_INFO=6
+		// under windows LOG_DEBUG=LOG_INFO=6...
+		$bDetailedOutput = ("7" === "" . Utils::$iConsoleLogLevel);
 		foreach ($aFiles as $sDataFile) {
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk
+
+			if ($bDetailedOutput) {
+				$sOutput = 'details';
+			} else {
+				$sOutput = 'retcode';
+			}
+
 			$aData = array(
-				'separator'               => ';',
-				'data_source_id'          => $this->iSourceId,
-				'synchronize'             => '0',
+				'separator' => ';',
+				'data_source_id' => $this->iSourceId,
+				'synchronize' => '0',
 				'no_stop_on_import_error' => 1,
-				'output'                  => 'retcode',
-				'csvdata'                 => file_get_contents($sDataFile),
-				'charset'                 => $this->GetCharset(),
+				'output' => $sOutput,
+				'csvdata' => file_get_contents($sDataFile),
+				'charset' => $this->GetCharset(),
 			);
 
-			$sResult = self::CallItopViaHttp('/synchro/synchro_import.php?login_mode=form',
+			$sLoginform = Utils::GetLoginMode();
+			$sResult = self::CallItopViaHttp("/synchro/synchro_import.php?login_mode=$sLoginform",
 				$aData);
 
-			// Read the status code from the last line
-			$aLines = explode("\n", trim(strip_tags($sResult)));
-			$sLastLine = array_pop($aLines);
-			if ($sLastLine != '0') {
+			$sTrimmedOutput = trim(strip_tags($sResult));
+			$sErrorCount = self::ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput);
+
+			if ($sErrorCount != '0') {
 				// hmm something went wrong
-				Utils::Log(LOG_ERR, "Failed to import the data from '$sDataFile' into iTop. $sLastLine line(s) had errors.");
-				Utils::Log(LOG_ERR, trim(strip_tags($sResult)));
+				Utils::Log(LOG_ERR, "Failed to import the data from '$sDataFile' into iTop. $sErrorCount line(s) had errors.");
+				Utils::Log(LOG_ERR, $sTrimmedOutput);
 
 				return false;
 			}
@@ -590,7 +712,8 @@ abstract class Collector
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
 
-		$sResult = self::CallItopViaHttp('/synchro/synchro_exec.php?login_mode=form',
+		$sLoginform = Utils::GetLoginMode();
+		$sResult = self::CallItopViaHttp("/synchro/synchro_exec.php?login_mode=$sLoginform",
 			$aData);
 
 		$iErrorsCount = 0;
@@ -599,18 +722,20 @@ abstract class Collector
 			Utils::Log(LOG_ERR, "Failed to login to iTop. Invalid (or insufficent) credentials.");
 			$this->sErrorMessage .= "Failed to login to iTop. Invalid (or insufficent) credentials.\n";
 			$iErrorsCount = 1;
-		} else if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
-			foreach ($aMatches[2] as $idx => $sErrCount) {
-				$iErrorsCount += (int)$sErrCount;
-				if ((int)$sErrCount > 0) {
-					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
-					$this->sErrorMessage .= $aMatches[0][$idx]."\n";
-				}
-			}
 		} else {
-			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
-			$this->sErrorMessage .= $sResult;
-			$iErrorsCount = 1;
+			if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
+				foreach ($aMatches[2] as $idx => $sErrCount) {
+					$iErrorsCount += (int)$sErrCount;
+					if ((int)$sErrCount > 0) {
+						Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
+						$this->sErrorMessage .= $aMatches[0][$idx]."\n";
+					}
+				}
+			} else {
+				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
+				$this->sErrorMessage .= $sResult;
+				$iErrorsCount = 1;
+			}
 		}
 		if ($iErrorsCount == 0) {
 			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
@@ -619,41 +744,30 @@ abstract class Collector
 		return ($iErrorsCount == 0);
 	}
 
-	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
+	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string
 	{
-		$iCurrentTimeOut = ($iTimeOut !== -1) ? $iTimeOut : (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
-
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').$sUri;
-
-		$aResponseHeaders = null;
-
-		$aData = array_merge(
-			array(
-				'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
-				'auth_pwd'  => Utils::GetConfigurationValue('itop_password', ''),
-			),
-			$aAdditionalData
-		);
-
-		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array(CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3));
-		$aCurlOptions = array();
-		foreach ($aRawCurlOptions as $key => $value) {
-			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
-			$iValue = (!is_numeric($value)) ? constant((string)$value) : (int)$value;
-			$aCurlOptions[$iKey] = $iValue;
+		if ($bDetailedOutput)
+		{
+			if (preg_match('/#Issues \(before synchro\): (\d+)/', $sTrimmedOutput, $aMatches)){
+				if (sizeof($aMatches)>0){
+					return $aMatches[1];
+				}
+			}
+			return -1;
 		}
-		$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
-		$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
 
-		return Utils::DoPostRequest($sUrl, $aData, null, $aResponseHeaders, $aCurlOptions);
+		// Read the status code from the last line
+		$aLines = explode("\n", $sTrimmedOutput);
+		return array_pop($aLines);
 	}
 
-	/////////////////////////////////////////////////////////////////////////
-	//
-	// Protected methods
-	//
-	/////////////////////////////////////////////////////////////////////////
+	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
+	{
+		if (null === static::$oCallItopService){
+			static::$oCallItopService = new CallItopService();
+		}
+		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
+	}
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
 	{
@@ -729,8 +843,9 @@ abstract class Collector
 				if ($this->AttributeIsOptional($aAttr['attcode'])) {
 					Utils::Log(LOG_INFO, "Skipping optional attribute {$aAttr['attcode']}.");
 					$this->aSkippedAttributes[] = $aAttr['attcode']; // record that this attribute was skipped
+
 				} else {
-					// Update only the SynchroAttributes which are really different			
+					// Update only the SynchroAttributes which are really different
 					// Ignore read-only fields
 					unset($aAttr['friendlyname']);
 					$sTargetClass = $aAttr['finalclass'];
@@ -803,6 +918,7 @@ abstract class Collector
 							if ($this->AttributeIsOptional($sAttCode)) {
 								// Ignore missing optional attributes
 								Utils::Log(LOG_DEBUG, "Comparison: ignoring the missing, but optional, attribute: '$sAttCode'.");
+								$this->aSkippedAttributes[] = $sAttCode;
 								continue;
 							} else {
 								// Missing non-optional attribute
@@ -811,11 +927,13 @@ abstract class Collector
 								return false;
 							}
 
-						} else if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
-							// Definitions are different
-							Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
+						} else {
+							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
+								// Definitions are different
+								Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
 
-							return false;
+								return false;
+							}
 						}
 					}
 
@@ -823,9 +941,7 @@ abstract class Collector
 					foreach ($aDS2['attribute_list'] as $sKey => $aDef) {
 						$sAttCode = $aDef['attcode'];
 						if (!$this->FindAttr($sAttCode, $aDS1['attribute_list']) && !$this->AttributeIsOptional($sAttCode)) {
-							Utils::Log(LOG_DEBUG, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ.");
-
-							return false;
+							Utils::Log(LOG_NOTICE, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ. Nothing to do. Update json definition if you want to update this field in iTop.");
 						}
 					}
 					break;
@@ -873,12 +989,77 @@ abstract class Collector
 	public function GetErrorStatus($sStep)
 	{
 		return [
-			'status'      => false,
+			'status' => false,
 			'exit_status' => false,
-			'project'     => $this->GetProjectName(),
-			'collector'   => get_class($this),
-			'message'     => '',
-			'step'        => $sStep,
+			'project' => $this->GetProjectName(),
+			'collector' => get_class($this),
+			'message' => '',
+			'step' => $sStep,
 		];
 	}
+
+	/**
+	 * Check if the keys of the supplied hash array match the expected fields listed in the data synchro
+	 *
+	 * @param array<string, string> $aSynchroColumns attribute name as key, attribute's value as value (value not used)
+	 * @paral $aColumnsToIgnore : Elements to ignore
+	 * @param $sSource : Source of the request (Json file, SQL query, csv file...)
+	 *
+	 * @throws \Exception
+	 */
+	protected function CheckColumns($aSynchroColumns, $aColumnsToIgnore, $sSource)
+	{
+		$sClass = get_class($this);
+		$iError = 0;
+
+		if (!array_key_exists('primary_key', $aSynchroColumns)) {
+			Utils::Log(LOG_ERR, '['.$sClass.'] The mandatory column "primary_key" is missing in the '.$sSource.'.');
+			$iError++;
+		}
+		foreach ($this->aFields as $sCode => $aDefs) {
+			// Skip attributes to ignore
+			if (in_array($sCode, $aColumnsToIgnore)) {
+				continue;
+			}
+			// Skip optional attributes
+			if ($this->AttributeIsOptional($sCode)) {
+				continue;
+			}
+
+			// Check for missing columns
+			if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+				$iError++;
+			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+				if ($this->AttributeIsNullified($sCode)){
+					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
+					continue;
+				}
+				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+				$iError++;
+			}
+
+			// Check for useless columns
+			if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+			}
+
+		}
+
+		if ($iError > 0) {
+			throw new Exception("Missing columns in the ".$sSource.'.');
+		}
+	}
+
+    /*
+	 * Check if the collector can be launched
+	 *
+     * @param $aOrchestratedCollectors = list of collectors already orchestrated
+     *
+	 * @return bool
+	 */
+    public function CheckToLaunch(array $aOrchestratedCollectors): bool {
+		return true;
+	}
+
 }

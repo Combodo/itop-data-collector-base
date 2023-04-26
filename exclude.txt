@@ -4,5 +4,6 @@
 #
 .gitignore
 test
+tests
 composer.json
 Jenkinsfile

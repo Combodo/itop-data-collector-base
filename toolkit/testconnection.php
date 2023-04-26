@@ -8,6 +8,8 @@ require_once(APPROOT.'core/restclient.class.inc.php');
 print '    curl_init exists: '.function_exists('curl_init').PHP_EOL;
 
 try {
+	Utils::InitConsoleLogLevel();
+
 	$oRestClient = new RestClient();
 	var_dump($oRestClient->ListOperations());
 	print 'Calling iTop Rest API worked!'.PHP_EOL;

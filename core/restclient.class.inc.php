@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -110,22 +110,17 @@ class RestClient
 
 	protected static function ExecOperation($aOperation, $sVersion = '1.0')
 	{
-		$aData = array();
-		$aData['auth_user'] = Utils::GetConfigurationValue('itop_login', '');
-		$aData['auth_pwd'] = Utils::GetConfigurationValue('itop_password', '');
+		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').'/webservices/rest.php?login_mode=form&version='.$sVersion;
+		$sLoginform = Utils::GetLoginMode();
+		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
+			Utils::GetConfigurationValue('itop_url', ''),
+			$sLoginform,
+			$sVersion
+		);
 		$aHeaders = array();
-		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', array());
-		$aCurlOptions = array();
-		foreach ($aRawCurlOptions as $key => $value) {
-			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
-			// Make sure that the actual constant exists to prevent warnings/errors in case of typo or when php-curl is not loaded
-			$iKey = ((!is_numeric($key)) && defined((string)$key)) ? constant((string)$key) : (int)$key;
-			$iValue = ((!is_numeric($value)) && defined((string)$value)) ? constant((string)$value) : (int)$value;
-			$aCurlOptions[$iKey] = $iValue;
-		}
-		$response = Utils::DoPostRequest($sUrl, $aData, null, $aHeaders, $aCurlOptions);
+		$aCurlOptions = Utils::GetCurlOptions();
+		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
 		$aResults = json_decode($response, true);
 		if (!$aResults) {
 			throw new Exception("rest.php replied: $response");
@@ -189,6 +184,7 @@ class RestClient
 							$aSource['attribute_list'][$idx]['update'] = $aAttDef['fields']['update'] ? '1' : '0';
 
 							// read-only (external) fields
+							unset($aSource['attribute_list'][$idx]['friendlyname']);
 							unset($aSource['attribute_list'][$idx]['sync_source_id']);
 							unset($aSource['attribute_list'][$idx]['sync_source_name']);
 							unset($aSource['attribute_list'][$idx]['sync_source_id_friendlyname']);
@@ -196,13 +192,15 @@ class RestClient
 					}
 				}
 			}
-			// Don't care about these read-only fields
-			unset($aSource['friendlyname']);
-			unset($aSource['user_id_friendlyname']);
-			unset($aSource['user_id_finalclass_recall']);
-			unset($aSource['notify_contact_id_friendlyname']);
-			unset($aSource['notify_contact_id_finalclass_recall']);
 		}
+
+		// Don't care about these read-only fields
+		unset($aSource['friendlyname']);
+		unset($aSource['user_id_friendlyname']);
+		unset($aSource['user_id_finalclass_recall']);
+		unset($aSource['notify_contact_id_friendlyname']);
+		unset($aSource['notify_contact_id_finalclass_recall']);
+		unset($aSource['notify_contact_id_obsolescence_flag']);
 
 		return $bResult;
 	}

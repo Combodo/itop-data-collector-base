@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -18,6 +18,7 @@ define('LOG_NONE', -1);
 
 define('CONF_DIR', APPROOT.'conf/');
 require_once(APPROOT.'core/ioexception.class.inc.php');
+require_once(APPROOT.'core/dopostrequestservice.class.inc.php');
 
 class Utils
 {
@@ -29,8 +30,14 @@ class Utils
 	static public $oCollector = "";
 	static protected $oConfig = null;
 	static protected $aConfigFiles = array();
+	static protected $iMockLogLevel = LOG_ERR;
 
 	static protected $oMockedLogger;
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static protected $oMockedDoPostRequestService;
 
 	static public function SetProjectName($sProjectName)
 	{
@@ -109,6 +116,20 @@ class Utils
 	}
 
 	/**
+	 * Init the console log level.
+	 *
+	 * Defaults to LOG_INFO if `console_log_level` is not configured
+	 * Can be overridden by `console_log_level` commandline argument.
+	 *
+	 * @throws Exception
+	 */
+	public static function InitConsoleLogLevel()
+	{
+		$iDefaultConsoleLogLevel = static::GetConfigurationValue('console_log_level', LOG_INFO);
+		static::$iConsoleLogLevel = static::ReadParameter('console_log_level', $iDefaultConsoleLogLevel);
+	}
+
+	/**
 	 * Logs a message to the centralized log for the application, with the given priority
 	 *
 	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see:
@@ -122,7 +143,8 @@ class Utils
 	{
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
-			if ($iPriority <= self::$iConsoleLogLevel && $iPriority <= LOG_ERR) {
+			if ($iPriority <= self::$iMockLogLevel) {
+				var_dump($sMessage);
 				self::$oMockedLogger->Log($iPriority, $sMessage);
 			}
 		}
@@ -198,9 +220,20 @@ class Utils
 		$oClient->Create("EventIssue", $aFields, 'create event issue from collector $sCollectorName execution.');
 	}
 
-	static public function MockLog($oMockedLogger)
+	static public function MockLog($oMockedLogger,  $iMockLogLevel = LOG_ERR)
 	{
 		self::$oMockedLogger = $oMockedLogger;
+		self::$iMockLogLevel = $iMockLogLevel;
+	}
+
+	/**
+	 * @param DoPostRequestService|null $oMockedDoPostRequestService
+	 * @since 1.3.0 N°6012
+	 * @return void
+	 */
+	static public function MockDoPostRequestService($oMockedDoPostRequestService)
+	{
+		self::$oMockedDoPostRequestService = $oMockedDoPostRequestService;
 	}
 
 	/**
@@ -217,6 +250,9 @@ class Utils
 		self::$oConfig = new Parameters(CONF_DIR.'params.distrib.xml');
 		if (file_exists(APPROOT.'collectors/params.distrib.xml')) {
 			self::MergeConfFile(APPROOT.'collectors/params.distrib.xml');
+		}
+		if (file_exists(APPROOT.'collectors/extensions/params.distrib.xml')) {
+			self::MergeConfFile(APPROOT.'collectors/extensions/params.distrib.xml');
 		}
 		if ($sCustomConfigFile !== null) {
 			// A custom config file was supplied on the command line
@@ -258,6 +294,40 @@ class Utils
 		$value = self::Substitute($value);
 
 		return $value;
+	}
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static public function GetCredentials() : array {
+		$sToken = Utils::GetConfigurationValue('itop_token', '');
+		if (strlen($sToken) > 0){
+			return [
+				'auth_token' => $sToken
+			];
+		}
+
+		return [
+			'auth_user' => Utils::GetConfigurationValue('itop_login', ''),
+			'auth_pwd' => Utils::GetConfigurationValue('itop_password', ''),
+		];
+	}
+
+	/**
+	 * @since 1.3.0 N°6012
+	 */
+	static public function GetLoginMode() : string {
+		$sLoginform = Utils::GetConfigurationValue('itop_login_mode', '');
+		if (strlen($sLoginform) > 0){
+			return $sLoginform;
+		}
+
+		$sToken = Utils::GetConfigurationValue('itop_token', '');
+		if (strlen($sToken) > 0){
+			return 'token';
+		}
+
+		return 'form';
 	}
 
 	/**
@@ -351,8 +421,12 @@ class Utils
 	 * @return string The result of the POST request
 	 * @throws Exception
 	 */
-	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = array())
+	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = [])
 	{
+		if (self::$oMockedDoPostRequestService) {
+			return self::$oMockedDoPostRequestService->DoPostRequest($sUrl, $aData, $sOptionnalHeaders, $aResponseHeaders, $aCurlOptions);
+		}
+
 		// $sOptionnalHeaders is a string containing additional HTTP headers that you would like to send in your request.
 
 		if (function_exists('curl_init')) {
@@ -533,7 +607,7 @@ class Utils
 	 * @return false|string
 	 * @throws \Exception
 	 */
-	function Exec($sCmd)
+	public static function Exec($sCmd)
 	{
 		$iBeginTime = time();
 		$sWorkDir = APPROOT;
@@ -555,12 +629,41 @@ class Utils
 
 		$iElapsed = time() - $iBeginTime;
 		if (0 === $iCode) {
-			Utils::Log(LOG_INFO, "elapsed:${iElapsed}s output: $sStdOut");
+			Utils::Log(LOG_INFO, "elapsed:{$iElapsed}s output: $sStdOut");
 
 			return $sStdOut;
 		} else {
 			throw new Exception("Command failed : $sCmd \n\t\t=== with status:$iCode \n\t\t=== stderr:$sStdErr \n\t\t=== stdout: $sStdOut");
 		}
+	}
+
+	/**
+	 * @since 1.3.0
+	 */
+	public static function GetCurlOptions(int $iCurrentTimeOut=-1) : array
+	{
+		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', [CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3]);
+		return self::ComputeCurlOptions($aRawCurlOptions, $iCurrentTimeOut);
+	}
+
+	/**
+	 * @since 1.3.0
+	 */
+	public static function ComputeCurlOptions(array $aRawCurlOptions, int $iCurrentTimeOut) : array
+	{
+		$aCurlOptions = array();
+		foreach ($aRawCurlOptions as $key => $value) {
+			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
+			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
+			$aCurlOptions[$iKey] = (!is_numeric($value) && defined($value)) ? constant($value) : $value;
+		}
+
+		if ($iCurrentTimeOut !== -1) {
+			$aCurlOptions[CURLOPT_CONNECTTIMEOUT] = $iCurrentTimeOut;
+			$aCurlOptions[CURLOPT_TIMEOUT] = $iCurrentTimeOut;
+		}
+
+		return $aCurlOptions;
 	}
 }
 

@@ -1,0 +1,41 @@
+{
+	"name": "Synchro LegacyCollector",
+	"description": "Synchronization through legacy directory",
+	"status": "$synchro_status$",
+	"user_id": "$synchro_user$",
+	"notify_contact_id": "$contact_to_notify$",
+	"scope_class": "Person",
+	"database_table_name": "$persons_data_table$",
+	"scope_restriction": "",
+	"full_load_periodicity": "$full_load_interval$",
+	"reconciliation_policy": "use_primary_key",
+	"action_on_zero": "create",
+	"action_on_one": "update",
+	"action_on_multiple": "error",
+	"delete_policy": "ignore",
+	"delete_policy_update": "",
+	"delete_policy_retention": "0",
+	"attribute_list": [
+		{
+			"attcode": "name",
+			"update": "1",
+			"reconcile": "1",
+			"update_policy": "master_locked",
+			"finalclass": "SynchroAttribute",
+			"friendlyname": "name"
+		},
+		{
+			"attcode": "org_id",
+			"update": "1",
+			"reconcile": "1",
+			"update_policy": "master_locked",
+			"reconciliation_attcode": "name",
+			"finalclass": "SynchroAttExtKey",
+			"friendlyname": "org_id"
+		}
+	],
+	"user_delete_policy": "nobody",
+	"url_icon": "",
+	"url_application": "",
+	"notify_contact_id_obsolescence_flag": ""
+}

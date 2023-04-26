@@ -33,6 +33,7 @@ abstract class SQLCollector extends Collector
 {
 	protected $oDB;
 	protected $oStatement;
+	protected $idx;
 
 	/**
 	 * Initalization
@@ -144,21 +145,13 @@ abstract class SQLCollector extends Collector
 	public function Fetch()
 	{
 		if ($aData = $this->oStatement->fetch(PDO::FETCH_ASSOC)) {
+
 			foreach ($this->aSkippedAttributes as $sCode) {
 				unset($aData[$sCode]);
 			}
 
 			if ($this->idx == 0) {
-				$aChecks = $this->CheckSQLColumn($aData);
-				foreach ($aChecks['errors'] as $sError) {
-					Utils::Log(LOG_ERR, "[".get_class($this)."] $sError");
-				}
-				foreach ($aChecks['warnings'] as $sWarning) {
-					Utils::Log(LOG_WARNING, "[".get_class($this)."] $sWarning");
-				}
-				if (count($aChecks['errors']) > 0) {
-					throw new Exception("Missing columns in the SQL query.");
-				}
+				$this->CheckColumns($aData, [], 'SQL query');
 			}
 			$this->idx++;
 
@@ -197,38 +190,6 @@ abstract class SQLCollector extends Collector
 		}
 
 		return parent::AttributeIsOptional($sAttCode);
-	}
-
-	/**
-	 * Check if the keys of the supplied hash array match the expected fields
-	 *
-	 * @param array $aData
-	 *
-	 * @return array A hash array with two entries: 'errors' => array of strings and 'warnings' => array of strings
-	 */
-	protected function CheckSQLColumn($aData)
-	{
-		$aRet = array('errors' => array(), 'warnings' => array());
-
-		if (!array_key_exists('primary_key', $aData)) {
-			$aRet['errors'][] = 'The mandatory column "primary_key" is missing from the query.';
-		}
-		foreach ($this->aFields as $sCode => $aDefs) {
-			// Check for missing columns
-			if (!array_key_exists($sCode, $aData) && $aDefs['reconcile']) {
-				$aRet['errors'][] = 'The column "'.$sCode.'", used for reconciliation, is missing from the query.';
-			} else if (!array_key_exists($sCode, $aData) && $aDefs['update']) {
-				$aRet['errors'][] = 'The column "'.$sCode.'", used for update, is missing from the query.';
-			}
-
-			// Check for useless columns
-			if (array_key_exists($sCode, $aData) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				$aRet['warnings'][] = 'The column "'.$sCode.'" is used neither for update nor for reconciliation.';
-			}
-
-		}
-
-		return $aRet;
 	}
 }
 
