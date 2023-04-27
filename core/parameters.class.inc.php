@@ -61,7 +61,7 @@ class Parameters
 			$oNode = $oRoot->ownerDocument->createElement($sNodeName);
 		}
 		$oRoot->appendChild($oNode);
-		
+
 		if (is_array($data)) {
 
 			$aKeys = array_keys($data);

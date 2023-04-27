@@ -223,5 +223,11 @@ class UtilsTest extends TestCase
 		];
 	}
 
-
+	public function testDumpConfig(){
+		global $argv;
+		$sXmlPath = __DIR__.'/utils/params.test.xml';
+		$argv[]= "--config_file=".$sXmlPath;
+		$sContent = file_get_contents($sXmlPath);
+		$this->assertEquals($sContent, Utils::DumpConfig());
+	}
 }
