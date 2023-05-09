@@ -44,7 +44,7 @@ if ($sTaskName == '*') {
 		exit - 1;
 	}
 
-	echo "iTop: $sITopUrl\n";
+	echo "iTop: \033[34m{$sITopUrl}\033[0m\n";
 	if (empty($aResult['objects'])) {
 		echo "   no SynchroDataSource defined\n";
 	} else {
