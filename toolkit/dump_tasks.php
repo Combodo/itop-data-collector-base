@@ -58,18 +58,17 @@ if ($sTaskName == '*') {
 				break;
 		}
 
-		echo "+------+--------------------------------+----------------------------------------------------+\n";
-		echo "|  Id  |            Name                |                    Description                     |\n";
-		echo "+------+--------------------------------+----------------------------------------------------+\n";
+		echo "+-----+--------------------------------------------------------------------------------------+\n";
+		echo "|  Id |             Name                                                                     |\n";
+		echo "+-----+--------------------------------------------------------------------------------------+\n";
 		foreach ($aResult['objects'] as $aValues) {
 			$aCurrentTaskDefinition = $aValues['fields'];
-			echo sprintf("| %4d | %-30.30s | %-50.50s |\n",
+			echo sprintf("| %3d | %-84.84s |\n",
 				$aValues['key'],
 				$aCurrentTaskDefinition['name'],
-				$aCurrentTaskDefinition['description']
 			);
 		}
-		echo "+------+--------------------------------+----------------------------------------------------+\n";
+		echo "+-----+--------------------------------------------------------------------------------------+\n";
 	}
 	$sMaxVersion = $oRestClient->GetNewestKnownVersion();
 	echo "iTop REST/API version: $sMaxVersion\n";
