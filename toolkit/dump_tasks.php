@@ -44,27 +44,31 @@ if ($sTaskName == '*') {
 		exit - 1;
 	}
 
+	echo "iTop: \033[34m{$sITopUrl}\033[0m\n";
 	if (empty($aResult['objects'])) {
-		echo "There is no SynchroDataSource defined on the iTop server ($sITopUrl).\n";
+		echo "   no SynchroDataSource defined\n";
 	} else {
-		switch (count($aResult['objects'])){
+		switch (count($aResult['objects'])) {
 			case 1:
-				echo "There is 1 SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				echo "   1 SynchroDataSource defined\n";
 				break;
 
 			default:
-				echo "There are ".count($aResult['objects'])." SynchroDataSource defined on the iTop server ($sITopUrl):\n";
+				echo "   ".count($aResult['objects'])." SynchroDataSource objects defined\n";
 				break;
 		}
 
-		echo "+--------------------------------+----------------------------------------------------+\n";
-		echo "|            Name                |                    Description                     |\n";
-		echo "+--------------------------------+----------------------------------------------------+\n";
+		echo "+-----+--------------------------------------------------------------------------------------+\n";
+		echo "|  Id |             Name                                                                     |\n";
+		echo "+-----+--------------------------------------------------------------------------------------+\n";
 		foreach ($aResult['objects'] as $aValues) {
 			$aCurrentTaskDefinition = $aValues['fields'];
-			echo sprintf("| %-30.30s | %-50.50s |\n", $aCurrentTaskDefinition['name'], $aCurrentTaskDefinition['description']);
+			echo sprintf("| %3d | %-84.84s |\n",
+				$aValues['key'],
+				$aCurrentTaskDefinition['name'],
+			);
 		}
-		echo "+--------------------------------+----------------------------------------------------+\n";
+		echo "+-----+--------------------------------------------------------------------------------------+\n";
 	}
 	$sMaxVersion = $oRestClient->GetNewestKnownVersion();
 	echo "iTop REST/API version: $sMaxVersion\n";
