@@ -9,7 +9,7 @@ namespace UnitTestFiles\Test;
 use Parameters;
 use PHPUnit\Framework\TestCase;
 
-@define('APPROOT', dirname(__FILE__, 2).'/');
+@define('APPROOT', dirname(__DIR__).'/');
 
 require_once(APPROOT.'core/parameters.class.inc.php');
 
