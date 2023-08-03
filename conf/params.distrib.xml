@@ -7,6 +7,10 @@
   <itop_token/>
   <itop_login_mode/>
 
+  <!-- Parameters for the synchro data sources -->
+  <contact_to_notify/>
+  <synchro_user/>
+	
   <!-- console_log_level: level of logging to console (std output)
   -1 : none, nothing will be logged to the console
    0 : System wide emergency errors only (LOG_EMERG)
