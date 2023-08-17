@@ -55,6 +55,7 @@ class Orchestrator
 		if ($oReflection->IsAbstract()) {
 			throw new Exception('Cannot register an CollectionPlan class ('.$sCollectionPlanClass.') as a CollectionPlan.');
 		}
+        /** @var CollectionPlan $oCollectionPlan */
 		$oCollectionPlan = new $sCollectionPlanClass();
 		$oCollectionPlan->Init();
 		$oCollectionPlan->AddCollectorsToOrchestrator();
@@ -72,6 +73,7 @@ class Orchestrator
 	{
 		if (!array_key_exists($sExtension, self::$aMinVersions)) {
 			// This is the first call to add some requirements for this extension, record it as-is
+            self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
 		} elseif (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
 			// This requirement is stricter than the previously requested one
 			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
@@ -125,6 +127,7 @@ class Orchestrator
 		uasort(self::$aCollectors, array("Orchestrator", "CompareCollectors"));
 
 		foreach (self::$aCollectors as $aCollectorData) {
+            /** @var Collector $oClass */
 			$oClass = new $aCollectorData['class']();
 			$oClass->Init();
 			$aResults[] = $oClass;
