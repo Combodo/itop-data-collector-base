@@ -108,7 +108,8 @@ abstract class Collector
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
-			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0)];
+			$aColumns = isset($aAttr['import_columns']) ? explode(',', $aAttr['import_columns']) : [$aAttr['attcode']];
+			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0), 'columns' => $aColumns];
 		}
 
 		$this->ReadCollectorConfig();
@@ -576,17 +577,32 @@ abstract class Collector
 	{
 		$this->aCSVHeaders = array();
 		foreach ($aHeaders as $sHeader) {
-			if (($sHeader != 'primary_key') && !array_key_exists($sHeader, $this->aFields)) {
+			if (($sHeader != 'primary_key') && !$this->HeaderIsAllowed($sHeader)) {
 				if (!$this->AttributeIsOptional($sHeader)) {
 					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
 				}
 			} else {
-
 				$this->aCSVHeaders[] = $sHeader;
 			}
 		}
-		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $this->aCSVHeaders)."\n");
 		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
+	}
+	
+	/**
+	 * Added to add multi-column field support or situations
+	 * where column name is different than attribute code.
+	 *
+	 * @param string $sHeader
+	 * @return bool
+	 */
+	protected function HeaderIsAllowed($sHeader)
+	{
+		foreach ($this->aFields as $aField) {
+			if (in_array($sHeader, $aField['columns'])) return true;
+		}
+		
+		// fallback old behaviour
+		return array_key_exists($sHeader, $this->aFields);
 	}
 
 	protected function AddRow($aRow)
