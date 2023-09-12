@@ -55,13 +55,14 @@ class Parameters
 			$data = $this->aData;
 		}
 
+		if ($oRoot instanceof DOMDocument) {
+			$oNode = $oRoot->createElement($sNodeName);
+		} else {
+			$oNode = $oRoot->ownerDocument->createElement($sNodeName);
+		}
+		$oRoot->appendChild($oNode);
+
 		if (is_array($data)) {
-			if ($oRoot instanceof DOMDocument) {
-				$oNode = $oRoot->createElement($sNodeName);
-			} else {
-				$oNode = $oRoot->ownerDocument->createElement($sNodeName);
-			}
-			$oRoot->appendChild($oNode);
 
 			$aKeys = array_keys($data);
 			$bNumericKeys = true;
@@ -82,8 +83,8 @@ class Parameters
 				}
 			}
 		} else {
-			$oNode = $oRoot->ownerDocument->createElement($sNodeName, $data);
-			$oRoot->appendChild($oNode);
+			$oTextNode = $oRoot->ownerDocument->createTextNode($data);
+			$oNode->appendChild($oTextNode);
 		}
 
 		return $oNode;
