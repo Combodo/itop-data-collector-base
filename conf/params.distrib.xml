@@ -101,4 +101,9 @@
     <CURLOPT_SSL_VERIFYHOST>0</CURLOPT_SSL_VERIFYHOST>
     <CURLOPT_SSL_VERIFYPEER>1</CURLOPT_SSL_VERIFYPEER>
   </curl_options>
+
+  <!-- The email address of an existing contact in iTop, to be notified in case of error during the synchronization -->
+  <contact_to_notify></contact_to_notify>
+  <!-- iTop user set as allowed to run synchronization. It is highly recommended to use the same as itop_login -->
+  <synchro_user></synchro_user>
 </parameters>
