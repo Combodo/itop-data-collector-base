@@ -17,5 +17,7 @@
     <CURLOPT_SSL_VERIFYHOST>0</CURLOPT_SSL_VERIFYHOST>
     <CURLOPT_SSL_VERIFYPEER>1</CURLOPT_SSL_VERIFYPEER>
   </curl_options>
+  <contact_to_notify></contact_to_notify>
+  <synchro_user></synchro_user>
   <broken_param>(&amp;(objectClass=person)(mail=*))</broken_param>
 </parameters>

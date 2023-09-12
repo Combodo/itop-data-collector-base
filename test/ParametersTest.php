@@ -23,7 +23,7 @@ class ParametersTest extends TestCase {
 
 		$sDumpParameters = $oParameters->Dump();
 
-		$this->assertStringContainsString($sExpectedDump, $sDumpParameters);
+		$this->assertContains($sExpectedDump, $sDumpParameters);
 	}
 
 	public function ToXMLProvider() {
