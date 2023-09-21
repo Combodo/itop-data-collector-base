@@ -42,7 +42,7 @@ abstract class CollectionPlan
 	/**
 	 * @return static
 	 */
-	public static function GetPlan(): static
+	public static function GetPlan()
 	{
 		return self::$oCollectionPlan;
 	}
