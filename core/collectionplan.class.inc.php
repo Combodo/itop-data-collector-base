@@ -40,9 +40,9 @@ abstract class CollectionPlan
 	}
 
 	/**
-	 * @return \CollectionPlan
+	 * @return static
 	 */
-	public static function GetPlan(): CollectionPlan
+	public static function GetPlan(): static
 	{
 		return self::$oCollectionPlan;
 	}
@@ -50,7 +50,7 @@ abstract class CollectionPlan
 	/**
 	 * Provide the launch sequence as defined in the configuration files
 	 *
-	 * @return array|false
+	 * @return array
 	 * @throws \Exception
 	 */
 	public function GetSortedLaunchSequence(): array
@@ -132,6 +132,7 @@ abstract class CollectionPlan
 				continue;
 			}
 
+			/** @var Collector $oCollector */
 			// Instantiate collector
 			$oCollector = new $sCollectorName;
 			$oCollector->Init();
