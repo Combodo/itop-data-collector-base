@@ -69,11 +69,7 @@ abstract class JsonCollector extends Collector
 		}
 
 		//**** step 1 : get all parameters from config file
-		$aParamsSourceJson = Utils::GetConfigurationValue(get_class($this), array());
-		if (empty($aParamsSourceJson)) {
-			$aParamsSourceJson = Utils::GetConfigurationValue(strtolower(get_class($this)), array());
-		}
-		Utils::Log(LOG_DEBUG, "aParamsSourceJson [".json_encode($aParamsSourceJson)."]");
+		$aParamsSourceJson = $this->aCollectorConfig;
 		if (isset($aParamsSourceJson["command"])) {
 			$this->sJsonCliCommand = $aParamsSourceJson["command"];
 		}
@@ -141,6 +137,8 @@ abstract class JsonCollector extends Collector
 			Utils::Log(LOG_DEBUG, 'Get params for uploading data file ');
 			if (isset($aParamsSourceJson["jsonpost"])) {
 				$aDataGet = $aParamsSourceJson['jsonpost'];
+			} else {
+				$aDataGet = [];
 			}
 			$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 
@@ -172,7 +170,6 @@ abstract class JsonCollector extends Collector
 
 			return false;
 		}
-
 
 		//**** step 2 : read json file
 		$this->aJson = json_decode($this->sFileJson, true);
@@ -240,54 +237,7 @@ abstract class JsonCollector extends Collector
 			$aData = $this->aJson[$this->aJsonKey[$this->iIdx]];
 			Utils::Log(LOG_DEBUG, '$aData: '.json_encode($aData));
 
-			$aDataToSynchronize = array();
-			foreach ($this->aFieldsKey as $key => $sPath) {
-				if ($this->iIdx == 0) {
-					Utils::Log(LOG_DEBUG, $key.":".array_search($key, $this->aFieldsKey));
-				}
-				//
-				$aJsonKeyPath = explode('/', $sPath);
-				$aValue = $aData;
-				$bFind = false;
-				foreach ($aJsonKeyPath as $sTag) {
-					//if $aValue is not an array and $Tag !='*'
-					if (!array_key_exists(0, $aValue) && $sTag != '*') {
-						if (isset($aValue[$sTag])) {
-							$aValue = $aValue[$sTag];
-							$bFind = true;
-						}
-					} else {
-						$aNewValue = array();
-						foreach ($aValue as $aElement) {
-							if ($sTag == '*') //Any tag
-							{
-								array_push($aNewValue, $aElement);
-								$bFind = true;
-							} else {
-								if (isset($aElement[$sTag])) {
-									array_push($aNewValue, $aElement[$sTag]);
-									$bFind = true;
-								}
-							}
-						}
-						$aValue = $aNewValue;
-					}
-				}
-				if ($bFind) {
-					Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: ".json_encode($aValue));
-					if (empty ($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
-						$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
-					} else {
-						$aDataToSynchronize[$key] = $aValue;
-					}
-				} else {
-					if (array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
-						$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
-					}
-				}
-			}
-			Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
-
+			$aDataToSynchronize = $this->SearchFieldValues($aData);
 
 			foreach ($this->aSkippedAttributes as $sCode) {
 				unset($aDataToSynchronize[$sCode]);
@@ -303,12 +253,81 @@ abstract class JsonCollector extends Collector
 				}
 			}
 
+			foreach ($this->aNullifiedAttributes as $sHeader) {
+				if (!isset($aDataToSynchronize[$sHeader])) {
+					$aDataToSynchronize[$sHeader] = null;
+				}
+			}
+
 			$this->iIdx++;
 
 			return $aDataToSynchronize;
 		}
 
 		return false;
+	}
+
+	/**
+	 * @param array $aData
+	 *
+	 * @return array
+	 * @throws \Exception
+	 */
+	private function SearchFieldValues($aData, $aTestOnlyFieldsKey=null) {
+		$aDataToSynchronize = array();
+
+		$aCurrentFieldKeys = (is_null($aTestOnlyFieldsKey)) ? $this->aFieldsKey : $aTestOnlyFieldsKey;
+		foreach ($aCurrentFieldKeys as $key => $sPath) {
+			if ($this->iIdx == 0) {
+				Utils::Log(LOG_DEBUG, $key.":".array_search($key, $aCurrentFieldKeys));
+			}
+			//
+			$aJsonKeyPath = explode('/', $sPath);
+			$aValue = $aData;
+			$bFind = false;
+			foreach ($aJsonKeyPath as $sTag) {
+				//if $aValue is not an array and $Tag !='*'
+				if (!array_key_exists(0, $aValue) && $sTag != '*') {
+					if (isset($aValue[$sTag])) {
+						$aValue = $aValue[$sTag];
+						$bFind = true;
+					}
+				} else if (is_array($aValue) && array_key_exists((int) $sTag, $aValue)) {
+					$aValue = $aValue[(int) $sTag];
+					$bFind = true;
+				} else {
+					$aNewValue = array();
+					foreach ($aValue as $aElement) {
+						if ($sTag == '*') //Any tag
+						{
+							array_push($aNewValue, $aElement);
+							$bFind = true;
+						} else {
+							if (isset($aElement[$sTag])) {
+								array_push($aNewValue, $aElement[$sTag]);
+								$bFind = true;
+							}
+						}
+					}
+					$aValue = $aNewValue;
+				}
+			}
+			if ($bFind) {
+				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: ".json_encode($aValue));
+				if (empty ($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
+					$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
+				} else {
+					$aDataToSynchronize[$key] = $aValue;
+				}
+			} else {
+				if (array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
+					$aDataToSynchronize[$key] = $this->aSynchroFieldsToDefaultValues[$key];
+				}
+			}
+		}
+
+		Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
+		return $aDataToSynchronize;
 	}
 
 	/**
