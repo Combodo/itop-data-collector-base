@@ -692,7 +692,7 @@ abstract class Collector
 				$aData);
 
 			$sTrimmedOutput = trim(strip_tags($sResult));
-			$sErrorCount = self::ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput);
+			$sErrorCount = self::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
 
 			if ($sErrorCount != '0') {
 				// hmm something went wrong
@@ -716,35 +716,51 @@ abstract class Collector
 		$sResult = self::CallItopViaHttp("/synchro/synchro_exec.php?login_mode=$sLoginform",
 			$aData);
 
-		$iErrorsCount = 0;
-		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches)) {
-			// Hmm, it seems that the HTML output contains the login form !!
-			Utils::Log(LOG_ERR, "Failed to login to iTop. Invalid (or insufficent) credentials.");
-			$this->sErrorMessage .= "Failed to login to iTop. Invalid (or insufficent) credentials.\n";
-			$iErrorsCount = 1;
-		} else {
-			if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
-				foreach ($aMatches[2] as $idx => $sErrCount) {
-					$iErrorsCount += (int)$sErrCount;
-					if ((int)$sErrCount > 0) {
-						Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
-						$this->sErrorMessage .= $aMatches[0][$idx]."\n";
-					}
-				}
-			} else {
-				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
-				$this->sErrorMessage .= $sResult;
-				$iErrorsCount = 1;
-			}
-		}
-		if ($iErrorsCount == 0) {
-			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
-		}
+		$iErrorsCount = $this->ParseSynchroExecOutput($sResult);
 
 		return ($iErrorsCount == 0);
 	}
 
-	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string
+	public function ParseSynchroExecOutput($sResult) : int
+	{
+		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches)) {
+			// Hmm, it seems that the HTML output contains the login form !!
+			Utils::Log(LOG_ERR, "Failed to login to iTop. Invalid (or insufficent) credentials.");
+			$this->sErrorMessage .= "Failed to login to iTop. Invalid (or insufficent) credentials.\n";
+			return 1;
+		}
+
+		$iErrorsCount = 0;
+		if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
+			foreach ($aMatches[2] as $idx => $sErrCount) {
+				$iErrorsCount += (int)$sErrCount;
+				if ((int)$sErrCount > 0) {
+					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
+					$this->sErrorMessage .= $aMatches[0][$idx]."\n";
+				}
+			}
+		} else {
+			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
+			$this->sErrorMessage .= $sResult;
+			return 1;
+		}
+
+		if (($iErrorsCount === 0) && preg_match_all('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
+			foreach ($aMatches[1] as $idx) {
+				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: $idx");
+				$this->sErrorMessage .= $idx."\n";
+				return 1;
+			}
+		}
+
+		if ($iErrorsCount == 0) {
+			Utils::Log(LOG_INFO, "Synchronization of data source '{$this->sSourceName}' succeeded.");
+		}
+
+		return $iErrorsCount;
+	}
+
+	public static function ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput) : string
 	{
 		if ($bDetailedOutput)
 		{
