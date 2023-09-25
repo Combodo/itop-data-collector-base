@@ -141,7 +141,7 @@ OUTPUT;
 	 * @dataProvider ParseSynchroOutputProvider
 	 */
 	public function testParseSynchroOutput($sOutput, $bDetailedOutput, $sExpectecCount){
-		$this->assertEquals($sExpectecCount, Collector::ParseSynchroImportOutput($sOutput, $bDetailedOutput), $sOutput);
+		$this->assertEquals($sExpectecCount, Collector::ParseSynchroOutput($sOutput, $bDetailedOutput), $sOutput);
 	}
 
 	public function ParseSynchroExecOutput(){

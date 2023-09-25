@@ -692,7 +692,7 @@ abstract class Collector
 				$aData);
 
 			$sTrimmedOutput = trim(strip_tags($sResult));
-			$sErrorCount = self::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
+			$sErrorCount = self::ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput);
 
 			if ($sErrorCount != '0') {
 				// hmm something went wrong
@@ -721,6 +721,13 @@ abstract class Collector
 		return ($iErrorsCount == 0);
 	}
 
+	/**
+	 * Method that detects synchro exec errors and finds out details message
+	 * @param string $sResult: synchro_exec.php output
+	 *
+	 * @return int: error count
+	 * @throws \Exception
+	 */
 	public function ParseSynchroExecOutput($sResult) : int
 	{
 		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches)) {
@@ -732,11 +739,11 @@ abstract class Collector
 
 		$iErrorsCount = 0;
 		if (preg_match_all('/Objects (.*) errors: ([0-9]+)/', $sResult, $aMatches)) {
-			foreach ($aMatches[2] as $idx => $sErrCount) {
+			foreach ($aMatches[2] as $sDetailedMessage => $sErrCount) {
 				$iErrorsCount += (int)$sErrCount;
 				if ((int)$sErrCount > 0) {
-					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$idx]}");
-					$this->sErrorMessage .= $aMatches[0][$idx]."\n";
+					Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: {$aMatches[0][$sDetailedMessage]}");
+					$this->sErrorMessage .= $aMatches[0][$sDetailedMessage]."\n";
 				}
 			}
 		} else {
@@ -745,12 +752,11 @@ abstract class Collector
 			return 1;
 		}
 
-		if (($iErrorsCount === 0) && preg_match_all('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
-			foreach ($aMatches[1] as $idx) {
-				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: $idx");
-				$this->sErrorMessage .= $idx."\n";
-				return 1;
-			}
+		if (($iErrorsCount === 0) && preg_match('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
+			$sDetailedMessage = $aMatches[1];
+			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: $sDetailedMessage");
+			$this->sErrorMessage .= $sDetailedMessage."\n";
+			return 1;
 		}
 
 		if ($iErrorsCount == 0) {
@@ -760,7 +766,7 @@ abstract class Collector
 		return $iErrorsCount;
 	}
 
-	public static function ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput) : string
+	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string
 	{
 		if ($bDetailedOutput)
 		{
