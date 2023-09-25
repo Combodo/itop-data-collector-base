@@ -264,7 +264,6 @@ class Orchestrator
 			Utils::SetCollector($oCollector, "Synchronize");
 			$bResult = $oCollector->Synchronize();
 			if (!$bResult) {
-				Utils::Log(LOG_DEBUG, $oCollector->GetErrorMessage());
 				if ($bStopOnError) {
 					break;
 				} else {
