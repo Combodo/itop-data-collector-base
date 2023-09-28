@@ -747,11 +747,11 @@ abstract class Collector
 				}
 			}
 
-			if (($iErrorsCount === 0) && preg_match('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
+			if (preg_match('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
 				$sDetailedMessage = $aMatches[1];
 				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: $sDetailedMessage");
 				$this->sErrorMessage .= $sDetailedMessage."\n";
-				return 1;
+				$iErrorsCount++;
 			}
 		} else {
 			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
