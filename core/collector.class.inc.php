@@ -722,7 +722,8 @@ abstract class Collector
 	}
 
 	/**
-	 * Method that detects synchro exec errors and finds out details message
+	 * @since N°6771
+	 * Detects synchro exec errors and finds out details message
 	 * @param string $sResult: synchro_exec.php output
 	 *
 	 * @return int: error count
