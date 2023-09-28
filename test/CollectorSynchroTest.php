@@ -98,7 +98,7 @@ OUTPUT;
 		parent::tearDown();
 	}
 
-	public function ParseSynchroOutputProvider(){
+	public function ParseSynchroImportOutputProvider(){
 		$sRetcodeOutput = <<<OUTPUT
 ...
 %s
@@ -134,14 +134,19 @@ OUTPUT;
 				'bDetailedOutput' => true,
 				'sExpectecCount' => 10
 			],
+			'weird output' => [
+				'sOutput' => "weird output",
+				'bDetailedOutput' => true,
+				'sExpectecCount' => -1
+			],
 		];
 	}
 
 	/**
-	 * @dataProvider ParseSynchroOutputProvider
+	 * @dataProvider ParseSynchroImportOutputProvider
 	 */
-	public function testParseSynchroOutput($sOutput, $bDetailedOutput, $sExpectecCount){
-		$this->assertEquals($sExpectecCount, Collector::ParseSynchroOutput($sOutput, $bDetailedOutput), $sOutput);
+	public function testParseSynchroImportOutput($sOutput, $bDetailedOutput, $sExpectecCount){
+		$this->assertEquals($sExpectecCount, Collector::ParseSynchroImportOutput($sOutput, $bDetailedOutput), $sOutput);
 	}
 
 	public function ParseSynchroExecOutput(){

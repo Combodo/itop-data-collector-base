@@ -692,7 +692,7 @@ abstract class Collector
 				$aData);
 
 			$sTrimmedOutput = trim(strip_tags($sResult));
-			$sErrorCount = self::ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput);
+			$sErrorCount = self::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
 
 			if ($sErrorCount != '0') {
 				// hmm something went wrong
@@ -746,16 +746,16 @@ abstract class Collector
 					$this->sErrorMessage .= $aMatches[0][$sDetailedMessage]."\n";
 				}
 			}
+
+			if (($iErrorsCount === 0) && preg_match('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
+				$sDetailedMessage = $aMatches[1];
+				Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: $sDetailedMessage");
+				$this->sErrorMessage .= $sDetailedMessage."\n";
+				return 1;
+			}
 		} else {
 			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' failed.");
 			$this->sErrorMessage .= $sResult;
-			return 1;
-		}
-
-		if (($iErrorsCount === 0) && preg_match('/<p>ERROR: (.*)\./', $sResult, $aMatches)) {
-			$sDetailedMessage = $aMatches[1];
-			Utils::Log(LOG_ERR, "Synchronization of data source '{$this->sSourceName}' answered: $sDetailedMessage");
-			$this->sErrorMessage .= $sDetailedMessage."\n";
 			return 1;
 		}
 
@@ -766,7 +766,15 @@ abstract class Collector
 		return $iErrorsCount;
 	}
 
-	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string
+	/**
+	 * Detects synchro import errors and finds out details message
+	 * @param string $sTrimmedOutput
+	 * @param bool $bDetailedOutput
+	 *
+	 * @return string: error count string. should match "0" when successfull synchro import.
+	 * @since 1.3.1 N°6771
+	 */
+	public static function ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput) : string
 	{
 		if ($bDetailedOutput)
 		{
@@ -781,6 +789,16 @@ abstract class Collector
 		// Read the status code from the last line
 		$aLines = explode("\n", $sTrimmedOutput);
 		return array_pop($aLines);
+	}
+
+	/**
+	 * @deprecated 1.3.1 N°6771
+	 * @see static::ParseSynchroImportOutput
+	 */
+	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string {
+		// log a deprecation message
+		Utils::Log(LOG_INFO, "Called to deprecated method ParseSynchroOutput. Use ParseSynchroImportOutput instead.");
+		return static::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
 	}
 
 	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
