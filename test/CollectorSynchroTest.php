@@ -98,7 +98,7 @@ OUTPUT;
 		parent::tearDown();
 	}
 
-	public function ParseSynchroOutputProvider(){
+	public function ParseSynchroImportOutputProvider(){
 		$sRetcodeOutput = <<<OUTPUT
 ...
 %s
@@ -134,14 +134,73 @@ OUTPUT;
 				'bDetailedOutput' => true,
 				'sExpectecCount' => 10
 			],
+			'weird output' => [
+				'sOutput' => "weird output",
+				'bDetailedOutput' => true,
+				'sExpectecCount' => -1
+			],
 		];
 	}
 
 	/**
-	 * @dataProvider ParseSynchroOutputProvider
+	 * @dataProvider ParseSynchroImportOutputProvider
 	 */
-	public function testParseSynchroOutput($sOutput, $bDetailedOutput, $sExpectecCount){
-		$this->assertEquals($sExpectecCount, Collector::ParseSynchroOutput($sOutput, $bDetailedOutput), $sOutput);
+	public function testParseSynchroImportOutput($sOutput, $bDetailedOutput, $sExpectecCount){
+		$this->assertEquals($sExpectecCount, Collector::ParseSynchroImportOutput($sOutput, $bDetailedOutput), $sOutput);
+	}
+
+	public function ParseSynchroExecOutput(){
+		$sFailedOutput = <<<TXT
+<p>Working on Synchro LDAP Person (id=3)...<p>Replicas: 14</p><p>Replicas touched since last synchro: 0</p><p>Objects deleted: 0</p><p>Objects deletion errors: 1</p><p>Objects obsoleted: 0</p><p>Objects obsolescence errors: 2</p><p>Objects created: 0 (0 warnings)</p><p>Objects creation errors: 3</p><p>Objects updated: 0 (0 warnings)</p><p>Objects update errors: 4</p><p>Objects reconciled (updated): 0 (0 warnings)</p><p>Objects reconciled (unchanged): 0 (0 warnings)</p><p>Objects reconciliation errors: 5</p><p>Replica disappeared, no action taken: 0</p>
+TXT;
+
+		$sFailedOutputWithNoErrorCount = <<<TXT
+<p>Working on Synchro LDAP Person (id=3)...</p><p>ERROR: All records have been untouched for some time (all of the objects could be deleted). Please check that the process that writes into the synchronization table is still running. Operation cancelled.</p><p>Replicas: 14</p><p>Replicas touched since last synchro: 0</p><p>Objects deleted: 0</p><p>Objects deletion errors: 0</p><p>Objects obsoleted: 0</p><p>Objects obsolescence errors: 0</p><p>Objects created: 0 (0 warnings)</p><p>Objects creation errors: 0</p><p>Objects updated: 0 (0 warnings)</p><p>Objects update errors: 0</p><p>Objects reconciled (updated): 0 (0 warnings)</p><p>Objects reconciled (unchanged): 0 (0 warnings)</p><p>Objects reconciliation errors: 0</p><p>Replica disappeared, no action taken: 0</p>
+TXT;
+		$sFailedNoMatch = <<<TXT
+NOMATCH
+TXT;
+
+		$sMsgOK = <<<TXT
+<p>Working on Synchro LDAP Person (id=3)...<p>Replicas: 14</p><p>Replicas touched since last synchro: 0</p><p>Objects deleted: 0</p><p>Objects deletion errors: 0</p><p>Objects obsoleted: 0</p><p>Objects obsolescence errors: 0</p><p>Objects created: 0 (0 warnings)</p><p>Objects creation errors: 0</p><p>Objects updated: 0 (0 warnings)</p><p>Objects update errors: 0</p><p>Objects reconciled (updated): 0 (0 warnings)</p><p>Objects reconciled (unchanged): 0 (0 warnings)</p><p>Objects reconciliation errors: 0</p><p>Replica disappeared, no action taken: 0</p>
+TXT;
+
+		return [
+				'login failed' => [
+					'sOutput' => 'eeeee<input type="hidden" name="loginop" value="login" ffff',
+					'iExpectedErrorCount' => 1,
+					'sErrorMessage' => "Failed to login to iTop. Invalid (or insufficent) credentials.\n",
+				],
+				'weird output' => [
+					'sOutput' => $sFailedNoMatch,
+					'iExpectedErrorCount' => 1,
+					'sErrorMessage' => "NOMATCH",
+				],
+				'synchro error count parsing' => [
+					'sOutput' => $sFailedOutput,
+					'iExpectedErrorCount' => 5,
+					'sErrorMessage' => "Objects deleted: 0</p><p>Objects deletion errors: 1</p><p>Objects obsoleted: 0</p><p>Objects obsolescence errors: 2</p><p>Objects created: 0 (0 warnings)</p><p>Objects creation errors: 3</p><p>Objects updated: 0 (0 warnings)</p><p>Objects update errors: 4</p><p>Objects reconciled (updated): 0 (0 warnings)</p><p>Objects reconciled (unchanged): 0 (0 warnings)</p><p>Objects reconciliation errors: 5\n",
+				],
+				'records have been untouched' => [
+					'sOutput' => $sFailedOutputWithNoErrorCount,
+					'iExpectedErrorCount' => 1,
+					'sErrorMessage' => "All records have been untouched for some time (all of the objects could be deleted). Please check that the process that writes into the synchronization table is still running. Operation cancelled\n",
+				],
+				'synchro ok' => [
+					'sOutput' => $sMsgOK,
+					'iExpectedErrorCount' => 0,
+					'sErrorMessage' => "",
+				],
+			];
+	}
+
+	/**
+	 * @dataProvider ParseSynchroExecOutput
+	 */
+	public function testParseSynchroExecOutput($sOutput, $iExpectedErrorCount, $sErrorMessage=null){
+		$oCollector = new \FakeCollector();
+		$this->assertEquals($iExpectedErrorCount, $oCollector->ParseSynchroExecOutput($sOutput), $sOutput);
+		$this->assertEquals($sErrorMessage, $oCollector->GetErrorMessage(), $sOutput);
 	}
 
 }
