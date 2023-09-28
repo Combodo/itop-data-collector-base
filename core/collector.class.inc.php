@@ -722,12 +722,11 @@ abstract class Collector
 	}
 
 	/**
-	 * @since N°6771
 	 * Detects synchro exec errors and finds out details message
-	 * @param string $sResult: synchro_exec.php output
-	 *
-	 * @return int: error count
-	 * @throws \Exception
+	 * @param string $sResult synchro_exec.php output
+	 * @return int error count
+	 * @throws Exception
+	 * @since 1.3.1 N°6771
 	 */
 	public function ParseSynchroExecOutput($sResult) : int
 	{
