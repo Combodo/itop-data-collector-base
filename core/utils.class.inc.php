@@ -217,7 +217,7 @@ class Utils
 		];
 
 		$oClient = new RestClient();
-		$oClient->Create("EventIssue", $aFields, 'create event issue from collector $sCollectorName execution.');
+		$oClient->Create("EventIssue", $aFields, "create event issue from collector $sCollectorName execution.");
 	}
 
 	static public function MockLog($oMockedLogger,  $iMockLogLevel = LOG_ERR)
