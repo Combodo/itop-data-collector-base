@@ -104,6 +104,6 @@
 
   <!-- The email address of an existing contact in iTop, to be notified in case of error during the synchronization -->
   <contact_to_notify></contact_to_notify>
-  <!-- iTop user set as allowed to run synchronization. It is highly recommended to use the same as itop_login -->
+  <!-- iTop user set as allowed to run synchronization. By default, it is the same as itop_login -->
   <synchro_user></synchro_user>
 </parameters>

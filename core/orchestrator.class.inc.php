@@ -172,7 +172,7 @@ class Orchestrator
 				Utils::Log(LOG_ERR, "Unable to find the contact with email = '$sEmailToNotify'. No contact to notify will be defined.");
 			}
 		}
-		$sSynchroUser = Utils::GetConfigurationValue('synchro_user', '');
+		$sSynchroUser = Utils::GetConfigurationValue('synchro_user', Utils::GetConfigurationValue('itop_login', ''));
 		$aPlaceholders['$synchro_user$'] = 0;
 		if ($sSynchroUser != '') {
 			$oRestClient = new RestClient();
