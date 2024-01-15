@@ -141,12 +141,13 @@ abstract class JsonCollector extends Collector
 			} else {
 				$aDataGet = [];
 			}
-			$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
-			$aCurlOptions = Utils::GetCurlOptions($iSynchroTimeout);
+			
+			$aCurlOptions = static::GetCurlOptions();
+			
 
 			//logs
 			Utils::Log(LOG_DEBUG, 'Source aDataGet: '.json_encode($aDataGet));
-			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, '', $aResponseHeaders, $aCurlOptions);
+			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, static::GetOptionalHeaders(), $aResponseHeaders, $aCurlOptions);
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
 			Utils::Log(LOG_INFO, 'Synchro URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
 		} else {
@@ -257,6 +258,51 @@ abstract class JsonCollector extends Collector
 		}
 
 		return false;
+	}
+	
+	/**
+	 * Returns optional HTTP headers which can be sent to the specified URL. 
+	 * For example, a subclass can be override this method to send an Authorization: header.
+	 */
+	public function GetOptionalHeaders() : string
+	{
+		
+		return '';
+		
+	}
+	
+	/**
+	 * Returns cURL options to use.
+	 * For example, a subclass can be override this method to add the CURLOPT_USERPWD and a value.
+	 */
+	public function GetCurlOptions() : array
+	{
+		
+		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
+		$aParamsSourceJson = $this->aCollectorConfig;
+
+		// Step 1:
+		// Use cURL options from "config" XML.
+		$aConfigCurlOptions = Utils::GetCurlOptions($iSynchroTimeout);
+		
+		// Step 2:
+		// If available: Add or update options defined in the "collector" XML.
+		// Apply the same mechanism to convert constants. The flexibility in place is to allow adding and overriding values, so do not pass on synchro timeout.
+		$aCollectorCurlOptions = array();
+
+		if(isset($aParamsSourceJson['curl_options'])) {	
+			$aCollectorCurlOptions = $aParamsSourceJson['curl_options'];
+		}
+		if(isset($aParamsSourceJson['CURL_OPTIONS'])) {	
+			$aCollectorCurlOptions = $aParamsSourceJson['CURL_OPTIONS'];
+		}
+		
+		if(count($aCollectorCurlOptions) > 0) {
+			$aCollectorCurlOptions = utils::GetCurlOptions($aCollectorCurlOptions, -1);
+		}
+		
+		return array_replace($aConfigCurlOptions, $aCollectorCurlOptions);
+			
 	}
 
 	/**
