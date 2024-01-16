@@ -261,23 +261,20 @@ abstract class JsonCollector extends Collector
 	}
 	
 	/**
-	 * Returns optional HTTP headers which can be sent to the specified URL. 
+	 * @return Optional HTTP headers which can be sent to the specified URL. 
 	 * For example, a subclass can be override this method to send an Authorization: header.
 	 */
 	public function GetOptionalHeaders() : string
 	{
-		
 		return '';
-		
 	}
 	
 	/**
-	 * Returns cURL options to use.
+	 * @return cURL options to use.
 	 * For example, a subclass can be override this method to add the CURLOPT_USERPWD and a value.
 	 */
 	public function GetCurlOptions() : array
 	{
-		
 		$iSynchroTimeout = (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600); // timeout in seconds, for a synchro to run
 		$aParamsSourceJson = $this->aCollectorConfig;
 
@@ -302,7 +299,6 @@ abstract class JsonCollector extends Collector
 		}
 		
 		return array_replace($aConfigCurlOptions, $aCollectorCurlOptions);
-			
 	}
 
 	/**
