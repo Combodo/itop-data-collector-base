@@ -34,12 +34,13 @@ Otherwise, explain step by step how to reproduce the issue on a standard iTop Co
 If it requires a custom datamodel, provide the minimal XML delta to reproduce it on a standard iTop Community.
 -->
 
-1. On iTop x.y.z <!-- Put complete iTop version (eg. 3.1.0-2) -->
+1. With COLLECTOR_NAME x.y.z <!-- Put complete collector version (eg. itop-collector-base 1.3.2) -->
 2. With PHP x.y.z <!-- Put complete PHP version (eg. 8.1.24) -->
-2. First go there
-2. Then do that
-3. ...
-4. Finally, see that... while I was expecting...
+3. Targeting iTop x.y.z <!-- Put complete iTop version (eg. iTop 3.0.2-1) -->
+4. First go there
+5. Then do that
+6. ...
+7. Finally, see that... while I was expecting...
 
 
 ## Cause (bug)
