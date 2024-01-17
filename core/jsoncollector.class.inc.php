@@ -295,7 +295,7 @@ abstract class JsonCollector extends Collector
 		}
 		
 		if(count($aCollectorCurlOptions) > 0) {
-			$aCollectorCurlOptions = utils::GetCurlOptions($aCollectorCurlOptions, -1);
+			$aCollectorCurlOptions = Utils::GetCurlOptions($aCollectorCurlOptions, -1);
 		}
 		
 		return array_replace($aConfigCurlOptions, $aCollectorCurlOptions);
