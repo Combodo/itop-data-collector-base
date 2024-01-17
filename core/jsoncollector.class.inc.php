@@ -142,7 +142,7 @@ abstract class JsonCollector extends Collector
 				$aDataGet = [];
 			}
 			
-			$aCurlOptions = static::GetCurlOptions();
+			$aCurlOptions = $this->GetCurlOptions();
 			
 
 			//logs
