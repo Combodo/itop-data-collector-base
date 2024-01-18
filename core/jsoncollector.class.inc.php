@@ -294,9 +294,7 @@ abstract class JsonCollector extends Collector
 			$aCollectorCurlOptions = $aParamsSourceJson['CURL_OPTIONS'];
 		}
 		
-		if(count($aCollectorCurlOptions) > 0) {
-			$aCollectorCurlOptions = Utils::ComputeCurlOptions($aCollectorCurlOptions, -1);
-		}
+		$aCollectorCurlOptions = Utils::ComputeCurlOptions($aCollectorCurlOptions, -1);
 		
 		return array_replace($aConfigCurlOptions, $aCollectorCurlOptions);
 	}
