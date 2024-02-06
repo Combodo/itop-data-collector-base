@@ -261,7 +261,7 @@ abstract class JsonCollector extends Collector
 	}
 	
 	/**
-	 * @return Optional HTTP headers which can be sent to the specified URL. 
+	 * @return Optional HTTP headers which can be sent to the specified URL. {@see \Utils::DoPostRequest() $sOptionnalHeaders parameter for the expected synthax}
 	 * For example, a subclass can be override this method to send an Authorization: header. {@see \Utils::DoPostRequest() $sOptionnalHeaders parameter for the expected syntax}
 	 */
 	public function GetOptionalHeaders() : string
