@@ -106,4 +106,5 @@
   <contact_to_notify></contact_to_notify>
   <!-- iTop user set as allowed to run synchronization. It is highly recommended to use the same as itop_login -->
   <synchro_user></synchro_user>
+  <date_format>Y-m-d</date_format>
 </parameters>
