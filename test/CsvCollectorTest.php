@@ -109,6 +109,7 @@ class CsvCollectorTest extends TestCase
 			"mapping" => array("mapping"),
 			"separator_incolumns" => array("separator_incolumns"),
 			"return_in_fieldvalues" => array("return_in_fieldvalues"),
+            "mapping same column twice" => array("map_column_twice"),
 		);
 	}
 
