@@ -272,8 +272,8 @@ abstract class CSVCollector extends Collector
 				}
 			}
             if (array_key_exists($sSynchroColumn, $this->aSynchroColumnsToDuplicate)) {
-                foreach ($this->aSynchroColumnsToDuplicate[$sSynchroColumn] as $sSynchroColumnsToDuplicate) {
-                    $aData[$sSynchroColumnsToDuplicate] = $aData[$sSynchroColumn];
+                foreach ($this->aSynchroColumnsToDuplicate[$sSynchroColumn] as $sSynchroColumnToDuplicate) {
+                    $aData[$sSynchroColumnToDuplicate] = $aData[$sSynchroColumn];
                 }
             }
 		}
