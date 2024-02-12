@@ -603,26 +603,32 @@ abstract class Collector
 		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator);
 	}
 
+	/**
+	 * @return true
+	 * @throws IOException When file cannot be opened.
+	 */
 	protected function OpenCSVFile()
 	{
-		$bResult = true;
 		if ($this->MustProcessBeforeSynchro()) {
 			$sDataFile = Utils::GetDataFilePath(get_class($this).'.raw-'.(1 + $this->iFileIndex).'.csv');
 		} else {
 			$sDataFile = Utils::GetDataFilePath(get_class($this).'-'.(1 + $this->iFileIndex).'.csv');
 		}
-		$this->aCSVFile[$this->iFileIndex] = fopen($sDataFile, 'wb');
+		$this->aCSVFile[$this->iFileIndex] = @fopen($sDataFile, 'wb');
 
 		if ($this->aCSVFile[$this->iFileIndex] === false) {
-			Utils::Log(LOG_ERR, "Unable to open the file '$sDataFile' for writing.");
-			$bResult = false;
+			throw new IOException("Unable to open the file '$sDataFile' for writing.");
 		} else {
 			Utils::Log(LOG_INFO, "Writing to file '$sDataFile'.");
 		}
 
-		return $bResult;
+		return true;
 	}
 
+	/**
+	 * @return true
+	 * @throws IOException When file cannot be opened.
+	 */
 	protected function NextCSVFile()
 	{
 		if ($this->iFileIndex !== null) {
