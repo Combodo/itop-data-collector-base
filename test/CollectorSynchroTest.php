@@ -63,7 +63,8 @@ OUTPUT;
 		    'no_stop_on_import_error' => 1,
 		    'output' => $sExpectedOutputRequiredToItopSynchro,
 		    'csvdata' => 'FAKECSVCONTENT',
-		    'charset' => 'UTF-8'
+		    'charset' => 'UTF-8',
+            'date_format' => 'Y-m-d'
 		];
 		$this->oMockedCallItopService->expects($this->exactly(2))
 			->method('CallItopViaHttp')
