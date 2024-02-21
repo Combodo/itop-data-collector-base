@@ -951,6 +951,7 @@ abstract class Collector
 				case 'notify_contact_id_friendlyname':
 				case 'notify_contact_id_finalclass_recall':
 				case 'notify_contact_id_obsolescence_flag':
+				case 'notify_contact_id_archive_flag':
 					// Ignore all read-only attributes
 					break;
 
@@ -1010,6 +1011,7 @@ abstract class Collector
 				case 'notify_contact_id_friendlyname':
 				case 'notify_contact_id_finalclass_recall':
 				case 'notify_contact_id_obsolescence_flag':
+				case 'notify_contact_id_archive_flag':
 					// Ignore all read-only attributes
 					break;
 
