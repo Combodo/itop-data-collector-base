@@ -514,9 +514,10 @@ abstract class Collector
 								Utils::Log(LOG_INFO, "Ok, the Synchro Data Source '{$this->sSourceName}' exists in iTop and is up to date");
 							} else {
 								Utils::Log(LOG_INFO, "The Synchro Data Source definition for '{$this->sSourceName}' must be updated in iTop.");
-								// For debugging...
-								file_put_contents(APPROOT.'data/tmp-'.get_class($this).'-orig.txt', print_r($aExpectedSourceDefinition, true));
-								file_put_contents(APPROOT.'data/tmp-'.get_class($this).'-itop.txt', print_r($aCurrentSourceDefinition, true));
+								if (LOG_DEBUG <= Utils::$iConsoleLogLevel) {
+									file_put_contents(APPROOT.'data/tmp-'.get_class($this).'-orig.txt', print_r($aExpectedSourceDefinition, true));
+									file_put_contents(APPROOT.'data/tmp-'.get_class($this).'-itop.txt', print_r($aCurrentSourceDefinition, true));
+								}
 								$bResult = $this->UpdateSynchroDataSource($aExpectedSourceDefinition, $this->GetName());
 							}
 						}
