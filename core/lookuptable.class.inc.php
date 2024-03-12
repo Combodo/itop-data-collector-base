@@ -158,8 +158,8 @@ class LookupTable
 					Utils::Log(LOG_DEBUG, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
 				} else {
 					Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+					$bRet = false;
 				}
-				$bRet = false;
 			} else {
 				$iPos = $this->aFieldsPos[$sDestField];
 				if ($iPos !== null) {
