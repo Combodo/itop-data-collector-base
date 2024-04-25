@@ -80,6 +80,9 @@ OUTPUT;
 
 	public function setUp(): void
 	{
+		global $argv;
+		array_push($argv, "--config_file=".__DIR__."/utils/params.test.xml");
+
 		parent::setUp();
 
 		$this->oMockedCallItopService = $this->createMock("CallItopService");
