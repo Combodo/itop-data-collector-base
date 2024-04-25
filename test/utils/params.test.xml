@@ -19,5 +19,6 @@
   </curl_options>
   <contact_to_notify></contact_to_notify>
   <synchro_user></synchro_user>
+  <date_format>d/m/Y</date_format>
   <broken_param>(&amp;(objectClass=person)(mail=*))</broken_param>
 </parameters>

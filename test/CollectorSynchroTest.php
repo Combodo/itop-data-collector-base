@@ -63,7 +63,8 @@ OUTPUT;
 		    'no_stop_on_import_error' => 1,
 		    'output' => $sExpectedOutputRequiredToItopSynchro,
 		    'csvdata' => 'FAKECSVCONTENT',
-		    'charset' => 'UTF-8'
+		    'charset' => 'UTF-8',
+            'date_format' => 'd/m/Y'
 		];
 		$this->oMockedCallItopService->expects($this->exactly(2))
 			->method('CallItopViaHttp')
@@ -79,6 +80,9 @@ OUTPUT;
 
 	public function setUp(): void
 	{
+		global $argv;
+		array_push($argv, "--config_file=".__DIR__."/utils/params.test.xml");
+
 		parent::setUp();
 
 		$this->oMockedCallItopService = $this->createMock("CallItopService");
