@@ -33,12 +33,12 @@ abstract class CSVCollector extends Collector
 	protected $bHasHeader = true;
 	protected $sCsvCliCommand;
 	protected $aSynchroColumns;
-    /** @var Fields present in the csv file to duplicate before importing into iTop */
+    /** @var array<string, string[]> Fields present in the csv file to duplicate before importing into iTop */
     protected $aSynchroColumnsToDuplicate = array();
 	protected $aSynchroFieldsToDefaultValues = array();
 	protected $aConfiguredHeaderColumns;
 	protected $aMappingCsvToSynchro = array();
-    /** @var Source field mapped to multiple target fields */
+    /** @var array<string, string[]> Source field mapped to multiple target fields */
     protected $aCsvColumnToDuplicate = array();
 	protected $aIgnoredCsvColumns = array();
 	protected $aIgnoredSynchroFields = array();
