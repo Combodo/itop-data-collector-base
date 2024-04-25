@@ -33,12 +33,12 @@ abstract class CSVCollector extends Collector
 	protected $bHasHeader = true;
 	protected $sCsvCliCommand;
 	protected $aSynchroColumns;
-    /*Fields present in the csv file to duplicate before importing into iTop*/
+    /** @var Fields present in the csv file to duplicate before importing into iTop */
     protected $aSynchroColumnsToDuplicate = array();
 	protected $aSynchroFieldsToDefaultValues = array();
 	protected $aConfiguredHeaderColumns;
 	protected $aMappingCsvToSynchro = array();
-    /*Source field mapped to multiple target fields*/
+    /** @var Source field mapped to multiple target fields */
     protected $aCsvColumnToDuplicate = array();
 	protected $aIgnoredCsvColumns = array();
 	protected $aIgnoredSynchroFields = array();
@@ -239,7 +239,7 @@ abstract class CSVCollector extends Collector
             }
 			$this->CheckColumns($aColsToCheck, [], 'csv file');
 
- 			if ($this->bHasHeader) {
+			if ($this->bHasHeader) {
 				$this->iIdx++;
 				/** NextLineObject**/
 				$oNextLineArr = $this->getNextLine();
