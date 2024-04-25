@@ -64,7 +64,7 @@ OUTPUT;
 		    'output' => $sExpectedOutputRequiredToItopSynchro,
 		    'csvdata' => 'FAKECSVCONTENT',
 		    'charset' => 'UTF-8',
-            'date_format' => 'Y-m-d'
+            'date_format' => 'd/m/Y'
 		];
 		$this->oMockedCallItopService->expects($this->exactly(2))
 			->method('CallItopViaHttp')
