@@ -126,7 +126,7 @@ class LookupTest extends TestCase
 				'sExpectedErrorMessage' => 'No mapping found with key: \'Microsoft Windows 10_10.0.19044\', \'osversion_id\' will be set to zero.',
 				'sExpectedValue' => 61,
 			],
-			"error_fieldNotFound_warning" => [
+			"error_fieldNotFound_dontIgnoreMappingError" => [
 				'aFirstLine' => ["primary_key", "name", "osfamily_id", "osversion_id"],
 				'aData' => [
 					'OSVersion::61' => [
@@ -152,7 +152,7 @@ class LookupTest extends TestCase
 				'sExpectedErrorMessage' => 'No mapping found with key: \'microsoft windows 10_10.0.190445\', \'osversion_id\' will be set to zero.',
 				'sExpectedValue' => 2,
 			],
-			"error_fieldNotFound_debug" => [
+			"error_fieldNotFound_ignoreMappingError" => [
 				'aFirstLine' => ["primary_key", "name", "osfamily_id", "osversion_id"],
 				'aData' => [
 					'OSVersion::61' => [
@@ -173,10 +173,10 @@ class LookupTest extends TestCase
 				'bSkipIfEmpty' => false,
 				'bCaseSensitive' => false,
 				'bIgnoreMappingErrors' => true,
-				'sExpectedRes' => '',
+				'sExpectedRes' => true,
 				'sExpectedErrorType' => LOG_DEBUG,
 				'sExpectedErrorMessage' => 'No mapping found with key: \'microsoft windows 10_10.0.190445\', \'osversion_id\' will be set to zero.',
-				'sExpectedValue' => 2,
+				'sExpectedValue' => "10.0.190445",
 			],
 			"emptyfield" => [
 				'aFirstLine' => ["primary_key", "name", "osfamily_id", "osversion_id"],
