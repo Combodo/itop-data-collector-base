@@ -17,6 +17,7 @@
 class RestClient
 {
 	protected $sVersion;
+	protected $sLastInstallDate;
 
 	public function __construct()
 	{
@@ -34,13 +35,14 @@ class RestClient
 	}
 
 
-	public function Get($sClass, $keySpec, $sOutputFields = '*')
+	public function Get($sClass, $keySpec, $sOutputFields = '*', $iLimit = 0)
 	{
 		$aOperation = array(
 			'operation'     => 'core/get', // operation code
 			'class'         => $sClass,
 			'key'           => $keySpec,
 			'output_fields' => $sOutputFields, // list of fields to show in the results (* or a,b,c)
+			'limit'         => $iLimit,
 		);
 
 		return self::ExecOperation($aOperation, $this->sVersion);
@@ -215,7 +217,16 @@ class RestClient
 	public function CheckModuleInstallation(string $sName, bool $bRequired = false): bool
 	{
 		try {
-			$aResults = static::Get('ModuleInstallation', ['name' => $sName], 'name,version');
+			if (!isset($this->sLastInstallDate)) {
+				$aDatamodelResults = static::Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
+				if ($aDatamodelResults['code'] != 0 || empty($aDatamodelResults['objects'])){
+					throw new Exception($aDatamodelResults['message'], $aDatamodelResults['code']);
+				}
+				$aDatamodel = current($aDatamodelResults['objects']);
+				$this->sLastInstallDate = $aDatamodel['fields']['installed'];
+			}
+			
+			$aResults = static::Get('ModuleInstallation', ['name' => $sName, 'installed' => $this->sLastInstallDate], 'name,version', 1);
 			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
 				throw new Exception($aResults['message'], $aResults['code']);
 			}
