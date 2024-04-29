@@ -4,6 +4,6 @@
        "ext-libxml": "*"
    },
    "require-dev": {
-       "phpunit/phpunit": "*"
+       "phpunit/phpunit": "^6"
    }
 }
