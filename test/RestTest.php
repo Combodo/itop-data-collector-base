@@ -116,4 +116,27 @@ class RestTest extends TestCase
 		$this->assertEquals(['retcode' => 0], $oRestClient->ListOperations());
 	}
 
+	public function testCheckModuleInstallation(){
+		$oRestClient = $this->createMock(RestClient::class);
+		
+		$oReflectionLastInstallDate = new \ReflectionProperty(RestClient::class, 'sLastInstallDate');
+		$oReflectionLastInstallDate->setAccessible(true);
+		$oReflectionLastInstallDate->setValue($oRestClient, '0000-00-00 00:00:00');
+		
+		$oRestClient->expects($this->exactly(2))
+			->method('Get')
+			->willReturnMap([
+				['ModuleInstallation', ['name' => 'itop-structure', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
+					'code' => 0,
+					'objects' => ['ModuleInstallation::0' => ['fields' => ['name' => 'itop-structure', 'version' => '0.0.0']]],
+				]],
+				['ModuleInstallation', ['name' => 'fake-module', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
+					'code' => 0,
+					'objects' => null,
+				]],
+			]);
+
+		$this->assertTrue($oRestClient->CheckModuleInstallation('itop-structure', true));
+		$this->assertFalse($oRestClient->CheckModuleInstallation('fake-module'));
+	}
 }
