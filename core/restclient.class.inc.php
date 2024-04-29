@@ -213,6 +213,8 @@ class RestClient
 	
 	/**
 	 * Check if the given module is installed in iTop
+	 * Mind that this assume that ModuleInstallation class is ordered by descending installation date
+	 *
 	 * @param string $sName Name of the module to be found
 	 * @param bool $bRequired Whether to throw exceptions when module not found
 	 * @return bool True when the given module is installed, false otherwise
@@ -223,7 +225,7 @@ class RestClient
 		try {
 			if (!isset($this->sLastInstallDate)) {
 				$aDatamodelResults = static::Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
-				if ($aDatamodelResults['code'] != 0 || empty($aDatamodelResults['objects'])){
+				if ($aDatamodelResults['code'] != 0 || count($aDatamodelResults['objects']) === 0){
 					throw new Exception($aDatamodelResults['message'], $aDatamodelResults['code']);
 				}
 				$aDatamodel = current($aDatamodelResults['objects']);
@@ -231,14 +233,16 @@ class RestClient
 			}
 			
 			$aResults = static::Get('ModuleInstallation', ['name' => $sName, 'installed' => $this->sLastInstallDate], 'name,version', 1);
-			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
+			if ($aResults['code'] != 0 || count($aResults['objects']) === 0) {
 				throw new Exception($aResults['message'], $aResults['code']);
 			}
 			$aObject = current($aResults['objects']);
 			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $aObject['fields']['version']));
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());
-			if ($bRequired) throw new Exception($sMessage, 0, $e);
+			if ($bRequired) {
+				throw new Exception($sMessage, 0, $e);
+			}
 			else {
 				Utils::Log(LOG_INFO, $sMessage);
 				return false;
