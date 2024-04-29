@@ -17,6 +17,10 @@
 class RestClient
 {
 	protected $sVersion;
+	/**
+	 * @var string Keeps track of the latest date the datamodel has been installed/updated
+	 * (in order to check which modules were installed with it)
+	 */
 	protected $sLastInstallDate;
 
 	public function __construct()
