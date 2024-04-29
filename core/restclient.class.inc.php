@@ -225,7 +225,7 @@ class RestClient
 		try {
 			if (!isset($this->sLastInstallDate)) {
 				$aDatamodelResults = static::Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
-				if ($aDatamodelResults['code'] != 0 || count($aDatamodelResults['objects']) === 0){
+				if ($aDatamodelResults['code'] != 0 || empty($aDatamodelResults['objects'])){
 					throw new Exception($aDatamodelResults['message'], $aDatamodelResults['code']);
 				}
 				$aDatamodel = current($aDatamodelResults['objects']);
@@ -233,7 +233,7 @@ class RestClient
 			}
 			
 			$aResults = static::Get('ModuleInstallation', ['name' => $sName, 'installed' => $this->sLastInstallDate], 'name,version', 1);
-			if ($aResults['code'] != 0 || count($aResults['objects']) === 0) {
+			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
 				throw new Exception($aResults['message'], $aResults['code']);
 			}
 			$aObject = current($aResults['objects']);
