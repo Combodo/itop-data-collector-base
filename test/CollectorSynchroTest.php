@@ -84,6 +84,7 @@ OUTPUT;
 		array_push($argv, "--config_file=".__DIR__."/utils/params.test.xml");
 
 		parent::setUp();
+        Utils::LoadConfig();
 
 		$this->oMockedCallItopService = $this->createMock("CallItopService");
 		Collector::SetCallItopService($this->oMockedCallItopService);
