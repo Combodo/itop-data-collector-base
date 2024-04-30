@@ -73,7 +73,6 @@ class CsvCollectorTest extends TestCase
 		$this->assertTrue($oOrgCollector->Collect());
 
 		$sExpected_content = file_get_contents(self::$sCollectorPath."expected_generated.csv");
-        Utils::Log(LOG_INFO, "Test ".$sAdditionalDir);
 
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
 	}
@@ -93,7 +92,6 @@ class CsvCollectorTest extends TestCase
 				}
 			}
 		}
-        Utils::Log(LOG_INFO, "Copied files from $sPattern to ".self::$sCollectorPath);
 	}
 
 	public function OrgCollectorProvider()

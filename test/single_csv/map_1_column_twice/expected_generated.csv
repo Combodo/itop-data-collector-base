@@ -1,2 +1,2 @@
-primary_key;email;first_name;name;org_id;phone;employee_number;function;status;mobile_phone\n
-issacasimov@function.io;asimov;asimov;Demo;123456789;06543210;writer;Active;9998877665544\n
+primary_key;email;first_name;name;org_id;phone;employee_number;function;status;mobile_phone
+issacasimov@function.io;asimov;asimov;Demo;123456789;06543210;writer;Active;9998877665544
