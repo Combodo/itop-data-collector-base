@@ -1,2 +1,2 @@
-first_name;name;org_id;phone;primary_key;employee_number;email;function;status;mobile_phone
-isaac;asimov;Demo;123456789;06543210;06543210;issac.asimov@function.io;06543210;Active;9998877665544
+first_name;name;org_id;phone;primary_key;employee_number;function;email;status;mobile_phone
+isaac;asimov;Demo;123456789;06543210;06543210;writer;issac.asimov@function.io;Active;9998877665544
