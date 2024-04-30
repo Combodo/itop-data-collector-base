@@ -52,6 +52,7 @@ class CsvCollectorTest extends TestCase
 
 	/**
 	 * @param bool $sAdditionalDir
+     * Note: The order of fields in Expected_generated.csv does not matter -> it is not tested
 	 *
 	 * @dataProvider OrgCollectorProvider
 	 * @throws \Exception
