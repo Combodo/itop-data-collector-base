@@ -6,14 +6,14 @@
     <iTopPersonCsvCollector>
         <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
         <fields>
-            <first_name>first_name</first_name>
             <primary_key>employee_number</primary_key>
+            <first_name>first_name</first_name>
+            <name>name</name>
             <employee_number>employee_number</employee_number>
-            <function>fonction</function>
+            <function>employee_number</function>
             <email>email</email>
             <status>statut</status>
             <phone>phone</phone>
-            <name>name</name>
             <org_id>org_id</org_id>
         </fields>
         <defaults>

@@ -73,6 +73,7 @@ class CsvCollectorTest extends TestCase
 		$this->assertTrue($oOrgCollector->Collect());
 
 		$sExpected_content = file_get_contents(self::$sCollectorPath."expected_generated.csv");
+        Utils::Log(LOG_INFO, "Test ".$sAdditionalDir);
 
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
 	}
@@ -92,6 +93,7 @@ class CsvCollectorTest extends TestCase
 				}
 			}
 		}
+        Utils::Log(LOG_INFO, "Copied files from $sPattern to ".self::$sCollectorPath);
 	}
 
 	public function OrgCollectorProvider()
@@ -108,8 +110,12 @@ class CsvCollectorTest extends TestCase
 			"configured header" => array("configured_header"),
 			"mapping" => array("mapping"),
 			"separator_incolumns" => array("separator_incolumns"),
-			"return_in_fieldvalues" => array("return_in_fieldvalues"),
-            "mapping same column twice" => array("map_column_twice"),
+            "mapping 1 column twice" => array("map_1_column_twice"),
+            "mapping 1 column twice adding primary key" => array("map_1_column_twice_primary_key"),
+            "mapping 1 column 3 times" => array("map_1_column_3_times"),
+            "mapping 2 columns twice" => array("map_2_columns_twice"),
+            "mapping 2 columns 3 times" => array("map_2_columns_3_times"),
+            "return_in_fieldvalues" => array("return_in_fieldvalues"),
 		);
 	}
 
