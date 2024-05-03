@@ -17,11 +17,6 @@
 class RestClient
 {
 	protected $sVersion;
-	/**
-	 * @var string Keeps track of the latest date the datamodel has been installed/updated
-	 * (in order to check which modules were installed with it)
-	 */
-	protected $sLastInstallDate;
 
 	public function __construct()
 	{
@@ -209,44 +204,5 @@ class RestClient
 		unset($aSource['notify_contact_id_obsolescence_flag']);
 
 		return $bResult;
-	}
-	
-	/**
-	 * Check if the given module is installed in iTop.
-	 * Mind that this assumes the `ModuleInstallation` class is ordered by descending installation date
-	 *
-	 * @param string $sName Name of the module to be found
-	 * @param bool $bRequired Whether to throw exceptions when module not found
-	 * @return bool True when the given module is installed, false otherwise
-	 * @throws Exception When the module is required but could not be found
-	 */
-	public function CheckModuleInstallation(string $sName, bool $bRequired = false): bool
-	{
-		try {
-			if (!isset($this->sLastInstallDate)) {
-				$aDatamodelResults = static::Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
-				if ($aDatamodelResults['code'] != 0 || empty($aDatamodelResults['objects'])){
-					throw new Exception($aDatamodelResults['message'], $aDatamodelResults['code']);
-				}
-				$aDatamodel = current($aDatamodelResults['objects']);
-				$this->sLastInstallDate = $aDatamodel['fields']['installed'];
-			}
-			
-			$aResults = static::Get('ModuleInstallation', ['name' => $sName, 'installed' => $this->sLastInstallDate], 'name,version', 1);
-			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
-				throw new Exception($aResults['message'], $aResults['code']);
-			}
-			$aObject = current($aResults['objects']);
-			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $aObject['fields']['version']));
-		} catch (Exception $e) {
-			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());
-			if ($bRequired) {
-				throw new Exception($sMessage, 0, $e);
-			} else {
-				Utils::Log(LOG_INFO, $sMessage);
-				return false;
-			}
-		}
-		return true;
 	}
 }
