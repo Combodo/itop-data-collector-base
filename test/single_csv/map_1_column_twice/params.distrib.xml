@@ -17,7 +17,7 @@
             <org_id>org_id</org_id>
         </fields>
         <defaults>
-            <mobile_phone>9998877665544</mobile_phone>
+            <mobile_phone>+33601234567</mobile_phone>
         </defaults>
     </iTopPersonCsvCollector>
 

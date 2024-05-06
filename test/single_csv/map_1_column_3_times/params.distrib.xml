@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, copy its content to conf/params.local.xml and edit it instead -->
 <parameters>
-  <console_log_level>6</console_log_level>
+  <console_log_level>3</console_log_level>
 
     <iTopPersonCsvCollector>
         <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
@@ -17,7 +17,7 @@
             <org_id>org_id</org_id>
         </fields>
         <defaults>
-            <mobile_phone>9998877665544</mobile_phone>
+            <mobile_phone>+336012345678</mobile_phone>
         </defaults>
     </iTopPersonCsvCollector>
 
