@@ -33,13 +33,9 @@ abstract class CSVCollector extends Collector
 	protected $bHasHeader = true;
 	protected $sCsvCliCommand;
 	protected $aSynchroColumns;
-    /** @var array<string, string[]> Fields present in the csv file to duplicate before importing into iTop */
-    protected $aSynchroColumnsToDuplicate = array();
 	protected $aSynchroFieldsToDefaultValues = array();
 	protected $aConfiguredHeaderColumns;
 	protected $aMappingCsvToSynchro = array();
-    /** @var array<string, string[]> Source field mapped to multiple target fields */
-    protected $aCsvColumnToDuplicate = array();
 	protected $aIgnoredCsvColumns = array();
 	protected $aIgnoredSynchroFields = array();
 
@@ -130,16 +126,12 @@ abstract class CSVCollector extends Collector
 
 					if ($this->bHasHeader) {
 						foreach ($aCurrentConfiguredHeaderColumns as $sSynchroField => $sCsvColumn) {
-                            if (array_key_exists($sCsvColumn, $this->aMappingCsvToSynchro)) {
-                                $this->aCsvColumnToDuplicate[$sCsvColumn][] = $sSynchroField;
-                            } else {
                                 $this->aMappingCsvToSynchro[$sCsvColumn] = $sSynchroField;
                             }
 						}
 					}
 				}
 			}
-		}
 
 		if ($sCsvFilePath === '') {
 			// No query at all !!
@@ -233,11 +225,7 @@ abstract class CSVCollector extends Collector
 			$aCsvHeaderColumns = $oNextLineArr->getValues();
 
 			$this->Configure($aCsvHeaderColumns);
-            $aColsToCheck = array_fill_keys($this->aSynchroColumns, '');
-            foreach ($this->aSynchroColumnsToDuplicate as $aCols){
-                $aColsToCheck = array_merge($aColsToCheck,array_fill_keys($aCols,''));
-            }
-			$this->CheckColumns($aColsToCheck, [], 'csv file');
+			$this->CheckColumns(array_fill_keys($this->aSynchroColumns, ''), [], 'csv file');
 
 			if ($this->bHasHeader) {
 				$this->iIdx++;
@@ -271,11 +259,6 @@ abstract class CSVCollector extends Collector
 					$aData[$sSynchroColumn] = $sVal;
 				}
 			}
-            if (array_key_exists($sSynchroColumn, $this->aSynchroColumnsToDuplicate)) {
-                foreach ($this->aSynchroColumnsToDuplicate[$sSynchroColumn] as $sSynchroColumnToDuplicate) {
-                    $aData[$sSynchroColumnToDuplicate] = $aData[$sSynchroColumn];
-                }
-            }
 		}
 
 		foreach ($this->aSynchroFieldsToDefaultValues as $sAttributeId => $sAttributeValue) {
@@ -300,9 +283,6 @@ abstract class CSVCollector extends Collector
 				if (array_key_exists($sCsvColumn, $this->aMappingCsvToSynchro)) {
 					//use mapping instead of csv header sSynchroColumn
 					$this->aSynchroColumns[] = $this->aMappingCsvToSynchro[$sCsvColumn];
-                    if (array_key_exists($sCsvColumn, $this->aCsvColumnToDuplicate)) {
-                        $this->aSynchroColumnsToDuplicate[$this->aMappingCsvToSynchro[$sCsvColumn]] = $this->aCsvColumnToDuplicate[$sCsvColumn];
-                    }
 				} else {
 					$this->aSynchroColumns[] = $sCsvColumn;
 					$this->aMappingCsvToSynchro[$sCsvColumn] = $sCsvColumn;
