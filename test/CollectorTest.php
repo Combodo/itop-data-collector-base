@@ -27,6 +27,10 @@ class CollectorTest extends TestCase
 		foreach ($aCollectorFiles as $sFile) {
 			unlink($sFile);
 		}
+        // Remove params.local.xml if it exists because it can interfere with the tests
+        if (file_exists(APPROOT."/conf/params.local.xml")) {
+            unlink(APPROOT."/conf/params.local.xml");
+        }
 	}
 
     public function tearDown(): void
@@ -124,7 +128,7 @@ CSV;
 		}
 	}
 
-	private function copy($sPattern)
+	protected function copy($sPattern)
 	{
 		if (!is_dir(self::$sCollectorPath)) {
 			mkdir(self::$sCollectorPath);
@@ -139,7 +143,7 @@ CSV;
 			}
 		}
 	}
-	
+
 	/**
 	 * @dataProvider providerUpdateSDSAttributes
 	 * @param array $aExpectedAttrDef

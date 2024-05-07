@@ -16,8 +16,9 @@ require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
+require_once(APPROOT.'test/CollectorTest.php');
 
-class CsvCollectorTest extends TestCase
+class CsvCollectorTest extends CollectorTest
 {
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
@@ -26,22 +27,8 @@ class CsvCollectorTest extends TestCase
 	{
 		parent::setUp();
 
-		$aCollectorFiles = glob(self::$sCollectorPath."*");
-		foreach ($aCollectorFiles as $sFile) {
-			unlink($sFile);
-		}
-
 		$this->oMockedLogger = $this->createMock("UtilsLogger");
 		Utils::MockLog($this->oMockedLogger);
-	}
-
-	public function tearDown(): void
-	{
-		parent::tearDown();
-		$aCollectorFiles = glob(self::$sCollectorPath."*");
-		foreach ($aCollectorFiles as $sFile) {
-			unlink($sFile);
-		}
 	}
 
 	public function testIOException()
@@ -76,23 +63,6 @@ class CsvCollectorTest extends TestCase
 		$sExpected_content = file_get_contents(self::$sCollectorPath."expected_generated.csv");
 
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
-	}
-
-	private function copy($sPattern)
-	{
-		if (!is_dir(self::$sCollectorPath)) {
-			mkdir(self::$sCollectorPath);
-		}
-
-		$aFiles = glob($sPattern);
-		foreach ($aFiles as $sFile) {
-			if (is_file($sFile)) {
-				$bRes = copy($sFile, self::$sCollectorPath.basename($sFile));
-				if (!$bRes) {
-					throw new Exception("Failed copying $sFile to ".self::$sCollectorPath.basename($sFile));
-				}
-			}
-		}
 	}
 
 	public function OrgCollectorProvider()
