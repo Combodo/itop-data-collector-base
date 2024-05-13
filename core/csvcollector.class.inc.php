@@ -32,10 +32,23 @@ abstract class CSVCollector extends Collector
 	protected $sCsvEncoding;
 	protected $bHasHeader = true;
 	protected $sCsvCliCommand;
-	protected $aSynchroColumns;
+    /**
+     * @var   array<int, string[]>  Table of number of columns in input csv file corresponding to output fields or input columns names (if the specification never mention the input column)
+     * [0 => [synchro_field1, synchro_field2], 1 => [synchro_field3], 2 => [col_name]]
+     */
+	protected $aMappingCsvColumnIndexToFields;
 	protected $aSynchroFieldsToDefaultValues = array();
 	protected $aConfiguredHeaderColumns;
-	protected $aMappingCsvToSynchro = array();
+    /**
+     * @var array<string, string[]>  Mapping of csv columns to synchro fields
+     * [column_name => [synchro_field1, synchro_field2], column_name2 => [synchro_field3]]
+     */
+    protected $aMappingCsvColumnNameToFields = array();
+    /**
+     * @var array<string, string>  Table of all synchronised fields
+     * [synchro_field => '', synchro_field2 => '']
+     */
+    protected $aMappedFields = array();
 	protected $aIgnoredCsvColumns = array();
 	protected $aIgnoredSynchroFields = array();
 
@@ -126,12 +139,14 @@ abstract class CSVCollector extends Collector
 
 					if ($this->bHasHeader) {
 						foreach ($aCurrentConfiguredHeaderColumns as $sSynchroField => $sCsvColumn) {
-							$this->aMappingCsvToSynchro[$sCsvColumn] = $sSynchroField;
+                                    $this->aMappingCsvColumnNameToFields[$sCsvColumn][] = $sSynchroField;
+                                    $this->aMappedFields[$sSynchroField] = '';
+                            }
 						}
-					}
+                    }
+
 				}
 			}
-		}
 
 		if ($sCsvFilePath === '') {
 			// No query at all !!
@@ -221,11 +236,11 @@ abstract class CSVCollector extends Collector
 		/** NextLineObject**/
 		$oNextLineArr = $this->getNextLine();
 
-		if (!$this->aSynchroColumns) {
+		if (!$this->aMappingCsvColumnIndexToFields) {
 			$aCsvHeaderColumns = $oNextLineArr->getValues();
 
 			$this->Configure($aCsvHeaderColumns);
-			$this->CheckColumns(array_fill_keys($this->aSynchroColumns, ''), [], 'csv file');
+			$this->CheckColumns($this->aMappedFields, [], 'csv file');
 
 			if ($this->bHasHeader) {
 				$this->iIdx++;
@@ -234,7 +249,7 @@ abstract class CSVCollector extends Collector
 			}
 		}
 
-		$iColumnSize = count($this->aSynchroColumns);
+		$iColumnSize = count($this->aMappingCsvColumnIndexToFields);
 		$iLineSize = count($oNextLineArr->getValues());
 		if ($iColumnSize !== $iLineSize) {
 			$line = $this->iIdx + 1;
@@ -244,21 +259,23 @@ abstract class CSVCollector extends Collector
 		}
 
 		$aData = array();
-		$i = 0;
-		foreach ($oNextLineArr->getValues() as $sVal) {
-			$sSynchroColumn = $this->aSynchroColumns[$i];
-			$i++;
-			if (array_key_exists($sSynchroColumn, $this->aSynchroFieldsToDefaultValues)) {
-				if (empty($sVal)) {
-					$aData[$sSynchroColumn] = $this->aSynchroFieldsToDefaultValues[$sSynchroColumn];
-				} else {
-					$aData[$sSynchroColumn] = $sVal;
-				}
-			} else {
-				if (!in_array($sSynchroColumn, $this->aIgnoredSynchroFields)) {
-					$aData[$sSynchroColumn] = $sVal;
-				}
-			}
+
+		foreach ($oNextLineArr->getValues() as $i =>$sVal) {
+			$aSynchroFields = $this->aMappingCsvColumnIndexToFields[$i];
+            foreach ($aSynchroFields as $sSynchroField) {
+                if (array_key_exists($sSynchroField, $this->aSynchroFieldsToDefaultValues)) {
+                    if (empty($sVal)) {
+                        $aData[$sSynchroField] = $this->aSynchroFieldsToDefaultValues[$sSynchroField];
+                    } else {
+                        $aData[$sSynchroField] = $sVal;
+                    }
+                } else {
+                    if (!in_array($sSynchroField, $this->aIgnoredSynchroFields)) {
+                        $aData[$sSynchroField] = $sVal;
+                    }
+                }
+            }
+
 		}
 
 		foreach ($this->aSynchroFieldsToDefaultValues as $sAttributeId => $sAttributeValue) {
@@ -278,23 +295,35 @@ abstract class CSVCollector extends Collector
 	protected function Configure($aCsvHeaderColumns)
 	{
 		if ($this->bHasHeader) {
-			$this->aSynchroColumns = array();
+			$this->aMappingCsvColumnIndexToFields = [];
+
 			foreach ($aCsvHeaderColumns as $sCsvColumn) {
-				if (array_key_exists($sCsvColumn, $this->aMappingCsvToSynchro)) {
+				if (array_key_exists($sCsvColumn, $this->aMappingCsvColumnNameToFields)) {
 					//use mapping instead of csv header sSynchroColumn
-					$this->aSynchroColumns[] = $this->aMappingCsvToSynchro[$sCsvColumn];
+					$this->aMappingCsvColumnIndexToFields[] = $this->aMappingCsvColumnNameToFields[$sCsvColumn];
 				} else {
-					$this->aSynchroColumns[] = $sCsvColumn;
-					$this->aMappingCsvToSynchro[$sCsvColumn] = $sCsvColumn;
+                    if(!array_key_exists($sCsvColumn, $this->aMappedFields)) {
+                        $this->aMappingCsvColumnIndexToFields[] = [$sCsvColumn];
+                        $this->aMappingCsvColumnNameToFields[$sCsvColumn] = [$sCsvColumn];
+                        $this->aMappedFields[$sCsvColumn] = '';
+                    } else {
+                        $this->aMappingCsvColumnIndexToFields[] = [''];
+                        $this->aMappingCsvColumnNameToFields[$sCsvColumn] = [''];
+                    }
 				}
 			}
 		} else {
-			$this->aSynchroColumns = $this->aConfiguredHeaderColumns;
+
+            foreach ($this->aConfiguredHeaderColumns as $sSynchroColumn) {
+                $this->aMappingCsvColumnIndexToFields[] = [$sSynchroColumn];
+                $this->aMappedFields[$sSynchroColumn] = '';
+            }
 		}
 
 		foreach ($this->aIgnoredCsvColumns as $sIgnoredCsvColumn) {
-			$this->aIgnoredSynchroFields[] = ($this->bHasHeader) ? $this->aMappingCsvToSynchro[$sIgnoredCsvColumn] : $this->aSynchroColumns[$sIgnoredCsvColumn - 1];
+			$this->aIgnoredSynchroFields = array_merge( $this->aIgnoredSynchroFields, ($this->bHasHeader) ? $this->aMappingCsvColumnNameToFields[$sIgnoredCsvColumn] : $this->aMappingCsvColumnIndexToFields[$sIgnoredCsvColumn - 1]);
 		}
+
 	}
 
 	/**
