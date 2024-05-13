@@ -676,17 +676,23 @@ class Utils
 	 * Check if the given module is installed in iTop.
 	 * Mind that this assumes the `ModuleInstallation` class is ordered by descending installation date
 	 *
-	 * @param string $sName Name of the module to be found
+	 * @param string $sModuleId Name of the module to be found, optionally included version
 	 * @param bool $bRequired Whether to throw exceptions when module not found
 	 * @param RestClient|null $oClient
 	 * @return bool True when the given module is installed, false otherwise
 	 * @throws Exception When the module is required but could not be found
 	 */
-	public static function CheckModuleInstallation(string $sName, bool $bRequired = false, RestClient $oClient = null): bool
+	public static function CheckModuleInstallation(string $sModuleId, bool $bRequired = false, RestClient $oClient = null): bool
 	{
 		if (!isset($oClient))
 		{
 			$oClient = new RestClient();
+		}
+		
+		if (preg_match('/^([^\/]+)(?:\/([<>]?=?)(.+))?$/', $sModuleId, $aModuleMatches)) {
+			$sName = $aModuleMatches[1];
+			$sOperator = $aModuleMatches[2] ?? null ?: '>=';
+			$sExpectedVersion = $aModuleMatches[3] ?? null;
 		}
 		
 		try {
@@ -704,7 +710,13 @@ class Utils
 				throw new Exception($aResults['message'], $aResults['code']);
 			}
 			$aObject = current($aResults['objects']);
-			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $aObject['fields']['version']));
+			$sCurrentVersion = $aObject['fields']['version'];
+			
+			if (isset($sExpectedVersion) && !version_compare($sCurrentVersion, $sExpectedVersion, $sOperator)) {
+				throw new Exception(sprintf('Version mismatch (%s %s %s)', $sCurrentVersion, $sOperator, $sExpectedVersion));
+			}
+			
+			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $sCurrentVersion));
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());
 			if ($bRequired) {

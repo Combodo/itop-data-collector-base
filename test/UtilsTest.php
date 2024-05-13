@@ -239,7 +239,7 @@ class UtilsTest extends TestCase
 		$oReflectionLastInstallDate->setAccessible(true);
 		$oReflectionLastInstallDate->setValue(null,'0000-00-00 00:00:00');
 		
-		$oRestClient->expects($this->exactly(2))
+		$oRestClient->expects($this->exactly(4))
 			->method('Get')
 			->willReturnMap([
 				['ModuleInstallation', ['name' => 'itop-structure', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
@@ -254,7 +254,9 @@ class UtilsTest extends TestCase
 				]],
 			]);
 		
-		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', true, $oRestClient));
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', false, $oRestClient));
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/0.0.0', false, $oRestClient));
+		$this->assertFalse(Utils::CheckModuleInstallation('itop-structure/1.2.3', false, $oRestClient));
 		$this->assertFalse(Utils::CheckModuleInstallation('fake-module', false, $oRestClient));
 	}
 }
