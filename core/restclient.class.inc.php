@@ -34,13 +34,14 @@ class RestClient
 	}
 
 
-	public function Get($sClass, $keySpec, $sOutputFields = '*')
+	public function Get($sClass, $keySpec, $sOutputFields = '*', $iLimit = 0)
 	{
 		$aOperation = array(
 			'operation'     => 'core/get', // operation code
 			'class'         => $sClass,
 			'key'           => $keySpec,
 			'output_fields' => $sOutputFields, // list of fields to show in the results (* or a,b,c)
+			'limit'         => $iLimit,
 		);
 
 		return self::ExecOperation($aOperation, $this->sVersion);
