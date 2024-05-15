@@ -1,4 +1,4 @@
 primary_key;name;status;first_name;email;phone;org_id;function
 1;"My last name";active;"My first name";my.email@foo.org;"+00 000 000 000";1;<NULL>
-2;Picasso;active;Pablo;pablo@demo.com;;3;
-3;Dali;active;Salvador;dali@demo.com;;3;
+2;Picasso;active;Pablo;pablo@demo.com;;3;<NULL>
+3;Dali;active;Salvador;dali@demo.com;;3;<NULL>
