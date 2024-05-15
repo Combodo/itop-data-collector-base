@@ -676,7 +676,7 @@ class Utils
 	 * Check if the given module is installed in iTop.
 	 * Mind that this assumes the `ModuleInstallation` class is ordered by descending installation date
 	 *
-	 * @param string $sModuleId Name of the module to be found, optionally included version
+	 * @param string $sModuleId Name of the module to be found, optionally included version (e.g. "some-module" or "some-module/1.2.3")
 	 * @param bool $bRequired Whether to throw exceptions when module not found
 	 * @param RestClient|null $oClient
 	 * @return bool True when the given module is installed, false otherwise
