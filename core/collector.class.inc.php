@@ -708,6 +708,8 @@ abstract class Collector
 				Utils::Log(LOG_ERR, $sTrimmedOutput);
 
 				return false;
+			} else {
+				Utils::Log(LOG_DEBUG, $sTrimmedOutput);
 			}
 		}
 
