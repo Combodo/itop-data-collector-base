@@ -17,7 +17,7 @@
 class Orchestrator
 {
 	static $aCollectors = array();
-	static $aMinVersions = array('PHP' => '5.3.0', 'simplexml' => '0.1', 'dom' => '1.0');
+	static $aMinVersions = array('PHP' => '7.0', 'simplexml' => '7.0', 'dom' => '1');
 
 	/**
 	 * Add a collector class to be run in the specified order
