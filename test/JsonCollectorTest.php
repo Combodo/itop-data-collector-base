@@ -119,6 +119,7 @@ class JsonCollectorTest extends TestCase
 			"sort of object xpath parsing via an index" => [ "format_json_5" ],
 			"first row nullified function" => [ "nullified_json_1" ],
 			"another row nullified function" => [ "nullified_json_2" ],
+            "json file with relative path" => [ "json_file_with_relative_path" ],
 		];
 	}
 
