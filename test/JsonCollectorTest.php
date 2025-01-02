@@ -108,7 +108,7 @@ class JsonCollectorTest extends TestCase
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/ITopPersonJsonCollector-1.csv"));
 	}
 
-	public function OrgCollectorProvider()
+	public static function OrgCollectorProvider()
 	{
 		return [
 			"default_value" => [ "default_value" ],
@@ -119,6 +119,7 @@ class JsonCollectorTest extends TestCase
 			"sort of object xpath parsing via an index" => [ "format_json_5" ],
 			"first row nullified function" => [ "nullified_json_1" ],
 			"another row nullified function" => [ "nullified_json_2" ],
+            "json file with relative path" => [ "json_file_with_relative_path" ],
 		];
 	}
 
@@ -167,7 +168,7 @@ class JsonCollectorTest extends TestCase
 		}
 	}
 
-	public function ErrorFileProvider()
+	public static function ErrorFileProvider()
 	{
 		return [
 			"error_json_1" => [
