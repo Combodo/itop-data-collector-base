@@ -108,7 +108,7 @@ class JsonCollectorTest extends TestCase
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/ITopPersonJsonCollector-1.csv"));
 	}
 
-	public function OrgCollectorProvider()
+	public static function OrgCollectorProvider()
 	{
 		return [
 			"default_value" => [ "default_value" ],
@@ -168,7 +168,7 @@ class JsonCollectorTest extends TestCase
 		}
 	}
 
-	public function ErrorFileProvider()
+	public static function ErrorFileProvider()
 	{
 		return [
 			"error_json_1" => [
