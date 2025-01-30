@@ -107,5 +107,5 @@
   <!-- iTop user set as allowed to run synchronization. It is highly recommended to use the same as itop_login. By default, it is the same as itop_login -->
   <synchro_user></synchro_user>
   <!-- date format in collected data -->
-  <date_format>Y-m-d</date_format>
+  <date_format>Y-m-d H:i:s</date_format>
 </parameters>
