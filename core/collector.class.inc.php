@@ -495,7 +495,7 @@ abstract class Collector
 			} else {
 				$iCount = ($aResult['objects'] !== null) ? count($aResult['objects']) : 0;
 				switch ($iCount) {
-					²0:
+					case 0:
 						// not found, need to create the Source
 						Utils::Log(LOG_INFO, "There is no Synchro Data Source named '{$this->sSourceName}' in iTop. Let's create it.");
 						$key = $this->CreateSynchroDataSource($aExpectedSourceDefinition, $this->GetName());
