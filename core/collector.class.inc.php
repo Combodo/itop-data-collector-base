@@ -41,6 +41,15 @@ abstract class Collector
 	 * @var string TABLENAME_PATTERN used to validate data synchro table name
 	 */
 	const TABLENAME_PATTERN = '/^[A-Za-z0-9_]*$/';
+	const READONLY_FIELDS = [
+		'friendlyname',
+		'user_id_friendlyname',
+		'user_id_finalclass_recall',
+		'notify_contact_id_friendlyname',
+		'notify_contact_id_finalclass_recall',
+		'notify_contact_id_obsolescence_flag',
+		'notify_contact_id_archive_flag',
+	];
 
 	protected $sProjectName;
 	protected $sSynchroDataSourceDefinitionFile;
@@ -486,7 +495,7 @@ abstract class Collector
 			} else {
 				$iCount = ($aResult['objects'] !== null) ? count($aResult['objects']) : 0;
 				switch ($iCount) {
-					case 0:
+					²0:
 						// not found, need to create the Source
 						Utils::Log(LOG_INFO, "There is no Synchro Data Source named '{$this->sSourceName}' in iTop. Let's create it.");
 						$key = $this->CreateSynchroDataSource($aExpectedSourceDefinition, $this->GetName());
@@ -824,12 +833,10 @@ abstract class Collector
 		$ret = false;
 
 		// Ignore read-only fields
-		unset($aSourceDefinition['friendlyname']);
-		unset($aSourceDefinition['user_id_friendlyname']);
-		unset($aSourceDefinition['user_id_finalclass_recall']);
-		unset($aSourceDefinition['notify_contact_id_friendlyname']);
-		unset($aSourceDefinition['notify_contact_id_finalclass_recall']);
-		unset($aSourceDefinition['notify_contact_id_obsolescence_flag']);
+		foreach (self::READONLY_FIELDS as $sField){
+			unset($aSourceDefinition[$sField]);
+		}
+
 		// SynchroAttributes will be processed one by one, below
 		$aSynchroAttr = $aSourceDefinition['attribute_list'];
 		unset($aSourceDefinition['attribute_list']);
@@ -857,12 +864,10 @@ abstract class Collector
 		$oClient = new RestClient();
 
 		// Ignore read-only fields
-		unset($aSourceDefinition['friendlyname']);
-		unset($aSourceDefinition['user_id_friendlyname']);
-		unset($aSourceDefinition['user_id_finalclass_recall']);
-		unset($aSourceDefinition['notify_contact_id_friendlyname']);
-		unset($aSourceDefinition['notify_contact_id_finalclass_recall']);
-		unset($aSourceDefinition['notify_contact_id_obsolescence_flag']);
+		foreach (Collector::READONLY_FIELDS as $sField){
+			unset($aSourceDefinition[$sField]);
+		}
+
 		// SynchroAttributes will be processed one by one, below
 		$aSynchroAttr = $aSourceDefinition['attribute_list'];
 		unset($aSourceDefinition['attribute_list']);
@@ -952,19 +957,14 @@ abstract class Collector
 	protected function DataSourcesAreEquivalent($aDS1, $aDS2)
 	{
 		foreach ($aDS1 as $sKey => $value) {
-			switch ($sKey) {
-				case 'friendlyname':
-				case 'user_id_friendlyname':
-				case 'user_id_finalclass_recall':
-				case 'notify_contact_id_friendlyname':
-				case 'notify_contact_id_finalclass_recall':
-				case 'notify_contact_id_obsolescence_flag':
-				case 'notify_contact_id_archive_flag':
-					// Ignore all read-only attributes
-					break;
+			if (in_array($sKey, Collector::READONLY_FIELDS)){
+				// Ignore all read-only attributes
+				break;
+			}
 
+			switch ($sKey) {
 				case 'attribute_list':
-					foreach ($value as $sKey => $aDef) {
+					foreach ($value as $sKey2 => $aDef) {
 						$sAttCode = $aDef['attcode'];
 						$aDef2 = $this->FindAttr($sAttCode, $aDS2['attribute_list']);
 						if ($aDef2 === false) {
@@ -1012,23 +1012,15 @@ abstract class Collector
 		}
 		//Check the other way around
 		foreach ($aDS2 as $sKey => $value) {
-			switch ($sKey) {
-				case 'friendlyname':
-				case 'user_id_friendlyname':
-				case 'user_id_finalclass_recall':
-				case 'notify_contact_id_friendlyname':
-				case 'notify_contact_id_finalclass_recall':
-				case 'notify_contact_id_obsolescence_flag':
-				case 'notify_contact_id_archive_flag':
-					// Ignore all read-only attributes
-					break;
+			if (in_array($sKey, Collector::READONLY_FIELDS)){
+				// Ignore all read-only attributes
+				break;
+			}
 
-				default:
-					if (!array_key_exists($sKey, $aDS1)) {
-						Utils::Log(LOG_DEBUG, "Comparison: Found an extra property '$sKey' in iTop. Data sources differ.");
+			if (!array_key_exists($sKey, $aDS1)) {
+				Utils::Log(LOG_DEBUG, "Comparison: Found an extra property '$sKey' in iTop. Data sources differ.");
 
-						return false;
-					}
+				return false;
 			}
 		}
 

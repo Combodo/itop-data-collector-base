@@ -196,12 +196,9 @@ class RestClient
 		}
 
 		// Don't care about these read-only fields
-		unset($aSource['friendlyname']);
-		unset($aSource['user_id_friendlyname']);
-		unset($aSource['user_id_finalclass_recall']);
-		unset($aSource['notify_contact_id_friendlyname']);
-		unset($aSource['notify_contact_id_finalclass_recall']);
-		unset($aSource['notify_contact_id_obsolescence_flag']);
+		foreach (Collector::READONLY_FIELDS as $sField){
+			unset($aSource[$sField]);
+		}
 
 		return $bResult;
 	}
