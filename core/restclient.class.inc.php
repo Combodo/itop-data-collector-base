@@ -153,20 +153,24 @@ class RestClient
 	 *
 	 * @param hash $aSource The definition of 'fields' the Synchro DataSource, as retrieved by Get
 	 * @param integer $iSourceId The identifier (key) of the Synchro Data Source
+	 * @param RestClient|null $oClient : used for tests only
 	 */
-	public static function GetFullSynchroDataSource(&$aSource, $iSourceId)
+	public static function GetFullSynchroDataSource(&$aSource, $iSourceId, RestClient $oRestClient = null)
 	{
 		$bResult = true;
-		$aAttributes = array();
+		$aAttributes = [];
 		// Optimize the calls to the REST API: one call per finalclass
 		foreach ($aSource['attribute_list'] as $aAttr) {
 			if (!array_key_exists($aAttr['finalclass'], $aAttributes)) {
-				$aAttributes[$aAttr['finalclass']] = array();
+				$aAttributes[$aAttr['finalclass']] = [];
 			}
 			$aAttributes[$aAttr['finalclass']][] = $aAttr['attcode'];
 		}
 
-		$oRestClient = new RestClient();
+		if ($oRestClient === null)
+		{
+			$oRestClient = new RestClient();
+		}
 		foreach ($aAttributes as $sFinalClass => $aAttCodes) {
 			Utils::Log(LOG_DEBUG, "RestClient::Get SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
 			$aResult = $oRestClient->Get($sFinalClass, "SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
@@ -197,7 +201,9 @@ class RestClient
 
 		// Don't care about these read-only fields
 		foreach (Collector::READONLY_FIELDS as $sField){
-			unset($aSource[$sField]);
+			if (array_key_exists($sField, $aSource)){
+				unset($aSource[$sField]);
+			}
 		}
 
 		return $bResult;

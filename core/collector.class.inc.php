@@ -260,6 +260,17 @@ abstract class Collector
 		return get_class($this);
 	}
 
+	public function GetSourceId()
+	{
+		return $this->iSourceId;
+	}
+
+	protected function SetSourceId($iSourceId)
+	{
+		$this->iSourceId = $iSourceId;
+	}
+
+
 	public function GetVersion()
 	{
 		if ($this->sVersion == null) {
@@ -517,7 +528,7 @@ abstract class Collector
 							} else {
 								$iKey = (int)$aData['key'];
 							}
-							$this->iSourceId = $iKey;
+							$this->SetSourceId($iKey);
 							RestClient::GetFullSynchroDataSource($aCurrentSourceDefinition, $this->iSourceId);
 							if ($this->DataSourcesAreEquivalent($aExpectedSourceDefinition, $aCurrentSourceDefinition)) {
 								Utils::Log(LOG_INFO, "Ok, the Synchro Data Source '{$this->sSourceName}' exists in iTop and is up to date");
@@ -827,14 +838,20 @@ abstract class Collector
 		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
 	}
 
-	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)
+	protected function CreateSynchroDataSource($aSourceDefinition, $sComment, RestClient $oClient = null)
 	{
-		$oClient = new RestClient();
+		if ($oClient === null)
+		{
+			$oClient = new RestClient();
+		}
+
 		$ret = false;
 
 		// Ignore read-only fields
 		foreach (self::READONLY_FIELDS as $sField){
-			unset($aSourceDefinition[$sField]);
+			if (array_key_exists($sField, $aSourceDefinition)){
+				unset($aSourceDefinition[$sField]);
+			}
 		}
 
 		// SynchroAttributes will be processed one by one, below
@@ -846,7 +863,7 @@ abstract class Collector
 			$aCreatedObj = reset($aResult['objects']);
 			$aExpectedAttrDef = $aCreatedObj['fields']['attribute_list'];
 			$iKey = (int)$aCreatedObj['key'];
-			$this->iSourceId = $iKey;
+			$this->SetSourceId($iKey);
 
 			if ($this->UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttr, $sComment)) {
 				$ret = $this->iSourceId;
@@ -858,14 +875,17 @@ abstract class Collector
 		return $ret;
 	}
 
-	protected function UpdateSynchroDataSource($aSourceDefinition, $sComment)
+	protected function UpdateSynchroDataSource($aSourceDefinition, $sComment, RestClient $oClient = null)
 	{
-		$bRet = true;
-		$oClient = new RestClient();
-
+		if ($oClient === null)
+		{
+			$oClient = new RestClient();
+		}
 		// Ignore read-only fields
 		foreach (Collector::READONLY_FIELDS as $sField){
-			unset($aSourceDefinition[$sField]);
+			if (array_key_exists($sField, $aSourceDefinition)){
+				unset($aSourceDefinition[$sField]);
+			}
 		}
 
 		// SynchroAttributes will be processed one by one, below

@@ -157,13 +157,21 @@ CSV;
 	    require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
 	    $oCollector = new iTopPersonCollector();
 	    $oMockClient = $this->CreateMock('RestClient');
-	    $oMockClient->expects($this->exactly($bWillUpdate ? 1 : 0))->method("Update")->willReturn(['code' => 0]);
-	    
+
+		if ($bWillUpdate==0){
+			$oMockClient->expects($this->never())->method("Update");
+		} else {
+			$oMockClient->expects($this->once())
+				->method("Update")
+				->with('SynchroAttribute')
+				->willReturn(['code' => 0]);
+		}
+
 	    $bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSDSAttributes', $oCollector, [$aExpectedAttrDef, $aSynchroAttrDef, '', $oMockClient]);
-	   
+
 	    $this->assertTrue($bRet);
 	}
-	
+
 	public function providerUpdateSDSAttributes()
 	{
 	    return [
@@ -271,7 +279,97 @@ CSV;
 	    $class = new \ReflectionClass($sObjectClass);
 	    $method = $class->getMethod($sMethodName);
 	    $method->setAccessible(true);
-	    
+
 	    return $method->invokeArgs($oObject, $aArgs);
+	}
+
+	public function CreateSynchroDataSourceProvider() {
+		return [
+			'all readonly fields' => [
+				'aSourceDefinition' => [
+					'attribute_list' => [],
+					'friendlyname' => [],
+					'user_id_friendlyname' => [],
+					'user_id_finalclass_recall' => [],
+					'notify_contact_id_friendlyname' => [],
+					'notify_contact_id_finalclass_recall' => [],
+					'notify_contact_id_obsolescence_flag' => [],
+					'notify_contact_id_archive_flag' => [],
+					'name' => [],
+				],
+				'aExpectedSourceDefinition' => [
+					'name' => [],
+				],
+			],
+			'subset of all readonly fields' => [
+				'aSourceDefinition' => [
+					'attribute_list' => [],
+					'friendlyname' => [],
+					'user_id_friendlyname' => [],
+					'user_id_finalclass_recall' => [],
+					'notify_contact_id_friendlyname' => [],
+					'notify_contact_id_archive_flag' => [],
+					'name' => [],
+				],
+				'aExpectedSourceDefinition' => [
+					'name' => [],
+				],
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider CreateSynchroDataSourceProvider
+	 * @param array $aSourceDefinition
+	 * @param array $aExpectedSourceDefinition
+	 */
+	public function testCreateSynchroDataSource($aSourceDefinition, $aExpectedSourceDefinition)
+	{
+
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oMockClient = $this->CreateMock('RestClient');
+
+		$sComment="COMMENT";
+
+		$oMockClient->expects($this->once())
+				->method("Create")
+				->with('SynchroDataSource',$aExpectedSourceDefinition, $sComment)
+				->willReturn(['code' => 0, 'objects' => [ ['key' => '123', 'fields'=> ['attribute_list' => []], ]]]);
+
+
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'CreateSynchroDataSource', $oCollector, [$aSourceDefinition, $sComment, $oMockClient]);
+
+		$this->assertEquals('123', $bRet);
+		$this->assertEquals('123', $oCollector->GetSourceId());
+	}
+
+	/**
+	 * @dataProvider CreateSynchroDataSourceProvider
+	 * @param array $aSourceDefinition
+	 * @param array $aExpectedSourceDefinition
+	 */
+	public function testUpdateSynchroDataSource($aSourceDefinition, $aExpectedSourceDefinition)
+	{
+
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oMockClient = $this->CreateMock('RestClient');
+
+		$sComment="COMMENT";
+
+		$oMockClient->expects($this->once())
+			->method("Update")
+			->with('SynchroDataSource', "123", $aExpectedSourceDefinition, $sComment)
+			->willReturn(['code' => 0, 'objects' => [ ['key' => '123', 'fields'=> ['attribute_list' => []], ]]]);
+
+		$this->InvokeNonPublicMethod(get_class($oCollector), 'SetSourceId', $oCollector, ['123']);
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSynchroDataSource', $oCollector, [$aSourceDefinition, $sComment, $oMockClient]);
+
+		$this->assertEquals('123', $bRet);
 	}
 }
