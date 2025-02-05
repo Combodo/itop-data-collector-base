@@ -417,4 +417,48 @@ CSV;
 
 		$this->assertEquals($bExpected, $bRet, "$sDS1Path vs $sDS2Path");
 	}
+
+	public function DataSourcesAreEquivalent_READONLY_FIELDS_Provider() {
+		$aUseCases = [];
+
+		foreach (\Collector::READONLY_FIELDS as $sField){
+			$sMessage = "same datasources: additional field ($sField) should not impact comparison";
+			$aUseCases[$sMessage] = [
+				$sMessage, $sField, "0", true
+			];
+
+			$sMessage = "distinct datasources: additional field ($sField) should not impact comparison";
+			$aUseCases[$sMessage] = [
+				$sMessage, $sField, "1", false
+			];
+		}
+
+		return $aUseCases;
+	}
+	/**
+	 * @dataProvider DataSourcesAreEquivalent_READONLY_FIELDS_Provider
+	 *
+	 * @param string $sMessage
+	 * @param string $sFieldToTest
+	 * @param string $delete_policy_retention_value
+	 * @param bool $bExpected
+	 */
+	public function testDataSourcesAreEquivalent_READONLY_FIELDS($sMessage, $sFieldToTest, $delete_policy_retention_value, $bExpected) {
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+
+		$sResourceDir = __DIR__ . '/collector/datasources/';
+		$sContent = file_get_contents($sResourceDir."ds1_oneadditional_field_readonlytesting.json");
+		$sContent = str_replace("ADDITIONAL_FIELD_NAME", "$sFieldToTest", $sContent);
+		$sContent = str_replace("delete_policy_retention_value", $delete_policy_retention_value, $sContent);
+		$sDS1 = json_decode($sContent, true);
+		$sDS2 = json_decode(file_get_contents($sResourceDir . "ds1.json"), true);
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'DataSourcesAreEquivalent', $oCollector, [ $sDS1, $sDS2 ]);
+
+		var_dump($sDS1);
+		var_dump($sDS2);
+		$this->assertEquals($bExpected, $bRet, $sMessage);
+	}
 }
