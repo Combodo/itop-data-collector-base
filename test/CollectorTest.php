@@ -353,7 +353,6 @@ CSV;
 	 */
 	public function testUpdateSynchroDataSource($aSourceDefinition, $aExpectedSourceDefinition)
 	{
-
 		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
 		require_once APPROOT."/core/restclient.class.inc.php";
 		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
@@ -371,5 +370,51 @@ CSV;
 		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSynchroDataSource', $oCollector, [$aSourceDefinition, $sComment, $oMockClient]);
 
 		$this->assertEquals('123', $bRet);
+	}
+
+	public function DataSourcesAreEquivalentProvider() {
+		return [
+			'exactly same ds' => [ "ds1.json", "ds1.json", true ],
+
+			'ds1 vs ds1_oneadditional_field' => [ "ds1.json", "ds1_oneadditional_field.json", true ],
+			'ds1_oneadditional_field vs ds1' => [ "ds1_oneadditional_field.json", "ds1.json", false ],
+
+			'ds1 vs ds1_oneadditionnal_attributelist_field' => [ "ds1.json", "ds1_oneadditionnal_attributelist_field.json", true],
+			'ds1_oneadditionnal_attributelist_field vs ds1' => [ "ds1_oneadditionnal_attributelist_field.json", "ds1.json", false],
+
+			'optional attribute case: ds1 vs ds1_oneadditionnal_attributelist_field' => [ "ds1.json", "ds1_oneadditionnal_attributelist_field.json", true, ['name'] ],
+			'optional attribute case: ds1_oneadditionnal_attributelist_field vs ds1' => [ "ds1_oneadditionnal_attributelist_field.json", "ds1.json", true, ['name']],
+
+			'ds1 vs ds1_onefieldvalue_different' => [ "ds1.json", "ds1_onefieldvalue_different.json", false ],
+			'ds1_onefieldvalue_different vs ds1' => [ "ds1_onefieldvalue_different.json", "ds1.json", false ],
+
+			'ds1 vs ds1_same_attributelist_fields_onedifferentvalue' => [ "ds1.json", "ds1_same_attributelist_fields_onedifferentvalue.json", false ],
+			'ds1_same_attributelist_fields_onedifferentvalue vs ds1' => [ "ds1_same_attributelist_fields_onedifferentvalue.json", "ds1.json", false ],
+
+			'optional attribute case: ds1 vs ds1_same_attributelist_fields_onedifferentvalue' => [ "ds1.json", "ds1_same_attributelist_fields_onedifferentvalue.json", true, ['team_list'] ],
+			'optional attribute case: ds1_same_attributelist_fields_onedifferentvalue vs ds1' => [ "ds1_same_attributelist_fields_onedifferentvalue.json", "ds1.json", true, ['team_list'] ],
+		];
+	}
+
+	/**
+	 * @dataProvider DataSourcesAreEquivalentProvider
+	 *
+	 * @param string $sDS1Path
+	 * @param string $sDS2Path
+	 * @param bool $bExpected
+	 */
+	public function testDataSourcesAreEquivalent($sDS1Path, $sDS2Path, $bExpected, $aOptionalAttributes=[]) {
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oCollector->SetOptionalAttributes($aOptionalAttributes);
+
+		$sResourceDir = __DIR__ . '/collector/datasources/';
+		$sDS1 = json_decode(file_get_contents($sResourceDir . $sDS1Path), true);
+		$sDS2 = json_decode(file_get_contents($sResourceDir . $sDS2Path), true);
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'DataSourcesAreEquivalent', $oCollector, [ $sDS1, $sDS2 ]);
+
+		$this->assertEquals($bExpected, $bRet, "$sDS1Path vs $sDS2Path");
 	}
 }

@@ -979,7 +979,7 @@ abstract class Collector
 		foreach ($aDS1 as $sKey => $value) {
 			if (in_array($sKey, Collector::READONLY_FIELDS)){
 				// Ignore all read-only attributes
-				break;
+				continue;
 			}
 
 			switch ($sKey) {
@@ -993,12 +993,12 @@ abstract class Collector
 								Utils::Log(LOG_DEBUG, "Comparison: ignoring the missing, but optional, attribute: '$sAttCode'.");
 								$this->aSkippedAttributes[] = $sAttCode;
 								continue;
-							} else {
-								// Missing non-optional attribute
-								Utils::Log(LOG_DEBUG, "Comparison: The definition of the non-optional attribute '$sAttCode' is missing. Data sources differ.");
-
-								return false;
 							}
+
+							// Missing non-optional attribute
+							Utils::Log(LOG_DEBUG, "Comparison: The definition of the non-optional attribute '$sAttCode' is missing. Data sources differ.");
+
+							return false;
 
 						} else {
 							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
@@ -1034,13 +1034,12 @@ abstract class Collector
 		foreach ($aDS2 as $sKey => $value) {
 			if (in_array($sKey, Collector::READONLY_FIELDS)){
 				// Ignore all read-only attributes
-				break;
+				continue;
 			}
 
-			if (!array_key_exists($sKey, $aDS1)) {
+			if (! array_key_exists($sKey, $aDS1)) {
+				//locally unknown fields can NOT be updated. so it is useless to update datasynchro on itop
 				Utils::Log(LOG_DEBUG, "Comparison: Found an extra property '$sKey' in iTop. Data sources differ.");
-
-				return false;
 			}
 		}
 
