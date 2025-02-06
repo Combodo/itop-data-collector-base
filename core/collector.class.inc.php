@@ -984,7 +984,7 @@ abstract class Collector
 
 			switch ($sKey) {
 				case 'attribute_list':
-					foreach ($value as $sKey2 => $aDef) {
+					foreach ($value as $aDef) {
 						$sAttCode = $aDef['attcode'];
 						$aDef2 = $this->FindAttr($sAttCode, $aDS2['attribute_list']);
 						if ($aDef2 === false) {
