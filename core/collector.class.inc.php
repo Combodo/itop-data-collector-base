@@ -692,7 +692,7 @@ abstract class Collector
 				'output' => $sOutput,
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
-                'date_format' => Utils::GetConfigurationValue('date_format', 'Y-m-d')
+                'date_format' => Utils::GetConfigurationValue('date_format', 'Y-m-d H:i:s')
 			);
 
 			$sLoginform = Utils::GetLoginMode();
@@ -708,6 +708,8 @@ abstract class Collector
 				Utils::Log(LOG_ERR, $sTrimmedOutput);
 
 				return false;
+			} else {
+				Utils::Log(LOG_DEBUG, $sTrimmedOutput);
 			}
 		}
 
