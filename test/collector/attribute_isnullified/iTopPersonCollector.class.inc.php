@@ -3,6 +3,7 @@
 class iTopPersonCollector extends Collector
 {
 	private $bFetched;
+	private $aOptionalAttributes;
 
 	protected function Fetch()
 	{
@@ -24,13 +25,37 @@ class iTopPersonCollector extends Collector
 
 		return null;
 	}
-	
+
+	/**
+	 * @return array
+	 */
+	public function GetOptionalAttributes() {
+		if (! isset($this->aOptionalAttributes)){
+			return ['optional'];
+		}
+		return $this->aOptionalAttributes;
+	}
+
+	/**
+	 * @param array $aOptionalAttributes
+	 */
+	public function SetOptionalAttributes($aOptionalAttributes) {
+		$this->aOptionalAttributes = $aOptionalAttributes;
+	}
+
+
 	/**
 	 * {@inheritDoc}
 	 * @see Collector::AttributeIsOptional()
 	 */
 	public function AttributeIsOptional($sAttCode)
 	{
-	    return ($sAttCode === 'optional');
+		foreach ($this->GetOptionalAttributes() as $sAttOptionalCode){
+			if ($sAttCode === $sAttOptionalCode){
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
