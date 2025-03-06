@@ -692,7 +692,7 @@ abstract class Collector
 				'output' => $sOutput,
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
-                'date_format' => Utils::GetConfigurationValue('date_format', 'Y-m-d')
+                'date_format' => Utils::GetConfigurationValue('date_format', 'Y-m-d H:i:s')
 			);
 
 			$sLoginform = Utils::GetLoginMode();
