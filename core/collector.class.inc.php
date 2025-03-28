@@ -869,6 +869,7 @@ abstract class Collector
 					unset($aAttr['friendlyname']);
 					$sTargetClass = $aAttr['finalclass'];
 					unset($aAttr['finalclass']);
+					unset($aAttr['import_columns']);
 					// Fix booleans
 					$aAttr['update'] = ($aAttr['update'] == 1) ? "1" : "0";
 					$aAttr['reconcile'] = ($aAttr['reconcile'] == 1) ? "1" : "0";
