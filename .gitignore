@@ -7,3 +7,13 @@ data/*.txt
 .buildpath
 .project
 .settings/*
+vendor/bin
+vendor/composer
+vendor/doctrine
+vendor/myclabs
+vendor/nikic
+vendor/phar-io
+vendor/phpunit
+vendor/sebastian
+vendor/theseer
+composer.lock
