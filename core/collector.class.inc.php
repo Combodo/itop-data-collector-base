@@ -812,12 +812,12 @@ abstract class Collector
 		return static::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
 	}
 
-	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
+	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1, &$aResponseHeaders = null)
 	{
 		if (null === static::$oCallItopService){
 			static::$oCallItopService = new CallItopService();
 		}
-		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
+		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut,$aResponseHeaders);
 	}
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)

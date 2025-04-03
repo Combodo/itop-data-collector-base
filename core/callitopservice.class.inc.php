@@ -5,7 +5,7 @@
  */
 class CallItopService
 {
-	public function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
+	public function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1, &$aResponseHeaders = null)
 	{
 
 		$sUrl = Utils::GetConfigurationValue('itop_url', '').$sUri;
@@ -19,7 +19,6 @@ class CallItopService
 		$iCurrentTimeOut = ($iTimeOut === -1) ? (int)Utils::GetConfigurationValue('itop_synchro_timeout', 600) : $iTimeOut;
 		$aCurlOptions = Utils::GetCurlOptions($iCurrentTimeOut);
 
-		$aResponseHeaders = null;
 		return Utils::DoPostRequest($sUrl, $aData, '', $aResponseHeaders, $aCurlOptions);
 	}
 }
