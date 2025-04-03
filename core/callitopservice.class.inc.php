@@ -31,8 +31,8 @@ class CallItopService
 		}
 
 		$sResponse = Utils::DoPostRequest($sUrl, $aData, $sOptionnalHeaders, $aResponseHeaders, $aCurlOptions);
-		if (Utils::UseOauth2() &&
-			false !== strpos($sResponse, 'Invalid login')
+		if (false !== strpos($sResponse, 'Invalid login') &&
+			Utils::UseOauth2()
 		){
 			//token may have expired: try refresh and re-post
 			$sOptionnalHeaders = sprintf('Authorization: Bearer %s', $this->GetOauth2AccessToken(true));

@@ -3,6 +3,9 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
+  <hybridauth_oauth2></hybridauth_oauth2>
+  <itop_oauth2_clientid></itop_oauth2_clientid>
+  <itop_oauth2_clientsecret></itop_oauth2_clientsecret>
   <itop_token></itop_token>
   <itop_login_mode></itop_login_mode>
   <console_log_level>6</console_log_level>

@@ -110,7 +110,6 @@ class RestTest extends TestCase
 			->method('DoPostRequest')
 			->with($sExpectedUrl, array_merge($aExpectedCredentials, $aAdditionalData ))
 			->willReturn(json_encode(['retcode' => 0]));
-		;
 
 		$oRestClient = new RestClient();
 		$this->assertEquals(['retcode' => 0], $oRestClient->ListOperations());
