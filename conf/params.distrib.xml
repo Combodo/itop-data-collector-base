@@ -1,26 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
 <parameters>
-  <itop_url>https://odain.itop-saas.dev/iTopMaster</itop_url>
+  <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
 
   <!-- Oauth2 Client's settings -->
-  <hybridauth_oauth2>
-    <Itop>
-      <enabled>true</enabled>
-      <environment>production</environment>
-      <keys>
-        <id>j9acbA6fARIiJSLUZFOkSQZOGa3Zgpx0</id>
-        <secret>Qjy46+Rpcel8dLKcis2RhOYa+VHmSDk9</secret>
-      </keys>
-      <callback>https://localhost</callback>
-      <consent>false</consent>
-    </Itop>
-  </hybridauth_oauth2>
-
-  <itop_oauth2_clientid>j9acbA6fARIiJSLUZFOkSQZOGa3Zgpx0</itop_oauth2_clientid>
-  <itop_oauth2_clientsecret>Qjy46+Rpcel8dLKcis2RhOYa+VHmSDk9</itop_oauth2_clientsecret>
+  <hybridauth_oauth2/>
+  <itop_oauth2_clientid/>
+  <itop_oauth2_clientsecret/>
 
 
   <itop_token/>
