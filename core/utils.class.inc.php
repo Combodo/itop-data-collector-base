@@ -38,7 +38,7 @@ class Utils
 	 * @since 1.3.0 N°6012
 	 */
 	static protected $oMockedDoPostRequestService;
-	
+
 	/**
 	 * @var string Keeps track of the latest date the datamodel has been installed/updated
 	 * (in order to check which modules were installed with it)
@@ -302,6 +302,26 @@ class Utils
 		return $value;
 	}
 
+	public static function GetOauth2Config(string $sProvider) : array
+	{
+		//$sLowerCaseProvider = strtolower($sProvider);
+		return [
+			'providers' => [
+				'Itop' => [
+					'enabled' => true,
+					'url' => Utils::GetConfigurationValue("itop_url", ''),
+					'environnement' => Utils::GetConfigurationValue('itop_environnement', 'production'),
+					'keys' => [
+						'id' => Utils::GetConfigurationValue('itop_oauth2_clientid', ''),
+						'secret' => Utils::GetConfigurationValue('itop_oauth2_clientsecret', ''),
+					],
+					'callback' => 'https://localhost',
+					'consent' => false,
+				]
+			]
+		];
+	}
+
 	/**
 	 * @since 1.3.0 N°6012
 	 */
@@ -319,6 +339,12 @@ class Utils
 		];
 	}
 
+	static public function UseOauth2() : bool {
+		$sOauth2ClientId = Utils::GetConfigurationValue('itop_oauth2_clientid', '');
+		$sOauth2ClientSecret = Utils::GetConfigurationValue('itop_oauth2_clientsecret', '');
+		return (strlen($sOauth2ClientId) > 0 && strlen($sOauth2ClientSecret) > 0);
+	}
+
 	/**
 	 * @since 1.3.0 N°6012
 	 */
@@ -329,7 +355,7 @@ class Utils
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
-		if (strlen($sToken) > 0){
+		if (strlen($sToken) > 0|| Utils::UseOauth2()){
 			return 'token';
 		}
 
@@ -473,7 +499,6 @@ class Utils
 			$response = curl_exec($ch);
 			$iErr = curl_errno($ch);
 			$sErrMsg = curl_error($ch);
-			$aHeaders = curl_getinfo($ch);
 			if ($iErr !== 0) {
 				throw new IOException("Problem opening URL: $sUrl"
 					.PHP_EOL."    error msg: $sErrMsg"
@@ -671,7 +696,7 @@ class Utils
 
 		return $aCurlOptions;
 	}
-	
+
 	/**
 	 * Check if the given module is installed in iTop.
 	 * Mind that this assumes the `ModuleInstallation` class is ordered by descending installation date
@@ -688,13 +713,13 @@ class Utils
 		{
 			$oClient = new RestClient();
 		}
-		
+
 		if (preg_match('/^([^\/]+)(?:\/([<>]?=?)(.+))?$/', $sModuleId, $aModuleMatches)) {
 			$sName = $aModuleMatches[1];
 			$sOperator = $aModuleMatches[2] ?? null ?: '>=';
 			$sExpectedVersion = $aModuleMatches[3] ?? null;
 		}
-		
+
 		try {
 			if (!isset(static::$sLastInstallDate)) {
 				$aDatamodelResults = $oClient->Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
@@ -704,18 +729,18 @@ class Utils
 				$aDatamodel = current($aDatamodelResults['objects']);
 				static::$sLastInstallDate = $aDatamodel['fields']['installed'];
 			}
-			
+
 			$aResults = $oClient->Get('ModuleInstallation', ['name' => $sName, 'installed' => static::$sLastInstallDate], 'name,version', 1);
 			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
 				throw new Exception($aResults['message'], $aResults['code']);
 			}
 			$aObject = current($aResults['objects']);
 			$sCurrentVersion = $aObject['fields']['version'];
-			
+
 			if (isset($sExpectedVersion) && !version_compare($sCurrentVersion, $sExpectedVersion, $sOperator)) {
 				throw new Exception(sprintf('Version mismatch (%s %s %s)', $sCurrentVersion, $sOperator, $sExpectedVersion));
 			}
-			
+
 			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $sCurrentVersion));
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());

@@ -1,0 +1,75 @@
+{
+    "packages": [
+        {
+            "name": "hybridauth/hybridauth",
+            "version": "dev-itop-provider",
+            "version_normalized": "dev-itop-provider",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Combodo/hybridauth.git",
+                "reference": "76b3d4299c8f25f9c67a51b96cfc1c40250544ac"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Combodo/hybridauth/zipball/76b3d4299c8f25f9c67a51b96cfc1c40250544ac",
+                "reference": "76b3d4299c8f25f9c67a51b96cfc1c40250544ac",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^5.4 || ^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "ext-curl": "*",
+                "phpunit/phpunit": "^4.8.35 || ^6.5 || ^8.0"
+            },
+            "suggest": {
+                "firebase/php-jwt": "Needed to support Apple provider",
+                "phpseclib/phpseclib": "Needed to support Apple provider"
+            },
+            "time": "2025-04-03T06:55:59+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Hybridauth\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "HybridauthTest\\Hybridauth\\": "test/"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Miled",
+                    "email": "hybridauth@gmail.com"
+                }
+            ],
+            "description": "PHP Social Authentication Library",
+            "homepage": "https://hybridauth.github.io",
+            "keywords": [
+                "api",
+                "apple",
+                "authentication",
+                "authorization",
+                "facebook",
+                "google",
+                "oauth",
+                "openid",
+                "social",
+                "twitter"
+            ],
+            "support": {
+                "issues": "https://github.com/hybridauth/hybridauth/issues",
+                "gitter": "https://gitter.im/hybridauth/hybridauth",
+                "source": "https://github.com/Combodo/hybridauth/tree/itop-provider"
+            },
+            "install-path": "../hybridauth/hybridauth"
+        }
+    ],
+    "dev": false,
+    "dev-package-names": []
+}

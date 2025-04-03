@@ -1,10 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
 <parameters>
-  <itop_url>https://localhost/iTop</itop_url>
+  <itop_url>https://odain.itop-saas.dev/iTopMaster</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
+
+  <!-- Oauth2 Client's settings -->
+  <hybridauth_oauth2>
+    <Itop>
+      <enabled>true</enabled>
+      <environment>production</environment>
+      <keys>
+        <id>j9acbA6fARIiJSLUZFOkSQZOGa3Zgpx0</id>
+        <secret>Qjy46+Rpcel8dLKcis2RhOYa+VHmSDk9</secret>
+      </keys>
+      <callback>https://localhost</callback>
+      <consent>false</consent>
+    </Itop>
+  </hybridauth_oauth2>
+
+  <itop_oauth2_clientid>j9acbA6fARIiJSLUZFOkSQZOGa3Zgpx0</itop_oauth2_clientid>
+  <itop_oauth2_clientsecret>Qjy46+Rpcel8dLKcis2RhOYa+VHmSDk9</itop_oauth2_clientsecret>
+
+
   <itop_token/>
+
   <itop_login_mode/>
 
   <!-- console_log_level: level of logging to console (std output)
@@ -18,7 +38,7 @@
    6 : Information
    7 : Debug traces
    -->
-  <console_log_level>6</console_log_level>
+  <console_log_level>9</console_log_level>
 
   <!-- eventissue_log_level: level of creating event issue object on remote itop
   -1 : none, nothing will be logged to the console
