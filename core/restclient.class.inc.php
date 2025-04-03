@@ -111,17 +111,14 @@ class RestClient
 
 	protected static function ExecOperation($aOperation, $sVersion = '1.0')
 	{
-		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
 		$sLoginform = Utils::GetLoginMode();
-		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
-			Utils::GetConfigurationValue('itop_url', ''),
+		$sUri = sprintf('/webservices/rest.php?login_mode=%s&version=%s',
 			$sLoginform,
 			$sVersion
 		);
-		$aHeaders = array();
-		$aCurlOptions = Utils::GetCurlOptions();
-		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
+
+		$response = Collector::CallItopViaHttp($sUri, $aData);
 		$aResults = json_decode($response, true);
 		if (!$aResults) {
 			throw new Exception("rest.php replied: $response");
