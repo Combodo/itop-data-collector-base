@@ -8,7 +8,6 @@ data/*.txt
 .project
 .settings/*
 vendor/bin
-vendor/composer
 vendor/doctrine
 vendor/myclabs
 vendor/nikic
