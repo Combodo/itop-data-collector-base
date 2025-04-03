@@ -100,6 +100,7 @@ OUTPUT;
 
     public function tearDown(): void
 	{
+		Collector::SetCallItopService(null);
 		parent::tearDown();
 	}
 

@@ -79,7 +79,7 @@ abstract class Collector
 	/**
 	 * @since 1.3.0
 	 */
-	public static function SetCallItopService(CallItopService $oCurrentCallItopService){
+	public static function SetCallItopService(?CallItopService $oCurrentCallItopService){
 		static::$oCallItopService = $oCurrentCallItopService;
 	}
 
