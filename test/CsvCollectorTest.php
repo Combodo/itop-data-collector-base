@@ -16,8 +16,9 @@ require_once(APPROOT.'core/collector.class.inc.php');
 require_once(APPROOT.'core/orchestrator.class.inc.php');
 require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
+require_once(APPROOT.'test/CollectorTest.php');
 
-class CsvCollectorTest extends TestCase
+class CsvCollectorTest extends CollectorTest
 {
 	private static $sCollectorPath = APPROOT."/collectors/";
 	private $oMockedLogger;
@@ -26,22 +27,8 @@ class CsvCollectorTest extends TestCase
 	{
 		parent::setUp();
 
-		$aCollectorFiles = glob(self::$sCollectorPath."*");
-		foreach ($aCollectorFiles as $sFile) {
-			unlink($sFile);
-		}
-
 		$this->oMockedLogger = $this->createMock("UtilsLogger");
 		Utils::MockLog($this->oMockedLogger);
-	}
-
-	public function tearDown(): void
-	{
-		parent::tearDown();
-		$aCollectorFiles = glob(self::$sCollectorPath."*");
-		foreach ($aCollectorFiles as $sFile) {
-			unlink($sFile);
-		}
 	}
 
 	public function testIOException()
@@ -52,6 +39,7 @@ class CsvCollectorTest extends TestCase
 
 	/**
 	 * @param bool $sAdditionalDir
+     * Note: The order of fields in Expected_generated.csv does not matter -> it is not tested
 	 *
 	 * @dataProvider OrgCollectorProvider
 	 * @throws \Exception
@@ -77,23 +65,6 @@ class CsvCollectorTest extends TestCase
 		$this->assertEquals($sExpected_content, file_get_contents(APPROOT."/data/iTopPersonCsvCollector-1.csv"));
 	}
 
-	private function copy($sPattern)
-	{
-		if (!is_dir(self::$sCollectorPath)) {
-			mkdir(self::$sCollectorPath);
-		}
-
-		$aFiles = glob($sPattern);
-		foreach ($aFiles as $sFile) {
-			if (is_file($sFile)) {
-				$bRes = copy($sFile, self::$sCollectorPath.basename($sFile));
-				if (!$bRes) {
-					throw new Exception("Failed copying $sFile to ".self::$sCollectorPath.basename($sFile));
-				}
-			}
-		}
-	}
-
 	public function OrgCollectorProvider()
 	{
 		return array(
@@ -108,7 +79,12 @@ class CsvCollectorTest extends TestCase
 			"configured header" => array("configured_header"),
 			"mapping" => array("mapping"),
 			"separator_incolumns" => array("separator_incolumns"),
-			"return_in_fieldvalues" => array("return_in_fieldvalues"),
+            "mapping 1 column twice" => array("map_1_column_twice"),
+            "mapping 1 column twice adding primary key" => array("map_1_column_twice_primary_key"),
+            "mapping 1 column 3 times" => array("map_1_column_3_times"),
+            "mapping 2 columns twice" => array("map_2_columns_twice"),
+            "mapping 2 columns 3 times" => array("map_2_columns_3_times"),
+            "return_in_fieldvalues" => array("return_in_fieldvalues"),
 		);
 	}
 

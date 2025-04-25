@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <itop_url>https://localhost/iTop</itop_url>
+  <itop_login>admin</itop_login>
+  <itop_password>admin</itop_password>
+  <itop_token></itop_token>
+  <itop_login_mode></itop_login_mode>
+  <console_log_level>6</console_log_level>
+  <eventissue_log_level>-1</eventissue_log_level>
+  <console_log_dateformat>[Y-m-d H:i:s]</console_log_dateformat>
+  <syslog_log_level>-1</syslog_log_level>
+  <data_path>%APPROOT%/data</data_path>
+  <max_chunk_size>1000</max_chunk_size>
+  <itop_synchro_timeout>600</itop_synchro_timeout>
+  <stop_on_synchro_error>no</stop_on_synchro_error>
+  <curl_options>
+    <CURLOPT_SSL_VERIFYHOST>0</CURLOPT_SSL_VERIFYHOST>
+    <CURLOPT_SSL_VERIFYPEER>1</CURLOPT_SSL_VERIFYPEER>
+  </curl_options>
+  <contact_to_notify></contact_to_notify>
+  <synchro_user></synchro_user>
+  <date_format>d/m/Y</date_format>
+  <broken_param>(&amp;(objectClass=person)(mail=*))</broken_param>
+</parameters>

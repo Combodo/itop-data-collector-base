@@ -9,6 +9,7 @@ use Utils;
 
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/parameters.class.inc.php');
+require_once(APPROOT.'core/restclient.class.inc.php');
 
 class UtilsTest extends TestCase
 {
@@ -223,5 +224,39 @@ class UtilsTest extends TestCase
 		];
 	}
 
-
+	public function testDumpConfig(){
+		global $argv;
+		$sXmlPath = __DIR__.'/utils/params.test.xml';
+		$argv[]= "--config_file=".$sXmlPath;
+		$sContent = file_get_contents($sXmlPath);
+		$this->assertEquals($sContent, Utils::DumpConfig());
+	}
+	
+	public function testCheckModuleInstallation(){
+		$oRestClient = $this->createMock(\RestClient::class);
+		
+		$oReflectionLastInstallDate = new \ReflectionProperty(Utils::class, 'sLastInstallDate');
+		$oReflectionLastInstallDate->setAccessible(true);
+		$oReflectionLastInstallDate->setValue(null,'0000-00-00 00:00:00');
+		
+		$oRestClient->expects($this->exactly(4))
+			->method('Get')
+			->willReturnMap([
+				['ModuleInstallation', ['name' => 'itop-structure', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
+					'code' => 0,
+					'objects' => ['ModuleInstallation::0' => ['fields' => ['name' => 'itop-structure', 'version' => '0.0.0']]],
+					'message' => 'Found: 1',
+				]],
+				['ModuleInstallation', ['name' => 'fake-module', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
+					'code' => 0,
+					'objects' => null,
+					'message' => 'Found: 0',
+				]],
+			]);
+		
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', false, $oRestClient));
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/0.0.0', false, $oRestClient));
+		$this->assertFalse(Utils::CheckModuleInstallation('itop-structure/1.2.3', false, $oRestClient));
+		$this->assertFalse(Utils::CheckModuleInstallation('fake-module', false, $oRestClient));
+	}
 }

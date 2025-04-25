@@ -17,7 +17,7 @@
 class Orchestrator
 {
 	static $aCollectors = array();
-	static $aMinVersions = array('PHP' => '5.3.0', 'simplexml' => '0.1', 'dom' => '1.0');
+	static $aMinVersions = array('PHP' => '7.0', 'simplexml' => '7.0', 'dom' => '1');
 
 	/**
 	 * Add a collector class to be run in the specified order
@@ -55,6 +55,7 @@ class Orchestrator
 		if ($oReflection->IsAbstract()) {
 			throw new Exception('Cannot register an CollectionPlan class ('.$sCollectionPlanClass.') as a CollectionPlan.');
 		}
+        /** @var CollectionPlan $oCollectionPlan */
 		$oCollectionPlan = new $sCollectionPlanClass();
 		$oCollectionPlan->Init();
 		$oCollectionPlan->AddCollectorsToOrchestrator();
@@ -72,6 +73,7 @@ class Orchestrator
 	{
 		if (!array_key_exists($sExtension, self::$aMinVersions)) {
 			// This is the first call to add some requirements for this extension, record it as-is
+            self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
 		} elseif (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
 			// This requirement is stricter than the previously requested one
 			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
@@ -125,6 +127,7 @@ class Orchestrator
 		uasort(self::$aCollectors, array("Orchestrator", "CompareCollectors"));
 
 		foreach (self::$aCollectors as $aCollectorData) {
+            /** @var Collector $oClass */
 			$oClass = new $aCollectorData['class']();
 			$oClass->Init();
 			$aResults[] = $oClass;
@@ -172,7 +175,7 @@ class Orchestrator
 				Utils::Log(LOG_ERR, "Unable to find the contact with email = '$sEmailToNotify'. No contact to notify will be defined.");
 			}
 		}
-		$sSynchroUser = Utils::GetConfigurationValue('synchro_user', '');
+		$sSynchroUser = Utils::GetConfigurationValue('synchro_user') ?: Utils::GetConfigurationValue('itop_login');
 		$aPlaceholders['$synchro_user$'] = 0;
 		if ($sSynchroUser != '') {
 			$oRestClient = new RestClient();

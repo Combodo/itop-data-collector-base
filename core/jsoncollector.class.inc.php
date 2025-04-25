@@ -150,7 +150,11 @@ abstract class JsonCollector extends Collector
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
 			Utils::Log(LOG_INFO, 'Synchro URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
 		} else {
-			$this->sFileJson = file_get_contents($this->sFilePath);
+            $this->sFileJson = @file_get_contents($this->sFilePath);
+            if ($this->sFileJson === false) {
+                $this->sFilePath = APPROOT.$this->sFilePath;
+                $this->sFileJson = @file_get_contents($this->sFilePath);
+            }
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
 			Utils::Log(LOG_INFO, 'Synchro  URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
 		}
