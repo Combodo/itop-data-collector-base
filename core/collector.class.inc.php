@@ -1100,10 +1100,11 @@ abstract class Collector
 			}
 
 			// Check for missing columns
-			if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
+			$aMissingColumns = array_diff($aDefs['columns'], array_keys($aSynchroColumns));
+			if (!empty($aMissingColumns) && $aDefs['reconcile']) {
 				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
 				$iError++;
-			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+			} elseif (!empty($aMissingColumns) && $aDefs['update']) {
 				if ($this->AttributeIsNullified($sCode)){
 					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
 					continue;
@@ -1113,7 +1114,7 @@ abstract class Collector
 			}
 
 			// Check for useless columns
-			if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+			if (empty($aMissingColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
 				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
 			}
 
