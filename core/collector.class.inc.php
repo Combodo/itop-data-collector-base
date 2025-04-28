@@ -898,7 +898,7 @@ abstract class Collector
 		return $bRet;
 	}
 
-	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment, RestClient $oClient = null)
+	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment, ?RestClient $oClient = null)
 	{
 		$bRet = true;
 		if ($oClient === null)
@@ -1102,20 +1102,22 @@ abstract class Collector
 			// Check for missing columns
 			$aMissingColumns = array_diff($aDefs['columns'], array_keys($aSynchroColumns));
 			if (!empty($aMissingColumns) && $aDefs['reconcile']) {
-				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+				Utils::Log(LOG_ERR, sprintf('[%s] The field "%s", used for reconciliation, has missing column(s) in the %s.', $sClass, $sCode, $sSource));
 				$iError++;
+				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
 			} elseif (!empty($aMissingColumns) && $aDefs['update']) {
 				if ($this->AttributeIsNullified($sCode)){
-					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
+					Utils::Log(LOG_DEBUG, '['.$sClass.'] The field "'.$sCode.'", used for update, has missing column(s) in first row but nullified.');
 					continue;
 				}
-				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+				Utils::Log(LOG_ERR, sprintf('[%s] The field "%s", used for update, has missing column(s) in the %s.', $sClass, $sCode, $sSource));
 				$iError++;
+				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
 			}
 
 			// Check for useless columns
 			if (empty($aMissingColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+				Utils::Log(LOG_WARNING, sprintf('[%s] The field "%s" is used neither for update nor for reconciliation.', $sClass, $sCode));
 			}
 
 		}
