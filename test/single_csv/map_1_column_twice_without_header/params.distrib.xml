@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default values for parameters. Do NOT alter this file, copy its content to conf/params.local.xml and edit it instead -->
+<parameters>
+    <console_log_level>6</console_log_level>
+
+    <iTopPersonCsvCollector>
+        <has_header>no</has_header>
+        <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
+        <fields>
+            <primary_key>1</primary_key>
+            <first_name>2</first_name>
+            <name>3</name>
+            <employee_number>5</employee_number>
+            <function>7</function>
+            <email>6</email>
+            <status>8</status>
+            <phone>5</phone>
+            <org_id>4</org_id>
+        </fields>
+        <defaults>
+            <mobile_phone>+33601234567</mobile_phone>
+        </defaults>
+    </iTopPersonCsvCollector>
+
+    <synchro_user>admin</synchro_user>
+    <contact_to_notify></contact_to_notify>
+    <full_load_interval></full_load_interval>
+
+    <json_placeholders>
+        <prefix></prefix>
+        <persons_data_table>synchro_data_person_1</persons_data_table>
+        <synchro_status>production</synchro_status>
+    </json_placeholders>
+</parameters>

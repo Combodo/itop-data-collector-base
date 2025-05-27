@@ -81,6 +81,7 @@ class CsvCollectorTest extends CollectorTest
 			"separator_incolumns" => array("separator_incolumns"),
             "mapping 1 column twice" => array("map_1_column_twice"),
             "mapping 1 column twice adding primary key" => array("map_1_column_twice_primary_key"),
+            "mapping 1 column twice without header" => array("map_1_column_twice_without_header"),
             "mapping 1 column 3 times" => array("map_1_column_3_times"),
             "mapping 2 columns twice" => array("map_2_columns_twice"),
             "mapping 2 columns 3 times" => array("map_2_columns_3_times"),
