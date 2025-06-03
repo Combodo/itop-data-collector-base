@@ -1,0 +1,2 @@
+primary_key;first_name;name;phone;employee_number;email;status;picture_mimetype;picture_filename;picture_data
+1;isaac;asimov;123456789;06543210;issac.asimov@function.io;Active;image/gif;avatar.png;UEsDBBQAAAAIAC+LOkwyWcaezQEAAHcDAAAuAAA

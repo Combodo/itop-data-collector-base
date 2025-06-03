@@ -111,6 +111,7 @@ class JsonCollectorTest extends TestCase
 	public static function OrgCollectorProvider()
 	{
 		return [
+			"multicolumns_attachment" => [ "multicolumns_attachment" ],
 			"default_value" => [ "default_value" ],
 			"format_json_1" => [ "format_json_1" ],
 			"format_json_2" => [ "format_json_2" ],
@@ -173,7 +174,7 @@ class JsonCollectorTest extends TestCase
 		return [
 			"error_json_1" => [
 				"error_json_1",
-				"[ITopPersonJsonCollector] The column \"first_name\", used for reconciliation, is missing in the json file.",
+				"[ITopPersonJsonCollector] The field \"first_name\", used for reconciliation, has missing column(s) in the json file.",
 				"ITopPersonJsonCollector::Collect() got an exception: Missing columns in the json file.",
 			],
 			"error_json_2" => [
