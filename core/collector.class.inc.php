@@ -108,7 +108,8 @@ abstract class Collector
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
-			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0)];
+			$aColumns = isset($aAttr['import_columns']) ? explode(',', $aAttr['import_columns']) : [$aAttr['attcode']];
+			$this->aFields[$aAttr['attcode']] = ['class' => $aAttr['finalclass'], 'update' => ($aAttr['update'] != 0), 'reconcile' => ($aAttr['reconcile'] != 0), 'columns' => $aColumns];
 		}
 
 		$this->ReadCollectorConfig();
@@ -577,17 +578,32 @@ abstract class Collector
 	{
 		$this->aCSVHeaders = array();
 		foreach ($aHeaders as $sHeader) {
-			if (($sHeader != 'primary_key') && !array_key_exists($sHeader, $this->aFields)) {
+			if (($sHeader != 'primary_key') && !$this->HeaderIsAllowed($sHeader)) {
 				if (!$this->AttributeIsOptional($sHeader)) {
 					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
 				}
 			} else {
-
 				$this->aCSVHeaders[] = $sHeader;
 			}
 		}
-		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $this->aCSVHeaders)."\n");
 		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
+	}
+	
+	/**
+	 * Added to add multi-column field support or situations
+	 * where column name is different than attribute code.
+	 *
+	 * @param string $sHeader
+	 * @return bool
+	 */
+	protected function HeaderIsAllowed($sHeader)
+	{
+		foreach ($this->aFields as $aField) {
+			if (in_array($sHeader, $aField['columns'])) return true;
+		}
+		
+		// fallback old behaviour
+		return array_key_exists($sHeader, $this->aFields);
 	}
 
 	protected function AddRow($aRow)
@@ -882,7 +898,7 @@ abstract class Collector
 		return $bRet;
 	}
 
-	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment, RestClient $oClient = null)
+	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment, ?RestClient $oClient = null)
 	{
 		$bRet = true;
 		if ($oClient === null)
@@ -904,6 +920,7 @@ abstract class Collector
 					unset($aAttr['friendlyname']);
 					$sTargetClass = $aAttr['finalclass'];
 					unset($aAttr['finalclass']);
+					unset($aAttr['import_columns']);
 					// Fix booleans
 					$aAttr['update'] = ($aAttr['update'] == 1) ? "1" : "0";
 					$aAttr['reconcile'] = ($aAttr['reconcile'] == 1) ? "1" : "0";
@@ -1058,7 +1075,7 @@ abstract class Collector
 	 * Check if the keys of the supplied hash array match the expected fields listed in the data synchro
 	 *
 	 * @param array<string, string> $aSynchroColumns attribute name as key, attribute's value as value (value not used)
-	 * @paral $aColumnsToIgnore : Elements to ignore
+	 * @param $aColumnsToIgnore : Elements to ignore
 	 * @param $sSource : Source of the request (Json file, SQL query, csv file...)
 	 *
 	 * @throws \Exception
@@ -1083,21 +1100,24 @@ abstract class Collector
 			}
 
 			// Check for missing columns
-			if (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['reconcile']) {
-				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for reconciliation, is missing in the '.$sSource.'.');
+			$aMissingColumns = array_diff($aDefs['columns'], array_keys($aSynchroColumns));
+			if (!empty($aMissingColumns) && $aDefs['reconcile']) {
+				Utils::Log(LOG_ERR, sprintf('[%s] The field "%s", used for reconciliation, has missing column(s) in the %s.', $sClass, $sCode, $sSource));
 				$iError++;
-			} elseif (!array_key_exists($sCode, $aSynchroColumns) && $aDefs['update']) {
+				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
+			} elseif (!empty($aMissingColumns) && $aDefs['update']) {
 				if ($this->AttributeIsNullified($sCode)){
-					Utils::Log(LOG_DEBUG, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in first row but nullified.');
+					Utils::Log(LOG_DEBUG, '['.$sClass.'] The field "'.$sCode.'", used for update, has missing column(s) in first row but nullified.');
 					continue;
 				}
-				Utils::Log(LOG_ERR, '['.$sClass.'] The column "'.$sCode.'", used for update, is missing in the '.$sSource.'.');
+				Utils::Log(LOG_ERR, sprintf('[%s] The field "%s", used for update, has missing column(s) in the %s.', $sClass, $sCode, $sSource));
 				$iError++;
+				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
 			}
 
 			// Check for useless columns
-			if (array_key_exists($sCode, $aSynchroColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				Utils::Log(LOG_WARNING, '['.$sClass.'] The column "'.$sCode.'" is used neither for update nor for reconciliation.');
+			if (empty($aMissingColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
+				Utils::Log(LOG_WARNING, sprintf('[%s] The field "%s" is used neither for update nor for reconciliation.', $sClass, $sCode));
 			}
 
 		}

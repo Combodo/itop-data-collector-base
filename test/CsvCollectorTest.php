@@ -67,25 +67,26 @@ class CsvCollectorTest extends CollectorTest
 
 	public function OrgCollectorProvider()
 	{
-		return array(
-			"nominal" => array("nominal"),
-			"charset_ISO" => array("charset_ISO"),
-			"separator" => array("separator"),
-			"separator_tab" => array("separator_tab"),
-			"clicommand" => array("clicommand"),
-			"adding hardcoded values" => array("hardcoded_values_add"),
-			"replacing hardcoded values" => array("hardcoded_values_replace"),
-			"ignored attributes" => array("ignored_attributes"),
-			"configured header" => array("configured_header"),
-			"mapping" => array("mapping"),
-			"separator_incolumns" => array("separator_incolumns"),
-            "mapping 1 column twice" => array("map_1_column_twice"),
-            "mapping 1 column twice adding primary key" => array("map_1_column_twice_primary_key"),
-            "mapping 1 column 3 times" => array("map_1_column_3_times"),
-            "mapping 2 columns twice" => array("map_2_columns_twice"),
-            "mapping 2 columns 3 times" => array("map_2_columns_3_times"),
-            "return_in_fieldvalues" => array("return_in_fieldvalues"),
-		);
+		return [
+			"nominal" => ["nominal"],
+			"charset_ISO" => ["charset_ISO"],
+			"separator" => ["separator"],
+			"separator_tab" => ["separator_tab"],
+			"clicommand" => ["clicommand"],
+			"adding hardcoded values" => ["hardcoded_values_add"],
+			"replacing hardcoded values" => ["hardcoded_values_replace"],
+			"ignored attributes" => ["ignored_attributes"],
+			"configured header" => ["configured_header"],
+			"mapping" => ["mapping"],
+			"separator_incolumns" => ["separator_incolumns"],
+            "mapping 1 column twice" => ["map_1_column_twice"],
+            "mapping 1 column twice adding primary key" => ["map_1_column_twice_primary_key"],
+            "mapping 1 column 3 times" => ["map_1_column_3_times"],
+            "mapping 2 columns twice" => ["map_2_columns_twice"],
+            "mapping 2 columns 3 times" => ["map_2_columns_3_times"],
+            "return_in_fieldvalues" => ["return_in_fieldvalues"],
+            "multicolumns_attachment" => ["multicolumns_attachment"],
+		];
 	}
 
 	public function testAbsolutePath()
@@ -178,7 +179,7 @@ class CsvCollectorTest extends CollectorTest
 			),
 			"no email" => array(
 				"no_email.csv",
-				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing in the csv file.",
+				"[iTopPersonCsvCollector] The field \"email\", used for reconciliation, has missing column(s) in the csv file.",
 				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
 			),
 			"empty csv" => array(
