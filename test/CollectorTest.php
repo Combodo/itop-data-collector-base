@@ -157,13 +157,21 @@ CSV;
 	    require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
 	    $oCollector = new iTopPersonCollector();
 	    $oMockClient = $this->CreateMock('RestClient');
-	    $oMockClient->expects($this->exactly($bWillUpdate ? 1 : 0))->method("Update")->willReturn(['code' => 0]);
-	    
+
+		if ($bWillUpdate==0){
+			$oMockClient->expects($this->never())->method("Update");
+		} else {
+			$oMockClient->expects($this->once())
+				->method("Update")
+				->with('SynchroAttribute')
+				->willReturn(['code' => 0]);
+		}
+
 	    $bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSDSAttributes', $oCollector, [$aExpectedAttrDef, $aSynchroAttrDef, '', $oMockClient]);
-	   
+
 	    $this->assertTrue($bRet);
 	}
-	
+
 	public function providerUpdateSDSAttributes()
 	{
 	    return [
@@ -271,7 +279,186 @@ CSV;
 	    $class = new \ReflectionClass($sObjectClass);
 	    $method = $class->getMethod($sMethodName);
 	    $method->setAccessible(true);
-	    
+
 	    return $method->invokeArgs($oObject, $aArgs);
+	}
+
+	public function CreateSynchroDataSourceProvider() {
+		return [
+			'all readonly fields' => [
+				'aSourceDefinition' => [
+					'attribute_list' => [],
+					'friendlyname' => [],
+					'user_id_friendlyname' => [],
+					'user_id_finalclass_recall' => [],
+					'notify_contact_id_friendlyname' => [],
+					'notify_contact_id_finalclass_recall' => [],
+					'notify_contact_id_obsolescence_flag' => [],
+					'notify_contact_id_archive_flag' => [],
+					'name' => [],
+				],
+				'aExpectedSourceDefinition' => [
+					'name' => [],
+				],
+			],
+			'subset of all readonly fields' => [
+				'aSourceDefinition' => [
+					'attribute_list' => [],
+					'friendlyname' => [],
+					'user_id_friendlyname' => [],
+					'user_id_finalclass_recall' => [],
+					'notify_contact_id_friendlyname' => [],
+					'notify_contact_id_archive_flag' => [],
+					'name' => [],
+				],
+				'aExpectedSourceDefinition' => [
+					'name' => [],
+				],
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider CreateSynchroDataSourceProvider
+	 * @param array $aSourceDefinition
+	 * @param array $aExpectedSourceDefinition
+	 */
+	public function testCreateSynchroDataSource($aSourceDefinition, $aExpectedSourceDefinition)
+	{
+
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oMockClient = $this->CreateMock('RestClient');
+
+		$sComment="COMMENT";
+
+		$oMockClient->expects($this->once())
+				->method("Create")
+				->with('SynchroDataSource',$aExpectedSourceDefinition, $sComment)
+				->willReturn(['code' => 0, 'objects' => [ ['key' => '123', 'fields'=> ['attribute_list' => []], ]]]);
+
+
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'CreateSynchroDataSource', $oCollector, [$aSourceDefinition, $sComment, $oMockClient]);
+
+		$this->assertEquals('123', $bRet);
+		$this->assertEquals('123', $oCollector->GetSourceId());
+	}
+
+	/**
+	 * @dataProvider CreateSynchroDataSourceProvider
+	 * @param array $aSourceDefinition
+	 * @param array $aExpectedSourceDefinition
+	 */
+	public function testUpdateSynchroDataSource($aSourceDefinition, $aExpectedSourceDefinition)
+	{
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oMockClient = $this->CreateMock('RestClient');
+
+		$sComment="COMMENT";
+
+		$oMockClient->expects($this->once())
+			->method("Update")
+			->with('SynchroDataSource', "123", $aExpectedSourceDefinition, $sComment)
+			->willReturn(['code' => 0, 'objects' => [ ['key' => '123', 'fields'=> ['attribute_list' => []], ]]]);
+
+		$this->InvokeNonPublicMethod(get_class($oCollector), 'SetSourceId', $oCollector, ['123']);
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSynchroDataSource', $oCollector, [$aSourceDefinition, $sComment, $oMockClient]);
+
+		$this->assertEquals('123', $bRet);
+	}
+
+	public function DataSourcesAreEquivalentProvider() {
+		return [
+			'exactly same ds' => [ "ds1.json", "ds1.json", true ],
+
+			'ds1 vs ds1_oneadditional_field' => [ "ds1.json", "ds1_oneadditional_field.json", true ],
+			'ds1_oneadditional_field vs ds1' => [ "ds1_oneadditional_field.json", "ds1.json", false ],
+
+			'ds1 vs ds1_oneadditionnal_attributelist_field' => [ "ds1.json", "ds1_oneadditionnal_attributelist_field.json", true],
+			'ds1_oneadditionnal_attributelist_field vs ds1' => [ "ds1_oneadditionnal_attributelist_field.json", "ds1.json", false],
+
+			'optional attribute case: ds1 vs ds1_oneadditionnal_attributelist_field' => [ "ds1.json", "ds1_oneadditionnal_attributelist_field.json", true, ['name'] ],
+			'optional attribute case: ds1_oneadditionnal_attributelist_field vs ds1' => [ "ds1_oneadditionnal_attributelist_field.json", "ds1.json", true, ['name']],
+
+			'ds1 vs ds1_onefieldvalue_different' => [ "ds1.json", "ds1_onefieldvalue_different.json", false ],
+			'ds1_onefieldvalue_different vs ds1' => [ "ds1_onefieldvalue_different.json", "ds1.json", false ],
+
+			'ds1 vs ds1_same_attributelist_fields_onedifferentvalue' => [ "ds1.json", "ds1_same_attributelist_fields_onedifferentvalue.json", false ],
+			'ds1_same_attributelist_fields_onedifferentvalue vs ds1' => [ "ds1_same_attributelist_fields_onedifferentvalue.json", "ds1.json", false ],
+
+			'optional attribute case: ds1 vs ds1_same_attributelist_fields_onedifferentvalue' => [ "ds1.json", "ds1_same_attributelist_fields_onedifferentvalue.json", true, ['team_list'] ],
+			'optional attribute case: ds1_same_attributelist_fields_onedifferentvalue vs ds1' => [ "ds1_same_attributelist_fields_onedifferentvalue.json", "ds1.json", true, ['team_list'] ],
+		];
+	}
+
+	/**
+	 * @dataProvider DataSourcesAreEquivalentProvider
+	 *
+	 * @param string $sDS1Path
+	 * @param string $sDS2Path
+	 * @param bool $bExpected
+	 */
+	public function testDataSourcesAreEquivalent($sDS1Path, $sDS2Path, $bExpected, $aOptionalAttributes=[]) {
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oCollector->SetOptionalAttributes($aOptionalAttributes);
+
+		$sResourceDir = __DIR__ . '/collector/datasources/';
+		$sDS1 = json_decode(file_get_contents($sResourceDir . $sDS1Path), true);
+		$sDS2 = json_decode(file_get_contents($sResourceDir . $sDS2Path), true);
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'DataSourcesAreEquivalent', $oCollector, [ $sDS1, $sDS2 ]);
+
+		$this->assertEquals($bExpected, $bRet, "$sDS1Path vs $sDS2Path");
+	}
+
+	public function DataSourcesAreEquivalent_READONLY_FIELDS_Provider() {
+		$aUseCases = [];
+
+		foreach (\Collector::READONLY_FIELDS as $sField){
+			$sMessage = "same datasources: additional field ($sField) should not impact comparison";
+			$aUseCases[$sMessage] = [
+				$sMessage, $sField, "0", true
+			];
+
+			$sMessage = "distinct datasources: additional field ($sField) should not impact comparison";
+			$aUseCases[$sMessage] = [
+				$sMessage, $sField, "1", false
+			];
+		}
+
+		return $aUseCases;
+	}
+	/**
+	 * @dataProvider DataSourcesAreEquivalent_READONLY_FIELDS_Provider
+	 *
+	 * @param string $sMessage
+	 * @param string $sFieldToTest
+	 * @param string $delete_policy_retention_value
+	 * @param bool $bExpected
+	 */
+	public function testDataSourcesAreEquivalent_READONLY_FIELDS($sMessage, $sFieldToTest, $delete_policy_retention_value, $bExpected) {
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+
+		$sResourceDir = __DIR__ . '/collector/datasources/';
+		$sContent = file_get_contents($sResourceDir."ds1_oneadditional_field_readonlytesting.json");
+		$sContent = str_replace("ADDITIONAL_FIELD_NAME", "$sFieldToTest", $sContent);
+		$sContent = str_replace("delete_policy_retention_value", $delete_policy_retention_value, $sContent);
+		$sDS1 = json_decode($sContent, true);
+		$sDS2 = json_decode(file_get_contents($sResourceDir . "ds1.json"), true);
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'DataSourcesAreEquivalent', $oCollector, [ $sDS1, $sDS2 ]);
+
+		var_dump($sDS1);
+		var_dump($sDS2);
+		$this->assertEquals($bExpected, $bRet, $sMessage);
 	}
 }

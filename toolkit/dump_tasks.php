@@ -1,7 +1,7 @@
 <?php
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -26,6 +26,7 @@ require_once(APPROOT.'core/parameters.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
+require_once(APPROOT.'core/collector.class.inc.php');
 
 $sTaskName = Utils::ReadParameter('task_name', '*');
 Utils::InitConsoleLogLevel();
