@@ -711,7 +711,7 @@ class Utils
 			}
 
 			if (!isset(static::$aModuleVersions[$sName])) {
-				$aResults = $oClient->Get('ModuleInstallation', ['name' => $sName, 'installed' => static::$sLastInstallDate], 'name,version', 1);
+				$aResults = $oClient->Get('ModuleInstallation', ['name' => $sName, 'installed' => static::$sLastInstallDate], 'version', 1);
 				if ($aResults['code'] != 0 || empty($aResults['objects'])) {
 					throw new Exception($aResults['message'], $aResults['code']);
 				}
