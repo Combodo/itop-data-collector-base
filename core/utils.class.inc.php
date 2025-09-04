@@ -45,6 +45,11 @@ class Utils
 	 */
 	static protected $sLastInstallDate;
 
+	/**
+	 * @var array<string, string> Keeps track of which version is installed for a module
+	 */
+	static protected $aModuleVersions = array();
+
 	static public function SetProjectName($sProjectName)
 	{
 		if ($sProjectName != null) {
@@ -704,19 +709,21 @@ class Utils
 				$aDatamodel = current($aDatamodelResults['objects']);
 				static::$sLastInstallDate = $aDatamodel['fields']['installed'];
 			}
-			
-			$aResults = $oClient->Get('ModuleInstallation', ['name' => $sName, 'installed' => static::$sLastInstallDate], 'name,version', 1);
-			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
-				throw new Exception($aResults['message'], $aResults['code']);
+
+			if (!isset(static::$aModuleVersions[$sName])) {
+				$aResults = $oClient->Get('ModuleInstallation', ['name' => $sName, 'installed' => static::$sLastInstallDate], 'name,version', 1);
+				if ($aResults['code'] != 0 || empty($aResults['objects'])) {
+					throw new Exception($aResults['message'], $aResults['code']);
+				}
+				$aObject = current($aResults['objects']);
+				static::$aModuleVersions[$sName] = $aObject['fields']['version'];
 			}
-			$aObject = current($aResults['objects']);
-			$sCurrentVersion = $aObject['fields']['version'];
-			
-			if (isset($sExpectedVersion) && !version_compare($sCurrentVersion, $sExpectedVersion, $sOperator)) {
-				throw new Exception(sprintf('Version mismatch (%s %s %s)', $sCurrentVersion, $sOperator, $sExpectedVersion));
+
+			if (isset($sExpectedVersion) && !version_compare(static::$aModuleVersions[$sName], $sExpectedVersion, $sOperator)) {
+				throw new Exception(sprintf('Version mismatch (%s %s %s)', static::$aModuleVersions[$sName], $sOperator, $sExpectedVersion));
 			}
 			
-			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $sCurrentVersion));
+			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $sName, static::$aModuleVersions[$sName]));
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());
 			if ($bRequired) {
@@ -727,6 +734,20 @@ class Utils
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Get the installed version of the given module
+	 *
+	 * @param string $sModuleId Name of the module
+	 * @param RestClient|null $oClient
+	 * @return string The installed version of the module
+	 * @throws Exception When the module could not be found
+	 */
+	public static function GetModuleVersion(string $sModuleId, RestClient $oClient = null): string
+	{
+		if (!isset(static::$aModuleVersions[$sModuleId])) static::CheckModuleInstallation($sModuleId, true, $oClient);
+		return static::$aModuleVersions[$sModuleId];
 	}
 }
 
