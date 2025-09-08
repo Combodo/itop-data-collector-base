@@ -6,6 +6,7 @@
   <itop_password>admin</itop_password>
   <itop_token/>
   <itop_login_mode/>
+  <itop_env>production</itop_env>
 
   <!-- console_log_level: level of logging to console (std output)
   -1 : none, nothing will be logged to the console
