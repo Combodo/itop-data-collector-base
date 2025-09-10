@@ -129,21 +129,29 @@ class RestClient
 		return $aResults;
 	}
 
-	public static function GetNewestKnownVersion()
-	{
-		$sNewestVersion = '1.0';
+
+	/**
+	 * Gets the iTop API version in use. It tries all the known versions, starting from the newest one.
+	 *
+	 * @return string The newest supported version.
+	 * @throws Exception If no supported version is found.
+	 */
+	public static function GetNewestKnownVersion() : string {
+
 		$oC = new RestClient();
-		$aKnownVersions = array('1.0', '1.1', '1.2', '2.0');
+		// Order: Put the newest versions first.
+		$aKnownVersions = array('1.4', '1.3', '1.2', '1.1', '1.0');
 		foreach ($aKnownVersions as $sVersion) {
 			$oC->SetVersion($sVersion);
 			$aRet = $oC->ListOperations();
 			if ($aRet['code'] == 0) {
-				// Supported version
-				$sNewestVersion = $sVersion;
+				// A non-error code (0) means the version is supported.
+				return $sVersion;
 			}
 		}
 
-		return $sNewestVersion;
+		throw new Exception("Unable to detect an iTop API. Validate the URL and the credentials, and check if appropriate profiles have been assigned to the user (e.g. 'REST Services User').");
+		
 	}
 
 	/**
