@@ -25,7 +25,7 @@ pipeline {
       steps {
         script {
               sh 'mkdir -p logs'
-              sh 'export PATH="vendor/bin/phpstan analyse --error-format=junit > logs/phpstan_results.xml'
+              sh 'vendor/bin/phpstan analyse --error-format=junit > logs/phpstan_results.xml'
           }
       }
     }
