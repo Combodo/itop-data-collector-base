@@ -58,9 +58,10 @@ class JsonCollectorTest extends TestCase
 		$aFiles = glob($sPattern);
 		foreach ($aFiles as $fFile) {
 			if (is_file($fFile)) {
-				$bRes = copy($fFile, self::$sCollectorPath.basename($fFile));
+				$sPath = self::$sCollectorPath.basename($fFile);
+				$bRes = copy($fFile, $sPath);
 				if (!$bRes) {
-					throw new \Exception("Failed copying $fFile to ".JsonCollectorTest::COLLECTOR_PATH.basename($fFile));
+					throw new \Exception("Failed copying $fFile to $sPath");
 				}
 			}
 		}
