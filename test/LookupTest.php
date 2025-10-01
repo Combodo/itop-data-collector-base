@@ -23,6 +23,7 @@ class LookupTest extends TestCase
 {
 	private $oRestClient;
 	private $oLookupTable;
+	private $oMockedLogger;
 
 	public function setUp(): void
 	{

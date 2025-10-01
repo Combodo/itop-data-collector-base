@@ -129,7 +129,7 @@ abstract class JsonCollector extends Collector
 		//**** step 2 : get json file
 		//execute cmd before get the json
 		if (!empty($this->sJsonCliCommand)) {
-			utils::Exec($this->sJsonCliCommand);
+			Utils::Exec($this->sJsonCliCommand);
 		}
 
 		//get Json file

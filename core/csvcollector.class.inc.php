@@ -165,7 +165,7 @@ abstract class CSVCollector extends Collector
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Default values [".var_export($this->aSynchroFieldsToDefaultValues, true)."]");
 
 		if (!empty($this->sCsvCliCommand)) {
-			utils::Exec($this->sCsvCliCommand);
+			Utils::Exec($this->sCsvCliCommand);
 		}
 
 		try {

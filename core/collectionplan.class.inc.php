@@ -55,8 +55,8 @@ abstract class CollectionPlan
 	 */
 	public function GetSortedLaunchSequence(): array
 	{
-		$aCollectorsLaunchSequence = utils::GetConfigurationValue('collectors_launch_sequence', []);
-		$aExtensionsCollectorsLaunchSequence = utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
+		$aCollectorsLaunchSequence = Utils::GetConfigurationValue('collectors_launch_sequence', []);
+		$aExtensionsCollectorsLaunchSequence = Utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
 		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
 		if (!empty($aCollectorsLaunchSequence)) {
 			// Sort sequence
