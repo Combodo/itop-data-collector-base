@@ -501,6 +501,7 @@ abstract class Collector
 							// Ok, found, is it up to date ?
 							$aData = reset($aResult['objects']);
 							$aCurrentSourceDefinition = $aData['fields'];
+							$iKey=0;
 							if (!array_key_exists('key', $aData)) {
 								// Emulate the behavior for older versions of the API
 								if (preg_match('/::([0-9]+)$/', $sKey, $aMatches)) {
@@ -588,7 +589,7 @@ abstract class Collector
 		}
 		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
 	}
-	
+
 	/**
 	 * Added to add multi-column field support or situations
 	 * where column name is different than attribute code.
@@ -601,7 +602,7 @@ abstract class Collector
 		foreach ($this->aFields as $aField) {
 			if (in_array($sHeader, $aField['columns'])) return true;
 		}
-		
+
 		// fallback old behaviour
 		return array_key_exists($sHeader, $this->aFields);
 	}

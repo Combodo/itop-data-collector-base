@@ -58,6 +58,7 @@ abstract class CollectionPlan
 		$aCollectorsLaunchSequence = Utils::GetConfigurationValue('collectors_launch_sequence', []);
 		$aExtensionsCollectorsLaunchSequence = Utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
 		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
+		$aRank=[];
 		if (!empty($aCollectorsLaunchSequence)) {
 			// Sort sequence
 			$aSortedCollectorsLaunchSequence = [];

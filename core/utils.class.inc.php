@@ -186,6 +186,9 @@ class Utils
 			case LOG_DEBUG:
 				$sPrio = 'Debug';
 				break;
+
+			default:
+				$sPrio = 'Critical Error';
 		}
 
 		if ($iPriority <= self::$iConsoleLogLevel) {
@@ -689,6 +692,8 @@ class Utils
 			$oClient = new RestClient();
 		}
 
+		$sName="undefined";
+		$sOperator='>=';
 		if (preg_match('/^([^\/]+)(?:\/([<>]?=?)(.+))?$/', $sModuleId, $aModuleMatches)) {
 			$sName = $aModuleMatches[1];
 			$sOperator = $aModuleMatches[2] ?? null ?: '>=';

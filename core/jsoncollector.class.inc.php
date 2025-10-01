@@ -116,13 +116,14 @@ abstract class JsonCollector extends Collector
 			}
 		}
 
+		$aPath=[];
 		if (isset($aParamsSourceJson["path"])) {
 			$aPath = explode('/', $aParamsSourceJson["path"]);
 		}
 		if (isset($aParamsSourceJson["PATH"])) {
 			$aPath = explode('/', $aParamsSourceJson["PATH"]);
 		}
-		if ($aPath == '') {
+		if (count($aPath) == 0) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] no path to find data in JSON file");
 		}
 
