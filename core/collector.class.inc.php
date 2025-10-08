@@ -589,7 +589,7 @@ abstract class Collector
 		}
 		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
 	}
-
+	
 	/**
 	 * Added to add multi-column field support or situations
 	 * where column name is different than attribute code.
@@ -602,7 +602,7 @@ abstract class Collector
 		foreach ($this->aFields as $aField) {
 			if (in_array($sHeader, $aField['columns'])) return true;
 		}
-
+		
 		// fallback old behaviour
 		return array_key_exists($sHeader, $this->aFields);
 	}

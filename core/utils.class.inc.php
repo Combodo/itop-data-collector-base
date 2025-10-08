@@ -38,7 +38,7 @@ class Utils
 	 * @since 1.3.0 N°6012
 	 */
 	static protected $oMockedDoPostRequestService;
-
+	
 	/**
 	 * @var string Keeps track of the latest date the datamodel has been installed/updated
 	 * (in order to check which modules were installed with it)
@@ -674,7 +674,7 @@ class Utils
 
 		return $aCurlOptions;
 	}
-
+	
 	/**
 	 * Check if the given module is installed in iTop.
 	 * Mind that this assumes the `ModuleInstallation` class is ordered by descending installation date
@@ -699,7 +699,7 @@ class Utils
 			$sOperator = $aModuleMatches[2] ?? null ?: '>=';
 			$sExpectedVersion = $aModuleMatches[3] ?? null;
 		}
-
+		
 		try {
 			if (!isset(static::$sLastInstallDate)) {
 				$aDatamodelResults = $oClient->Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
@@ -709,18 +709,18 @@ class Utils
 				$aDatamodel = current($aDatamodelResults['objects']);
 				static::$sLastInstallDate = $aDatamodel['fields']['installed'];
 			}
-
+			
 			$aResults = $oClient->Get('ModuleInstallation', ['name' => $sName, 'installed' => static::$sLastInstallDate], 'name,version', 1);
 			if ($aResults['code'] != 0 || empty($aResults['objects'])) {
 				throw new Exception($aResults['message'], $aResults['code']);
 			}
 			$aObject = current($aResults['objects']);
 			$sCurrentVersion = $aObject['fields']['version'];
-
+			
 			if (isset($sExpectedVersion) && !version_compare($sCurrentVersion, $sExpectedVersion, $sOperator)) {
 				throw new Exception(sprintf('Version mismatch (%s %s %s)', $sCurrentVersion, $sOperator, $sExpectedVersion));
 			}
-
+			
 			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $aObject['fields']['name'], $sCurrentVersion));
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());
