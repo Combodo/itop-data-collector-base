@@ -7,7 +7,7 @@ pipeline {
   agent any
 
   parameters {
-      string(name: 'phpstan_level', defaultValue: '2', description: 'level used for phpstan validation.')        
+      string(name: 'phpstan_level', defaultValue: '1', description: 'level used for phpstan validation.')        
   }  
   stages {
     stage('composer install') {
