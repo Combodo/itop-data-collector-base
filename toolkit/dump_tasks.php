@@ -81,6 +81,7 @@ if ($sTaskName == '*') {
 	} else {
 		if (is_array($aResult['objects']) && (count($aResult['objects']) > 0)) {
 			foreach ($aResult['objects'] as $sKey => $aValues) {
+				$iKey=0;
 				if (!array_key_exists('key', $aValues)) {
 					// Emulate the behavior for older versions of the API
 					if (preg_match('/::([0-9]+)$/', $sKey, $aMatches)) {

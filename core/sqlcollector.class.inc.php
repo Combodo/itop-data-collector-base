@@ -34,6 +34,7 @@ abstract class SQLCollector extends Collector
 	protected $oDB;
 	protected $oStatement;
 	protected $idx;
+	protected $sQuery;
 
 	/**
 	 * Initalization
@@ -63,12 +64,12 @@ abstract class SQLCollector extends Collector
 		}
 
 		// Read the SQL query from the configuration
-		$sQuery = Utils::GetConfigurationValue(get_class($this)."_query", '');
-		if ($sQuery == '') {
+		$this->sQuery = Utils::GetConfigurationValue(get_class($this)."_query", '');
+		if ($this->sQuery == '') {
 			// Try all lowercase
-			$sQuery = Utils::GetConfigurationValue(strtolower(get_class($this))."_query", '');
+			$this->sQuery = Utils::GetConfigurationValue(strtolower(get_class($this))."_query", '');
 		}
-		if ($sQuery == '') {
+		if ($this->sQuery == '') {
 			// No query at all !!
 			Utils::Log(LOG_ERR, "[".get_class($this)."] no SQL query configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_query' in the configuration file.");
 
@@ -76,10 +77,10 @@ abstract class SQLCollector extends Collector
 		}
 
 
-		$this->oStatement = $this->oDB->prepare($sQuery);
+		$this->oStatement = $this->oDB->prepare($this->sQuery);
 		if ($this->oStatement === false) {
 			$aInfo = $this->oDB->errorInfo();
-			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 			return false;
 		}
@@ -87,7 +88,7 @@ abstract class SQLCollector extends Collector
 		$this->oStatement->execute();
 		if ($this->oStatement->errorCode() !== '00000') {
 			$aInfo = $this->oStatement->errorInfo();
-			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 			return false;
 		}
@@ -223,7 +224,7 @@ abstract class MySQLCollector extends SQLCollector
 				$this->oStatement = $this->oDB->prepare("SET NAMES 'utf8'");
 				if ($this->oStatement === false) {
 					$aInfo = $this->oDB->errorInfo();
-					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 					return false;
 				}
@@ -231,7 +232,7 @@ abstract class MySQLCollector extends SQLCollector
 				$bRet = $this->oStatement->execute();
 				if ($this->oStatement->errorCode() !== '00000') {
 					$aInfo = $this->oStatement->errorInfo();
-					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 					return false;
 				}

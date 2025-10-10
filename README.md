@@ -17,6 +17,15 @@ Release packages can be found on the [iTop Hub Store](https://store.itophub.io/e
 When downloading directly from GitHub (by cloning or downloading as zip) you will get potentially unstable code, and you will miss
  additional modules.  
 
+## Phpstan validation
+
+run below command to validate your collector-base clone
+```composer install; vendor/bin/phpstan analyse```
+
+see phpstan configuration in phpstan.neon.dist. in here you can increase/decrease (severity) level
+
+to ignore remaining errors please generate baseline again:
+```composer install; vendor/bin/phpstan analyse --generate-baseline```
 
 ## About Us
 

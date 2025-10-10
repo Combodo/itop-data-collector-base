@@ -5,6 +5,10 @@ pipeline {
     }
 
   agent any
+
+  parameters {
+      string(name: 'phpstan_level', defaultValue: '1', description: 'level used for phpstan validation.')        
+  }  
   stages {
     stage('composer install') {
       steps {
@@ -17,6 +21,15 @@ pipeline {
         script {
               sh 'mkdir logs'
               sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
+          }
+      }
+    }
+
+    stage('phpstan tests') {
+      steps {
+        script {
+              sh 'mkdir -p logs'
+              sh 'vendor/bin/phpstan analyse -l ${phpstan_level} --error-format=junit > logs/phpstan_results.xml'
           }
       }
     }

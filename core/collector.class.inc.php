@@ -501,6 +501,7 @@ abstract class Collector
 							// Ok, found, is it up to date ?
 							$aData = reset($aResult['objects']);
 							$aCurrentSourceDefinition = $aData['fields'];
+							$iKey=0;
 							if (!array_key_exists('key', $aData)) {
 								// Emulate the behavior for older versions of the API
 								if (preg_match('/::([0-9]+)$/', $sKey, $aMatches)) {

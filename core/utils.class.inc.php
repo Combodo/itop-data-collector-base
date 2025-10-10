@@ -186,6 +186,9 @@ class Utils
 			case LOG_DEBUG:
 				$sPrio = 'Debug';
 				break;
+
+			default:
+				$sPrio = 'Critical Error';
 		}
 
 		if ($iPriority <= self::$iConsoleLogLevel) {
@@ -516,7 +519,7 @@ class Utils
 			}
 			$response = @stream_get_contents($fp);
 			if ($response === false) {
-				throw new IOException("Problem reading data from $sUrl, $php_errormsg");
+				throw new IOException("Problem reading data from $sUrl, " . error_get_last() );
 			}
 			if (is_array($aResponseHeaders)) {
 				$aMeta = stream_get_meta_data($fp);
@@ -688,7 +691,9 @@ class Utils
 		{
 			$oClient = new RestClient();
 		}
-		
+
+		$sName = '';
+		$sOperator = '';
 		if (preg_match('/^([^\/]+)(?:\/([<>]?=?)(.+))?$/', $sModuleId, $aModuleMatches)) {
 			$sName = $aModuleMatches[1];
 			$sOperator = $aModuleMatches[2] ?? null ?: '>=';

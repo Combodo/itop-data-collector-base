@@ -2,6 +2,7 @@
 
 namespace UnitTestFiles\Test;
 
+use Exception;
 use ExtendedCollector;
 use Orchestrator;
 use PHPUnit\Framework\TestCase;

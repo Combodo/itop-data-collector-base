@@ -78,6 +78,7 @@ abstract class CSVCollector extends Collector
 		$this->aSynchroFieldsToDefaultValues = array();
 		$this->bHasHeader = true;
 
+		$sCsvFilePath='';
 		if (is_array($this->aCollectorConfig)) {
 			if (array_key_exists('csv_file', $this->aCollectorConfig)) {
 				$sCsvFilePath = $this->aCollectorConfig['csv_file'];
@@ -165,7 +166,7 @@ abstract class CSVCollector extends Collector
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Default values [".var_export($this->aSynchroFieldsToDefaultValues, true)."]");
 
 		if (!empty($this->sCsvCliCommand)) {
-			utils::Exec($this->sCsvCliCommand);
+			Utils::Exec($this->sCsvCliCommand);
 		}
 
 		try {

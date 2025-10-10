@@ -116,20 +116,21 @@ abstract class JsonCollector extends Collector
 			}
 		}
 
+		$aPath=[];
 		if (isset($aParamsSourceJson["path"])) {
 			$aPath = explode('/', $aParamsSourceJson["path"]);
 		}
 		if (isset($aParamsSourceJson["PATH"])) {
 			$aPath = explode('/', $aParamsSourceJson["PATH"]);
 		}
-		if ($aPath == '') {
+		if (count($aPath) == 0) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] no path to find data in JSON file");
 		}
 
 		//**** step 2 : get json file
 		//execute cmd before get the json
 		if (!empty($this->sJsonCliCommand)) {
-			utils::Exec($this->sJsonCliCommand);
+			Utils::Exec($this->sJsonCliCommand);
 		}
 
 		//get Json file
