@@ -692,8 +692,8 @@ class Utils
 			$oClient = new RestClient();
 		}
 
-		$sName="";
-		$sOperator='>=';
+		$sName = '';
+		$sOperator = '';
 		if (preg_match('/^([^\/]+)(?:\/([<>]?=?)(.+))?$/', $sModuleId, $aModuleMatches)) {
 			$sName = $aModuleMatches[1];
 			$sOperator = $aModuleMatches[2] ?? null ?: '>=';
