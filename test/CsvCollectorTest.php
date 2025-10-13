@@ -178,11 +178,11 @@ class CsvCollectorTest extends CollectorTest
 				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing in the csv file.",
 				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.',
 			),
-			"no email" => array(
-				"no_email.csv",
-				"[iTopPersonCsvCollector] The column \"email\", used for reconciliation, is missing in the csv file.",
-				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
-			),
+            "no email" => array(
+                "no_email.csv",
+                "[iTopPersonCsvCollector] The field \"email\", used for reconciliation, has missing column(s) in the csv file.",
+                "iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
+            ),
 			"empty csv" => array(
 				"empty_file.csv",
 				"[iTopPersonCsvCollector] CSV file is empty. Data collection stops here.",
