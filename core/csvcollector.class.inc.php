@@ -139,7 +139,6 @@ abstract class CSVCollector extends Collector
                         array_multisort($aCurrentConfiguredHeaderColumns);
                         $this->aConfiguredHeaderColumns = array_keys($aCurrentConfiguredHeaderColumns);
 
-					if ($this->bHasHeader) {
                         foreach ($aCurrentConfiguredHeaderColumns as $sSynchroField => $sCsvColumn) {
                             $this->aMappingCsvColumnNameToFields[$sCsvColumn][] = $sSynchroField;
                             $this->aMappedFields[$sSynchroField] = '';
@@ -160,7 +159,7 @@ abstract class CSVCollector extends Collector
 		}
 
 		Utils::Log(LOG_INFO, "[".get_class($this)."] CSV file is [".$sCsvFilePath."]");
-		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Has cs header [".$this->bHasHeader."]");
+        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Has csv header [".($this->bHasHeader?"yes":"no")."]");
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Separator used is [".$this->sCsvSeparator."]");
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Encoding used is [".$this->sCsvEncoding."]");
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Fields [".var_export($this->aConfiguredHeaderColumns, true)."]");
@@ -168,7 +167,7 @@ abstract class CSVCollector extends Collector
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Default values [".var_export($this->aSynchroFieldsToDefaultValues, true)."]");
 
 		if (!empty($this->sCsvCliCommand)) {
-			utils::Exec($this->sCsvCliCommand);
+            Utils::Exec($this->sCsvCliCommand);
 		}
 
 		try {
