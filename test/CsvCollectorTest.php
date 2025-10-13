@@ -81,6 +81,7 @@ class CsvCollectorTest extends CollectorTest
 			"separator_incolumns" => ["separator_incolumns"],
             "mapping 1 column twice" => ["map_1_column_twice"],
             "mapping 1 column twice adding primary key" => ["map_1_column_twice_primary_key"],
+            "mapping 1 column twice without header" => ["map_1_column_twice_without_header"],
             "mapping 1 column 3 times" => ["map_1_column_3_times"],
             "mapping 2 columns twice" => ["map_2_columns_twice"],
             "mapping 2 columns 3 times" => ["map_2_columns_3_times"],
@@ -177,11 +178,11 @@ class CsvCollectorTest extends CollectorTest
 				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing in the csv file.",
 				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.',
 			),
-			"no email" => array(
-				"no_email.csv",
-				"[iTopPersonCsvCollector] The field \"email\", used for reconciliation, has missing column(s) in the csv file.",
-				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
-			),
+            "no email" => array(
+                "no_email.csv",
+                "[iTopPersonCsvCollector] The field \"email\", used for reconciliation, has missing column(s) in the csv file.",
+                "iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
+            ),
 			"empty csv" => array(
 				"empty_file.csv",
 				"[iTopPersonCsvCollector] CSV file is empty. Data collection stops here.",
