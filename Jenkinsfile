@@ -29,6 +29,9 @@ pipeline {
       steps {
         script {
               sh 'mkdir -p logs'
+              if ("${phpstan_level}" == ""){
+                def phpstan_level = "1";
+              }
               sh 'vendor/bin/phpstan analyse -l ${phpstan_level} --error-format=junit > logs/phpstan_results.xml'
           }
       }
