@@ -18,3 +18,9 @@ to respect iTop code standards and re-format (no path provided means whole iTop 
 test/php-code-style/vendor/bin/php-cs-fixer fix --config test/php-code-style/.php-cs-fixer.dist.php
 
 ```
+
+report generated in Jenkins is in verbose. you can have it by calling below CLI:
+
+```
+test/php-code-style/validate.sh
+```
