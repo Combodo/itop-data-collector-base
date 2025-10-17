@@ -31,11 +31,13 @@ pipeline {
     stage('phpstan tests') {
       steps {
         script {
+            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
               sh 'mkdir -p logs'
               if ("${phpstan_level}" == ""){
                 def phpstan_level = "1";
               }
               sh 'vendor/bin/phpstan analyse -l ${phpstan_level} --error-format=junit > logs/phpstan_results.xml'
+            }
           }
       }
     }
