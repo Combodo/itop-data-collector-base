@@ -36,14 +36,14 @@ pipeline {
           }
       }
     }
-  }
 
-  stage('phpunit tests') {
-    steps {
-      script {
-            sh 'mkdir -p logs'
-            sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
-        }
+    stage('phpunit tests') {
+      steps {
+        script {
+              sh 'mkdir -p logs'
+              sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
+          }
+      }
     }
   }
 
