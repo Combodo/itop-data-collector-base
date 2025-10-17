@@ -20,10 +20,8 @@ pipeline {
       steps {
         script {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-              sh 'cd test/php-code-style/; composer install'
               sh 'mkdir -p logs'
-              sh 'test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php --format=junit >logs/codestyle_results.xml'
-              sh "sed -i -e 's|.*<?xml |<?xml |' logs/codestyle_results.xml"
+              sh 'test/php-code-style/validate.sh'
             }
           }
       }
