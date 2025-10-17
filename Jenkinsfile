@@ -19,7 +19,7 @@ pipeline {
     stage('phpunit tests') {
       steps {
         script {
-              sh 'mkdir logs'
+              sh 'mkdir -p logs'
               sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
           }
       }
@@ -30,6 +30,15 @@ pipeline {
         script {
               sh 'mkdir -p logs'
               sh 'vendor/bin/phpstan analyse -l ${phpstan_level} --error-format=junit > logs/phpstan_results.xml'
+          }
+      }
+    }
+
+    stage('code style tests') {
+      steps {
+        script {
+              sh 'cd test/php-code-style/; composer install'
+              sh 'test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php -vvv --format=junit > logs/codestyle_results.xml'
           }
       }
     }
