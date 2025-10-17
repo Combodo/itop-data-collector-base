@@ -41,7 +41,7 @@ pipeline {
       steps {
         script {
               sh 'cd test/php-code-style/; composer install'
-              sh 'test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php -vvv --format=junit > logs/codestyle_results.xml'
+              sh 'test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php --format=junit > logs/codestyle_results.xml'
           }
       }
     }
