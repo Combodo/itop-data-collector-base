@@ -8,6 +8,9 @@ parameters:
     scanDirectories:
         - vendor
 
+    excludePaths:
+        - test/php-code-style
+
     paths:
         - core
         - test
