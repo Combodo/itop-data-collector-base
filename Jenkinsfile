@@ -20,8 +20,7 @@ pipeline {
       steps {
         script {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-              sh 'mkdir -p logs'
-              sh 'test/php-code-style/validate.sh'
+              sh 'bash test/php-code-style/validate.sh'
             }
           }
       }
