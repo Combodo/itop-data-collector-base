@@ -16,11 +16,11 @@ pipeline {
       }
     }
 
-    stage('phpunit tests') {
+    stage('code style tests') {
       steps {
         script {
-              sh 'mkdir -p logs'
-              sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
+              sh 'cd test/php-code-style/; composer install'
+              sh 'test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php --format=junit  2>&1 > logs/codestyle_results.xml'
           }
       }
     }
@@ -36,14 +36,14 @@ pipeline {
           }
       }
     }
+  }
 
-    stage('code style tests') {
-      steps {
-        script {
-              sh 'cd test/php-code-style/; composer install'
-              sh 'test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php --format=junit > logs/codestyle_results.xml'
-          }
-      }
+  stage('phpunit tests') {
+    steps {
+      script {
+            sh 'mkdir -p logs'
+            sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
+        }
     }
   }
 
