@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2022 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -20,135 +21,135 @@
  */
 abstract class CollectionPlan
 {
-	// Instance of the collection plan
-	static protected $oCollectionPlan;
+    // Instance of the collection plan
+    protected static $oCollectionPlan;
 
-	public function __construct()
-	{
-		self::$oCollectionPlan = $this;
-	}
+    public function __construct()
+    {
+        self::$oCollectionPlan = $this;
+    }
 
-	/**
-	 * Initialize collection plan
-	 *
-	 * @return void
-	 * @throws \IOException
-	 */
-	public function Init(): void
-	{
-		Utils::Log(LOG_INFO, "---------- Build collection plan ----------");
-	}
+    /**
+     * Initialize collection plan
+     *
+     * @return void
+     * @throws \IOException
+     */
+    public function Init(): void
+    {
+        Utils::Log(LOG_INFO, "---------- Build collection plan ----------");
+    }
 
-	/**
-	 * @return static
-	 */
-	public static function GetPlan()
-	{
-		return self::$oCollectionPlan;
-	}
+    /**
+     * @return static
+     */
+    public static function GetPlan()
+    {
+        return self::$oCollectionPlan;
+    }
 
-	/**
-	 * Provide the launch sequence as defined in the configuration files
-	 *
-	 * @return array
-	 * @throws \Exception
-	 */
-	public function GetSortedLaunchSequence(): array
-	{
-		$aCollectorsLaunchSequence = Utils::GetConfigurationValue('collectors_launch_sequence', []);
-		$aExtensionsCollectorsLaunchSequence = Utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
-		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
-		$aRank=[];
-		if (!empty($aCollectorsLaunchSequence)) {
-			// Sort sequence
-			$aSortedCollectorsLaunchSequence = [];
-			foreach ($aCollectorsLaunchSequence as $aCollector) {
-				if (array_key_exists('rank', $aCollector)) {
-					$aRank[] = $aCollector['rank'];
-					$aSortedCollectorsLaunchSequence[] = $aCollector;
-				} else {
-					Utils::Log(LOG_INFO, "> Rank is missing from the launch_sequence of ".$aCollector['name']." It will not be launched.");
-				}
-			}
-			array_multisort($aRank, SORT_ASC, $aSortedCollectorsLaunchSequence);
+    /**
+     * Provide the launch sequence as defined in the configuration files
+     *
+     * @return array
+     * @throws \Exception
+     */
+    public function GetSortedLaunchSequence(): array
+    {
+        $aCollectorsLaunchSequence = Utils::GetConfigurationValue('collectors_launch_sequence', []);
+        $aExtensionsCollectorsLaunchSequence = Utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
+        $aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
+        $aRank = [];
+        if (!empty($aCollectorsLaunchSequence)) {
+            // Sort sequence
+            $aSortedCollectorsLaunchSequence = [];
+            foreach ($aCollectorsLaunchSequence as $aCollector) {
+                if (array_key_exists('rank', $aCollector)) {
+                    $aRank[] = $aCollector['rank'];
+                    $aSortedCollectorsLaunchSequence[] = $aCollector;
+                } else {
+                    Utils::Log(LOG_INFO, "> Rank is missing from the launch_sequence of ".$aCollector['name']." It will not be launched.");
+                }
+            }
+            array_multisort($aRank, SORT_ASC, $aSortedCollectorsLaunchSequence);
 
-			return $aSortedCollectorsLaunchSequence;
-		}
+            return $aSortedCollectorsLaunchSequence;
+        }
 
-		return $aCollectorsLaunchSequence;
-	}
+        return $aCollectorsLaunchSequence;
+    }
 
-	/**
-	 * Look for the collector definition file in the different possible collector directories
-	 *
-	 * @param $sCollector
-	 *
-	 * @return bool
-	 */
-	public function GetCollectorDefinitionFile($sCollector): bool
-	{
-		if (file_exists(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php')) {
-			require_once(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php');
-		} elseif (file_exists(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php')) {
-			require_once(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php');
-		} elseif (file_exists(APPROOT.'collectors/'.$sCollector.'.class.inc.php')) {
-			require_once(APPROOT.'collectors/'.$sCollector.'.class.inc.php');
-		} else {
-			return false;
-		}
+    /**
+     * Look for the collector definition file in the different possible collector directories
+     *
+     * @param $sCollector
+     *
+     * @return bool
+     */
+    public function GetCollectorDefinitionFile($sCollector): bool
+    {
+        if (file_exists(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php')) {
+            require_once(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php');
+        } elseif (file_exists(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php')) {
+            require_once(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php');
+        } elseif (file_exists(APPROOT.'collectors/'.$sCollector.'.class.inc.php')) {
+            require_once(APPROOT.'collectors/'.$sCollector.'.class.inc.php');
+        } else {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	/**
-	 *  Add the collectors to be launched to the orchestrator
-	 *
-	 * @return bool
-	 * @throws \Exception
-	 */
-	public function AddCollectorsToOrchestrator(): bool
-	{
-		// Read and order launch sequence
-		$aCollectorsLaunchSequence = $this->GetSortedLaunchSequence();
-		if (empty($aCollectorsLaunchSequence)) {
-			Utils::Log(LOG_INFO, "---------- No Launch sequence has been found, no collector has been orchestrated ----------");
+    /**
+     *  Add the collectors to be launched to the orchestrator
+     *
+     * @return bool
+     * @throws \Exception
+     */
+    public function AddCollectorsToOrchestrator(): bool
+    {
+        // Read and order launch sequence
+        $aCollectorsLaunchSequence = $this->GetSortedLaunchSequence();
+        if (empty($aCollectorsLaunchSequence)) {
+            Utils::Log(LOG_INFO, "---------- No Launch sequence has been found, no collector has been orchestrated ----------");
 
-			return false;
-		}
+            return false;
+        }
 
-		$iIndex = 1;
-		$aOrchestratedCollectors = [];
-		foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
-			$sCollectorName = $aCollector['name'];
+        $iIndex = 1;
+        $aOrchestratedCollectors = [];
+        foreach ($aCollectorsLaunchSequence as $iKey => $aCollector) {
+            $sCollectorName = $aCollector['name'];
 
-			// Skip disabled collectors
-			if (!array_key_exists('enable', $aCollector) || ($aCollector['enable'] != 'yes')) {
-				Utils::Log(LOG_INFO, "> ".$sCollectorName." is disabled and will not be launched.");
-				continue;
-			}
+            // Skip disabled collectors
+            if (!array_key_exists('enable', $aCollector) || ($aCollector['enable'] != 'yes')) {
+                Utils::Log(LOG_INFO, "> ".$sCollectorName." is disabled and will not be launched.");
+                continue;
+            }
 
-			// Read collector php definition file
-			if (!$this->GetCollectorDefinitionFile($sCollectorName)) {
-				Utils::Log(LOG_INFO, "> No file definition file has been found for ".$sCollectorName." It will not be launched.");
-				continue;
-			}
+            // Read collector php definition file
+            if (!$this->GetCollectorDefinitionFile($sCollectorName)) {
+                Utils::Log(LOG_INFO, "> No file definition file has been found for ".$sCollectorName." It will not be launched.");
+                continue;
+            }
 
-			/** @var Collector $oCollector */
-			// Instantiate collector
-			$oCollector = new $sCollectorName;
-			$oCollector->Init();
-			if ($oCollector->CheckToLaunch($aOrchestratedCollectors)) {
-				Utils::Log(LOG_INFO, $sCollectorName.' will be launched !');
-				Orchestrator::AddCollector($iIndex++, $sCollectorName);
-				$aOrchestratedCollectors[$sCollectorName] = true;
-			} else {
-				$aOrchestratedCollectors[$sCollectorName] = false;
-			}
-			unset($oCollector);
-		}
-		Utils::Log(LOG_INFO, "---------- Collectors have been orchestrated ----------");
+            /** @var Collector $oCollector */
+            // Instantiate collector
+            $oCollector = new $sCollectorName();
+            $oCollector->Init();
+            if ($oCollector->CheckToLaunch($aOrchestratedCollectors)) {
+                Utils::Log(LOG_INFO, $sCollectorName.' will be launched !');
+                Orchestrator::AddCollector($iIndex++, $sCollectorName);
+                $aOrchestratedCollectors[$sCollectorName] = true;
+            } else {
+                $aOrchestratedCollectors[$sCollectorName] = false;
+            }
+            unset($oCollector);
+        }
+        Utils::Log(LOG_INFO, "---------- Collectors have been orchestrated ----------");
 
-		return true;
-	}
+        return true;
+    }
 
 }

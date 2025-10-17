@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -16,193 +17,193 @@
 
 class RestClient
 {
-	protected $sVersion;
+    protected $sVersion;
 
-	public function __construct()
-	{
-		$this->sVersion = '1.0';
-	}
+    public function __construct()
+    {
+        $this->sVersion = '1.0';
+    }
 
-	public function GetVersion()
-	{
-		return $this->sVersion;
-	}
+    public function GetVersion()
+    {
+        return $this->sVersion;
+    }
 
-	public function SetVersion($sVersion)
-	{
-		$this->sVersion = $sVersion;
-	}
+    public function SetVersion($sVersion)
+    {
+        $this->sVersion = $sVersion;
+    }
 
+    public function Get($sClass, $keySpec, $sOutputFields = '*', $iLimit = 0)
+    {
+        $aOperation = [
+            'operation'     => 'core/get', // operation code
+            'class'         => $sClass,
+            'key'           => $keySpec,
+            'output_fields' => $sOutputFields, // list of fields to show in the results (* or a,b,c)
+            'limit'         => $iLimit,
+        ];
 
-	public function Get($sClass, $keySpec, $sOutputFields = '*', $iLimit = 0)
-	{
-		$aOperation = array(
-			'operation'     => 'core/get', // operation code
-			'class'         => $sClass,
-			'key'           => $keySpec,
-			'output_fields' => $sOutputFields, // list of fields to show in the results (* or a,b,c)
-			'limit'         => $iLimit,
-		);
+        return self::ExecOperation($aOperation, $this->sVersion);
+    }
 
-		return self::ExecOperation($aOperation, $this->sVersion);
-	}
+    public function CheckCredentials($sUser, $sPassword)
+    {
+        $aOperation = [
+            'operation' => 'core/check_credentials', // operation code
+            'user'      => $sUser,
+            'password'  => $sPassword,
+        ];
 
-	public function CheckCredentials($sUser, $sPassword)
-	{
-		$aOperation = array(
-			'operation' => 'core/check_credentials', // operation code
-			'user'      => $sUser,
-			'password'  => $sPassword,
-		);
+        return self::ExecOperation($aOperation, $this->sVersion);
+    }
 
-		return self::ExecOperation($aOperation, $this->sVersion);
-	}
+    public function ListOperations()
+    {
+        $aOperation = [
+            'operation'     => 'list_operations', // operation code
+            'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
+        ];
 
-	public function ListOperations()
-	{
-		$aOperation = array(
-			'operation'     => 'list_operations', // operation code
-			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
-		);
+        return self::ExecOperation($aOperation, $this->sVersion);
+    }
 
-		return self::ExecOperation($aOperation, $this->sVersion);
-	}
+    public function Create($sClass, $aFields, $sComment)
+    {
+        $aOperation = [
+            'operation'     => 'core/create', // operation code
+            'class'         => $sClass,
+            'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
+            'fields'        => $aFields,
+            'comment'       => $sComment,
+        ];
 
-	public function Create($sClass, $aFields, $sComment)
-	{
-		$aOperation = array(
-			'operation'     => 'core/create', // operation code
-			'class'         => $sClass,
-			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
-			'fields'        => $aFields,
-			'comment'       => $sComment,
-		);
+        return self::ExecOperation($aOperation, $this->sVersion);
+    }
 
-		return self::ExecOperation($aOperation, $this->sVersion);
-	}
+    public function Update($sClass, $keySpec, $aFields, $sComment)
+    {
+        $aOperation = [
+            'operation'     => 'core/update', // operation code
+            'class'         => $sClass,
+            'key'           => $keySpec,
+            'fields'        => $aFields, // fields to update
+            'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
+            'comment'       => $sComment,
+        ];
 
-	public function Update($sClass, $keySpec, $aFields, $sComment)
-	{
-		$aOperation = array(
-			'operation'     => 'core/update', // operation code
-			'class'         => $sClass,
-			'key'           => $keySpec,
-			'fields'        => $aFields, // fields to update
-			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
-			'comment'       => $sComment,
-		);
+        return self::ExecOperation($aOperation, $this->sVersion);
+    }
 
-		return self::ExecOperation($aOperation, $this->sVersion);
-	}
+    public function GetRelatedObjects($sClass, $sKey, $sRelation, $bRedundancy = false, $iDepth = 99)
+    {
+        $aOperation = [
+            'operation'  => 'core/get_related', // operation code
+            'class'      => $sClass,
+            'key'        => $sKey,
+            'relation'   => $sRelation,
+            'depth'      => $iDepth,
+            'redundancy' => $bRedundancy,
+        ];
 
-	public function GetRelatedObjects($sClass, $sKey, $sRelation, $bRedundancy = false, $iDepth = 99)
-	{
-		$aOperation = array(
-			'operation'  => 'core/get_related', // operation code
-			'class'      => $sClass,
-			'key'        => $sKey,
-			'relation'   => $sRelation,
-			'depth'      => $iDepth,
-			'redundancy' => $bRedundancy,
-		);
+        return self::ExecOperation($aOperation, $this->sVersion);
+    }
 
-		return self::ExecOperation($aOperation, $this->sVersion);
-	}
+    protected static function ExecOperation($aOperation, $sVersion = '1.0')
+    {
+        $aData = Utils::GetCredentials();
+        $aData['json_data'] = json_encode($aOperation);
+        $sLoginform = Utils::GetLoginMode();
+        $sUrl = sprintf(
+            '%s/webservices/rest.php?login_mode=%s&version=%s',
+            Utils::GetConfigurationValue('itop_url', ''),
+            $sLoginform,
+            $sVersion
+        );
+        $aHeaders = [];
+        $aCurlOptions = Utils::GetCurlOptions();
+        $response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
+        $aResults = json_decode($response, true);
+        if (!$aResults) {
+            throw new Exception("rest.php replied: $response");
+        }
 
-	protected static function ExecOperation($aOperation, $sVersion = '1.0')
-	{
-		$aData = Utils::GetCredentials();
-		$aData['json_data'] = json_encode($aOperation);
-		$sLoginform = Utils::GetLoginMode();
-		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
-			Utils::GetConfigurationValue('itop_url', ''),
-			$sLoginform,
-			$sVersion
-		);
-		$aHeaders = array();
-		$aCurlOptions = Utils::GetCurlOptions();
-		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
-		$aResults = json_decode($response, true);
-		if (!$aResults) {
-			throw new Exception("rest.php replied: $response");
-		}
+        return $aResults;
+    }
 
-		return $aResults;
-	}
+    public static function GetNewestKnownVersion()
+    {
+        $sNewestVersion = '1.0';
+        $oC = new RestClient();
+        $aKnownVersions = ['1.0', '1.1', '1.2', '2.0'];
+        foreach ($aKnownVersions as $sVersion) {
+            $oC->SetVersion($sVersion);
+            $aRet = $oC->ListOperations();
+            if ($aRet['code'] == 0) {
+                // Supported version
+                $sNewestVersion = $sVersion;
+            }
+        }
 
-	public static function GetNewestKnownVersion()
-	{
-		$sNewestVersion = '1.0';
-		$oC = new RestClient();
-		$aKnownVersions = array('1.0', '1.1', '1.2', '2.0');
-		foreach ($aKnownVersions as $sVersion) {
-			$oC->SetVersion($sVersion);
-			$aRet = $oC->ListOperations();
-			if ($aRet['code'] == 0) {
-				// Supported version
-				$sNewestVersion = $sVersion;
-			}
-		}
+        return $sNewestVersion;
+    }
 
-		return $sNewestVersion;
-	}
+    /**
+     * Emulates the behavior of Get('*+') to retrieve all the characteristics
+     * of the attribute_list of a given synchro data source
+     *
+     * @param hash $aSource The definition of 'fields' the Synchro DataSource, as retrieved by Get
+     * @param integer $iSourceId The identifier (key) of the Synchro Data Source
+     */
+    public static function GetFullSynchroDataSource(&$aSource, $iSourceId)
+    {
+        $bResult = true;
+        $aAttributes = [];
+        // Optimize the calls to the REST API: one call per finalclass
+        foreach ($aSource['attribute_list'] as $aAttr) {
+            if (!array_key_exists($aAttr['finalclass'], $aAttributes)) {
+                $aAttributes[$aAttr['finalclass']] = [];
+            }
+            $aAttributes[$aAttr['finalclass']][] = $aAttr['attcode'];
+        }
 
-	/**
-	 * Emulates the behavior of Get('*+') to retrieve all the characteristics
-	 * of the attribute_list of a given synchro data source
-	 *
-	 * @param hash $aSource The definition of 'fields' the Synchro DataSource, as retrieved by Get
-	 * @param integer $iSourceId The identifier (key) of the Synchro Data Source
-	 */
-	public static function GetFullSynchroDataSource(&$aSource, $iSourceId)
-	{
-		$bResult = true;
-		$aAttributes = array();
-		// Optimize the calls to the REST API: one call per finalclass
-		foreach ($aSource['attribute_list'] as $aAttr) {
-			if (!array_key_exists($aAttr['finalclass'], $aAttributes)) {
-				$aAttributes[$aAttr['finalclass']] = array();
-			}
-			$aAttributes[$aAttr['finalclass']][] = $aAttr['attcode'];
-		}
+        $oRestClient = new RestClient();
+        foreach ($aAttributes as $sFinalClass => $aAttCodes) {
+            Utils::Log(LOG_DEBUG, "RestClient::Get SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
+            $aResult = $oRestClient->Get($sFinalClass, "SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
+            if ($aResult['code'] != 0) {
+                Utils::Log(LOG_ERR, "{$aResult['message']} ({$aResult['code']})");
+                $bResult = false;
+            } else {
+                // Update the SDS Attributes
+                foreach ($aSource['attribute_list'] as $idx => $aAttr) {
+                    foreach ($aResult['objects'] as $aAttDef) {
+                        if ($aAttDef['fields']['attcode'] == $aAttr['attcode']) {
+                            $aSource['attribute_list'][$idx] = $aAttDef['fields'];
 
-		$oRestClient = new RestClient();
-		foreach ($aAttributes as $sFinalClass => $aAttCodes) {
-			Utils::Log(LOG_DEBUG, "RestClient::Get SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
-			$aResult = $oRestClient->Get($sFinalClass, "SELECT $sFinalClass WHERE attcode IN ('".implode("','", $aAttCodes)."') AND sync_source_id = $iSourceId");
-			if ($aResult['code'] != 0) {
-				Utils::Log(LOG_ERR, "{$aResult['message']} ({$aResult['code']})");
-				$bResult = false;
-			} else {
-				// Update the SDS Attributes
-				foreach ($aSource['attribute_list'] as $idx => $aAttr) {
-					foreach ($aResult['objects'] as $aAttDef) {
-						if ($aAttDef['fields']['attcode'] == $aAttr['attcode']) {
-							$aSource['attribute_list'][$idx] = $aAttDef['fields'];
+                            // fix booleans
+                            $aSource['attribute_list'][$idx]['reconcile'] = $aAttDef['fields']['reconcile'] ? '1' : '0';
+                            $aSource['attribute_list'][$idx]['update'] = $aAttDef['fields']['update'] ? '1' : '0';
 
-							// fix booleans
-							$aSource['attribute_list'][$idx]['reconcile'] = $aAttDef['fields']['reconcile'] ? '1' : '0';
-							$aSource['attribute_list'][$idx]['update'] = $aAttDef['fields']['update'] ? '1' : '0';
+                            // read-only (external) fields
+                            unset($aSource['attribute_list'][$idx]['friendlyname']);
+                            unset($aSource['attribute_list'][$idx]['sync_source_id']);
+                            unset($aSource['attribute_list'][$idx]['sync_source_name']);
+                            unset($aSource['attribute_list'][$idx]['sync_source_id_friendlyname']);
+                        }
+                    }
+                }
+            }
+        }
 
-							// read-only (external) fields
-							unset($aSource['attribute_list'][$idx]['friendlyname']);
-							unset($aSource['attribute_list'][$idx]['sync_source_id']);
-							unset($aSource['attribute_list'][$idx]['sync_source_name']);
-							unset($aSource['attribute_list'][$idx]['sync_source_id_friendlyname']);
-						}
-					}
-				}
-			}
-		}
+        // Don't care about these read-only fields
+        unset($aSource['friendlyname']);
+        unset($aSource['user_id_friendlyname']);
+        unset($aSource['user_id_finalclass_recall']);
+        unset($aSource['notify_contact_id_friendlyname']);
+        unset($aSource['notify_contact_id_finalclass_recall']);
+        unset($aSource['notify_contact_id_obsolescence_flag']);
 
-		// Don't care about these read-only fields
-		unset($aSource['friendlyname']);
-		unset($aSource['user_id_friendlyname']);
-		unset($aSource['user_id_finalclass_recall']);
-		unset($aSource['notify_contact_id_friendlyname']);
-		unset($aSource['notify_contact_id_finalclass_recall']);
-		unset($aSource['notify_contact_id_obsolescence_flag']);
-
-		return $bResult;
-	}
+        return $bResult;
+    }
 }

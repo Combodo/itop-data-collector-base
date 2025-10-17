@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2018 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -16,5 +17,4 @@
 
 class ITopPersonJsonCollector extends JsonCollector
 {
-
 }
