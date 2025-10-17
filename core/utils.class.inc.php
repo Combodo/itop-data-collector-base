@@ -522,7 +522,7 @@ class Utils
 			}
 			$response = @stream_get_contents($fp);
 			if ($response === false) {
-				throw new IOException("Problem reading data from $sUrl, " . error_get_last());
+				throw new IOException("Problem reading data from $sUrl, ".error_get_last());
 			}
 			if (is_array($aResponseHeaders)) {
 				$aMeta = stream_get_meta_data($fp);

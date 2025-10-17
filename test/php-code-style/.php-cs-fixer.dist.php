@@ -15,6 +15,7 @@ return $config->setRiskyAllowed(true)
 		'indentation_type' => true,
 		'no_extra_blank_lines' => true,
 		'array_syntax' => ['syntax' => 'short'],
+		'concat_space' => true,
 	])
 	->setIndent("\t")
 	->setLineEnding("\n")

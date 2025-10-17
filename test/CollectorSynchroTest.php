@@ -96,7 +96,7 @@ OUTPUT;
 			unlink($file);
 		}
 
-		file_put_contents(APPROOT . 'data/FakeCollector-1.csv', 'FAKECSVCONTENT');
+		file_put_contents(APPROOT.'data/FakeCollector-1.csv', 'FAKECSVCONTENT');
 	}
 
 	public function tearDown(): void
