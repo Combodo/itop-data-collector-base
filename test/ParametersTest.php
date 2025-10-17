@@ -16,44 +16,44 @@ require_once(APPROOT.'core/parameters.class.inc.php');
 
 class ParametersTest extends TestCase
 {
-    /**
-     * @dataProvider ToXMLProvider
-     */
-    public function testToXML(array $aData, string $sExpectedDump)
-    {
-        $oParameters = new Parameters();
-        $this->SetNonPublicProperty($oParameters, 'aData', $aData);
+	/**
+	 * @dataProvider ToXMLProvider
+	 */
+	public function testToXML(array $aData, string $sExpectedDump)
+	{
+		$oParameters = new Parameters();
+		$this->SetNonPublicProperty($oParameters, 'aData', $aData);
 
-        $sDumpParameters = $oParameters->Dump();
+		$sDumpParameters = $oParameters->Dump();
 
-        $this->assertStringContainsString($sExpectedDump, $sDumpParameters);
-    }
+		$this->assertStringContainsString($sExpectedDump, $sDumpParameters);
+	}
 
-    public function ToXMLProvider()
-    {
-        return [
-            'Parameter with &amp;' => [
-                'aData' => ['escaped_param' => '(&(objectClass=person)(mail=*))'],
-                'sExpectedDump' => '<escaped_param>(&amp;(objectClass=person)(mail=*))</escaped_param>',
-            ],
-            'Parameter with array' => [
-                'aData' => ['paramroot' => ['param1' => 'param1val', 'param2' => 'param2val']],
-                'sExpectedDump' => "<paramroot>\n    <param1>param1val</param1>\n    <param2>param2val</param2>\n  </paramroot>",
-            ],
-        ];
-    }
+	public function ToXMLProvider()
+	{
+		return [
+			'Parameter with &amp;' => [
+				'aData' => ['escaped_param' => '(&(objectClass=person)(mail=*))'],
+				'sExpectedDump' => '<escaped_param>(&amp;(objectClass=person)(mail=*))</escaped_param>',
+			],
+			'Parameter with array' => [
+				'aData' => ['paramroot' => ['param1' => 'param1val', 'param2' => 'param2val']],
+				'sExpectedDump' => "<paramroot>\n    <param1>param1val</param1>\n    <param2>param2val</param2>\n  </paramroot>",
+			],
+		];
+	}
 
-    public function SetNonPublicProperty(object $oObject, string $sProperty, $value)
-    {
-        $oProperty = $this->GetProperty(get_class($oObject), $sProperty);
-        $oProperty->setValue($oObject, $value);
-    }
-    private function GetProperty(string $sClass, string $sProperty): \ReflectionProperty
-    {
-        $class = new \ReflectionClass($sClass);
-        $property = $class->getProperty($sProperty);
-        $property->setAccessible(true);
+	public function SetNonPublicProperty(object $oObject, string $sProperty, $value)
+	{
+		$oProperty = $this->GetProperty(get_class($oObject), $sProperty);
+		$oProperty->setValue($oObject, $value);
+	}
+	private function GetProperty(string $sClass, string $sProperty): \ReflectionProperty
+	{
+		$class = new \ReflectionClass($sClass);
+		$property = $class->getProperty($sProperty);
+		$property->setAccessible(true);
 
-        return $property;
-    }
+		return $property;
+	}
 }

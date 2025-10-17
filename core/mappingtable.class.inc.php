@@ -20,61 +20,61 @@
  */
 class MappingTable
 {
-    /**
-     * @var string The name of the configuration entry from which the configuratin was loaded
-     */
-    protected $sConfigEntryName;
+	/**
+	 * @var string The name of the configuration entry from which the configuratin was loaded
+	 */
+	protected $sConfigEntryName;
 
-    /**
-     * @var string[][]
-     */
-    protected $aMappingTable = [];
+	/**
+	 * @var string[][]
+	 */
+	protected $aMappingTable = [];
 
-    /**
-     * Creates a new MappingTable
-     *
-     * @param string $sConfigEntryName Name of the XML tag (in the params file) under which the configuration of the mapping table is stored
-     */
-    public function __construct($sConfigEntryName)
-    {
-        // Read the "extended mapping" from the configuration
-        // The mapping is expressed as an array of strings in the following format: <delimiter><regexpr_body><delimiter><replacement>
-        $this->sConfigEntryName = $sConfigEntryName;
-        $aRawMapping = Utils::GetConfigurationValue($sConfigEntryName, []);
-        foreach ($aRawMapping as $sExtendedPattern) {
-            $sDelimiter = $sExtendedPattern[0];
-            $iEndingDelimiterPos = strrpos($sExtendedPattern, $sDelimiter);
-            $sPattern = substr($sExtendedPattern, 0, $iEndingDelimiterPos + 1);
-            $sReplacement = substr($sExtendedPattern, $iEndingDelimiterPos + 1);
-            $this->aMappingTable[] = [
-                'pattern'     => $sPattern,
-                'replacement' => $sReplacement,
-            ];
-        }
-    }
+	/**
+	 * Creates a new MappingTable
+	 *
+	 * @param string $sConfigEntryName Name of the XML tag (in the params file) under which the configuration of the mapping table is stored
+	 */
+	public function __construct($sConfigEntryName)
+	{
+		// Read the "extended mapping" from the configuration
+		// The mapping is expressed as an array of strings in the following format: <delimiter><regexpr_body><delimiter><replacement>
+		$this->sConfigEntryName = $sConfigEntryName;
+		$aRawMapping = Utils::GetConfigurationValue($sConfigEntryName, []);
+		foreach ($aRawMapping as $sExtendedPattern) {
+			$sDelimiter = $sExtendedPattern[0];
+			$iEndingDelimiterPos = strrpos($sExtendedPattern, $sDelimiter);
+			$sPattern = substr($sExtendedPattern, 0, $iEndingDelimiterPos + 1);
+			$sReplacement = substr($sExtendedPattern, $iEndingDelimiterPos + 1);
+			$this->aMappingTable[] = [
+				'pattern'     => $sPattern,
+				'replacement' => $sReplacement,
+			];
+		}
+	}
 
-    /**
-     * Normalizes a value through the mapping table
-     *
-     * @param string $sRawValue The value to normalize
-     * @param string $defaultValue Default value if no match is found in the mapping table
-     *
-     * @return string The normalized value. Can be null if no match is found and no default value was supplied.
-     */
-    public function MapValue($sRawValue, $defaultValue = null)
-    {
-        $value = null;
-        foreach ($this->aMappingTable as $aMapping) {
-            if (preg_match($aMapping['pattern'].'iu', $sRawValue, $aMatches)) { // 'i' for case insensitive matching, 'u' for utf-8 characters
-                $value = vsprintf($aMapping['replacement'], $aMatches); // found a suitable match
-                Utils::Log(LOG_DEBUG, "MappingTable[{$this->sConfigEntryName}]: input value '$sRawValue' matches '{$aMapping['pattern']}'. Output value is '$value'");
-                break;
-            }
-        }
-        if ($value === null) {
-            $value = $defaultValue;
-        }
+	/**
+	 * Normalizes a value through the mapping table
+	 *
+	 * @param string $sRawValue The value to normalize
+	 * @param string $defaultValue Default value if no match is found in the mapping table
+	 *
+	 * @return string The normalized value. Can be null if no match is found and no default value was supplied.
+	 */
+	public function MapValue($sRawValue, $defaultValue = null)
+	{
+		$value = null;
+		foreach ($this->aMappingTable as $aMapping) {
+			if (preg_match($aMapping['pattern'].'iu', $sRawValue, $aMatches)) { // 'i' for case insensitive matching, 'u' for utf-8 characters
+				$value = vsprintf($aMapping['replacement'], $aMatches); // found a suitable match
+				Utils::Log(LOG_DEBUG, "MappingTable[{$this->sConfigEntryName}]: input value '$sRawValue' matches '{$aMapping['pattern']}'. Output value is '$value'");
+				break;
+			}
+		}
+		if ($value === null) {
+			$value = $defaultValue;
+		}
 
-        return $value;
-    }
+		return $value;
+	}
 }

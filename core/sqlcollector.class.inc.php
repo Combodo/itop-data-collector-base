@@ -32,165 +32,165 @@ Orchestrator::AddRequirement('5.1.0'); // Minimum PHP version to get PDO support
  */
 abstract class SQLCollector extends Collector
 {
-    protected $oDB;
-    protected $oStatement;
-    protected $idx;
-    protected $sQuery;
+	protected $oDB;
+	protected $oStatement;
+	protected $idx;
+	protected $sQuery;
 
-    /**
-     * Initalization
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->oDB = null;
-        $this->oStatement = null;
-    }
+	/**
+	 * Initalization
+	 */
+	public function __construct()
+	{
+		parent::__construct();
+		$this->oDB = null;
+		$this->oStatement = null;
+	}
 
-    /**
-     * Runs the configured query to start fetching the data from the database
-     *
-     * @see Collector::Prepare()
-     */
-    public function Prepare()
-    {
-        $bRet = parent::Prepare();
-        if (!$bRet) {
-            return false;
-        }
+	/**
+	 * Runs the configured query to start fetching the data from the database
+	 *
+	 * @see Collector::Prepare()
+	 */
+	public function Prepare()
+	{
+		$bRet = parent::Prepare();
+		if (!$bRet) {
+			return false;
+		}
 
-        $bRet = $this->Connect(); // Establish the connection to the database
-        if (!$bRet) {
-            return false;
-        }
+		$bRet = $this->Connect(); // Establish the connection to the database
+		if (!$bRet) {
+			return false;
+		}
 
-        // Read the SQL query from the configuration
-        $this->sQuery = Utils::GetConfigurationValue(get_class($this)."_query", '');
-        if ($this->sQuery == '') {
-            // Try all lowercase
-            $this->sQuery = Utils::GetConfigurationValue(strtolower(get_class($this))."_query", '');
-        }
-        if ($this->sQuery == '') {
-            // No query at all !!
-            Utils::Log(LOG_ERR, "[".get_class($this)."] no SQL query configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_query' in the configuration file.");
+		// Read the SQL query from the configuration
+		$this->sQuery = Utils::GetConfigurationValue(get_class($this)."_query", '');
+		if ($this->sQuery == '') {
+			// Try all lowercase
+			$this->sQuery = Utils::GetConfigurationValue(strtolower(get_class($this))."_query", '');
+		}
+		if ($this->sQuery == '') {
+			// No query at all !!
+			Utils::Log(LOG_ERR, "[".get_class($this)."] no SQL query configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_query' in the configuration file.");
 
-            return false;
-        }
+			return false;
+		}
 
-        $this->oStatement = $this->oDB->prepare($this->sQuery);
-        if ($this->oStatement === false) {
-            $aInfo = $this->oDB->errorInfo();
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+		$this->oStatement = $this->oDB->prepare($this->sQuery);
+		if ($this->oStatement === false) {
+			$aInfo = $this->oDB->errorInfo();
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
-            return false;
-        }
+			return false;
+		}
 
-        $this->oStatement->execute();
-        if ($this->oStatement->errorCode() !== '00000') {
-            $aInfo = $this->oStatement->errorInfo();
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+		$this->oStatement->execute();
+		if ($this->oStatement->errorCode() !== '00000') {
+			$aInfo = $this->oStatement->errorInfo();
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
-            return false;
-        }
+			return false;
+		}
 
-        $this->idx = 0;
+		$this->idx = 0;
 
-        return true;
-    }
+		return true;
+	}
 
-    /**
-     * Establish the connection to the database, based on the configuration parameters.
-     * By default all collectors derived from SQLCollector will share the same connection
-     * parameters (same DB server, login, DB name...). If you don't want this behavior,
-     * overload this method in your connector.
-     */
-    protected function Connect()
-    {
-        $aAvailableDrivers = PDO::getAvailableDrivers();
+	/**
+	 * Establish the connection to the database, based on the configuration parameters.
+	 * By default all collectors derived from SQLCollector will share the same connection
+	 * parameters (same DB server, login, DB name...). If you don't want this behavior,
+	 * overload this method in your connector.
+	 */
+	protected function Connect()
+	{
+		$aAvailableDrivers = PDO::getAvailableDrivers();
 
-        Utils::Log(LOG_DEBUG, "Available PDO drivers: ".implode(', ', $aAvailableDrivers));
+		Utils::Log(LOG_DEBUG, "Available PDO drivers: ".implode(', ', $aAvailableDrivers));
 
-        $sEngine = Utils::GetConfigurationValue('sql_engine', 'mysql');
-        if (!in_array($sEngine, $aAvailableDrivers)) {
-            Utils::Log(LOG_ERR, "The requested PDO driver: '$sEngine' is not installed on this system. Available PDO drivers: ".implode(', ', $aAvailableDrivers));
-        }
-        $sHost = Utils::GetConfigurationValue('sql_host', 'localhost');
-        $sDatabase = Utils::GetConfigurationValue('sql_database', '');
-        $sLogin = Utils::GetConfigurationValue('sql_login', 'root');
-        $sPassword = Utils::GetConfigurationValue('sql_password', '');
+		$sEngine = Utils::GetConfigurationValue('sql_engine', 'mysql');
+		if (!in_array($sEngine, $aAvailableDrivers)) {
+			Utils::Log(LOG_ERR, "The requested PDO driver: '$sEngine' is not installed on this system. Available PDO drivers: ".implode(', ', $aAvailableDrivers));
+		}
+		$sHost = Utils::GetConfigurationValue('sql_host', 'localhost');
+		$sDatabase = Utils::GetConfigurationValue('sql_database', '');
+		$sLogin = Utils::GetConfigurationValue('sql_login', 'root');
+		$sPassword = Utils::GetConfigurationValue('sql_password', '');
 
-        $sConnectionStringFormat = Utils::GetConfigurationValue('sql_connection_string', '%1$s:dbname=%2$s;host=%3$s');
-        $sConnectionString = sprintf($sConnectionStringFormat, $sEngine, $sDatabase, $sHost);
+		$sConnectionStringFormat = Utils::GetConfigurationValue('sql_connection_string', '%1$s:dbname=%2$s;host=%3$s');
+		$sConnectionString = sprintf($sConnectionStringFormat, $sEngine, $sDatabase, $sHost);
 
-        Utils::Log(LOG_DEBUG, "[".get_class($this)."] Connection string: '$sConnectionString'");
+		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Connection string: '$sConnectionString'");
 
-        try {
-            $this->oDB = new PDO($sConnectionString, $sLogin, $sPassword);
-        } catch (PDOException $e) {
-            Utils::Log(LOG_ERR, "[".get_class($this)."] Database connection failed: ".$e->getMessage());
-            $this->oDB = null;
+		try {
+			$this->oDB = new PDO($sConnectionString, $sLogin, $sPassword);
+		} catch (PDOException $e) {
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Database connection failed: ".$e->getMessage());
+			$this->oDB = null;
 
-            return false;
-        }
+			return false;
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    /**
-     * Fetch one row of data from the database
-     * The first row is used to check if the columns of the result match the expected "fields"
-     *
-     * @see Collector::Fetch()
-     */
-    public function Fetch()
-    {
-        if ($aData = $this->oStatement->fetch(PDO::FETCH_ASSOC)) {
+	/**
+	 * Fetch one row of data from the database
+	 * The first row is used to check if the columns of the result match the expected "fields"
+	 *
+	 * @see Collector::Fetch()
+	 */
+	public function Fetch()
+	{
+		if ($aData = $this->oStatement->fetch(PDO::FETCH_ASSOC)) {
 
-            foreach ($this->aSkippedAttributes as $sCode) {
-                unset($aData[$sCode]);
-            }
+			foreach ($this->aSkippedAttributes as $sCode) {
+				unset($aData[$sCode]);
+			}
 
-            if ($this->idx == 0) {
-                $this->CheckColumns($aData, [], 'SQL query');
-            }
-            $this->idx++;
+			if ($this->idx == 0) {
+				$this->CheckColumns($aData, [], 'SQL query');
+			}
+			$this->idx++;
 
-            return $aData;
-        }
+			return $aData;
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * Determine if a given attribute is allowed to be missing in the data datamodel.
-     *
-     * The implementation is based on a predefined configuration parameter named from the
-     * class of the collector (all lowercase) with _ignored_attributes appended.
-     *
-     * Example: here is the configuration to "ignore" the attribute 'location_id' for the class MySQLCollector:
-     * <mysqlcollector_ignored_attributes type="array">
-     *    <attribute>location_id</attribute>
-     * </mysqlcollector_ignored_attributes>
-     *
-     * @param string $sAttCode
-     *
-     * @return boolean True if the attribute can be skipped, false otherwise
-     */
-    public function AttributeIsOptional($sAttCode)
-    {
-        $aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this)."_ignored_attributes", null);
-        if ($aIgnoredAttributes === null) {
-            // Try all lowercase
-            $aIgnoredAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_ignored_attributes", null);
-        }
-        if (is_array($aIgnoredAttributes)) {
-            if (in_array($sAttCode, $aIgnoredAttributes)) {
-                return true;
-            }
-        }
+	/**
+	 * Determine if a given attribute is allowed to be missing in the data datamodel.
+	 *
+	 * The implementation is based on a predefined configuration parameter named from the
+	 * class of the collector (all lowercase) with _ignored_attributes appended.
+	 *
+	 * Example: here is the configuration to "ignore" the attribute 'location_id' for the class MySQLCollector:
+	 * <mysqlcollector_ignored_attributes type="array">
+	 *    <attribute>location_id</attribute>
+	 * </mysqlcollector_ignored_attributes>
+	 *
+	 * @param string $sAttCode
+	 *
+	 * @return boolean True if the attribute can be skipped, false otherwise
+	 */
+	public function AttributeIsOptional($sAttCode)
+	{
+		$aIgnoredAttributes = Utils::GetConfigurationValue(get_class($this)."_ignored_attributes", null);
+		if ($aIgnoredAttributes === null) {
+			// Try all lowercase
+			$aIgnoredAttributes = Utils::GetConfigurationValue(strtolower(get_class($this))."_ignored_attributes", null);
+		}
+		if (is_array($aIgnoredAttributes)) {
+			if (in_array($sAttCode, $aIgnoredAttributes)) {
+				return true;
+			}
+		}
 
-        return parent::AttributeIsOptional($sAttCode);
-    }
+		return parent::AttributeIsOptional($sAttCode);
+	}
 }
 
 /**
@@ -208,41 +208,41 @@ abstract class SQLCollector extends Collector
  */
 abstract class MySQLCollector extends SQLCollector
 {
-    /**
-     * Establish the connection to the database, based on the configuration parameters.
-     * By default all collectors derived from SQLCollector will share the same connection
-     * parameters (same DB server, login, DB name...).
-     * Moreover, forces the connection to use utf8 using the SET NAMES SQL command.
-     * If you don't want this behavior, overload this method in your connector.
-     */
-    protected function Connect()
-    {
-        $bRet = parent::Connect();
-        if ($bRet) {
-            try {
-                $this->oStatement = $this->oDB->prepare("SET NAMES 'utf8'");
-                if ($this->oStatement === false) {
-                    $aInfo = $this->oDB->errorInfo();
-                    Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+	/**
+	 * Establish the connection to the database, based on the configuration parameters.
+	 * By default all collectors derived from SQLCollector will share the same connection
+	 * parameters (same DB server, login, DB name...).
+	 * Moreover, forces the connection to use utf8 using the SET NAMES SQL command.
+	 * If you don't want this behavior, overload this method in your connector.
+	 */
+	protected function Connect()
+	{
+		$bRet = parent::Connect();
+		if ($bRet) {
+			try {
+				$this->oStatement = $this->oDB->prepare("SET NAMES 'utf8'");
+				if ($this->oStatement === false) {
+					$aInfo = $this->oDB->errorInfo();
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
-                    return false;
-                }
+					return false;
+				}
 
-                $bRet = $this->oStatement->execute();
-                if ($this->oStatement->errorCode() !== '00000') {
-                    $aInfo = $this->oStatement->errorInfo();
-                    Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+				$bRet = $this->oStatement->execute();
+				if ($this->oStatement->errorCode() !== '00000') {
+					$aInfo = $this->oStatement->errorInfo();
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
-                    return false;
-                }
-            } catch (PDOException $e) {
-                Utils::Log(LOG_ERR, "[".get_class($this)."] SQL query: \"SET NAMES 'utf8'\" failed: ".$e->getMessage());
-                $this->oDB = null;
+					return false;
+				}
+			} catch (PDOException $e) {
+				Utils::Log(LOG_ERR, "[".get_class($this)."] SQL query: \"SET NAMES 'utf8'\" failed: ".$e->getMessage());
+				$this->oDB = null;
 
-                return false;
-            }
-        }
+				return false;
+			}
+		}
 
-        return $bRet;
-    }
+		return $bRet;
+	}
 }

@@ -5,8 +5,8 @@
  */
 class DoPostRequestService
 {
-    public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = [])
-    {
-        return null;
-    }
+	public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = [])
+	{
+		return null;
+	}
 }

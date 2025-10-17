@@ -17,30 +17,30 @@
 
 class ITopPersonJsonCollector extends JsonCollector
 {
-    public function AttributeIsOptional($sAttCode)
-    {
-        if ($sAttCode == 'function') {
-            return true;
-        }
-        return parent::AttributeIsOptional($sAttCode);
-    }
+	public function AttributeIsOptional($sAttCode)
+	{
+		if ($sAttCode == 'function') {
+			return true;
+		}
+		return parent::AttributeIsOptional($sAttCode);
+	}
 
-    public function testDataSourcesAreEquivalent($aPlaceholders)
-    {
-        $bResult = true;
-        $sJSONSourceDefinition = file_get_contents(APPROOT."/collectors/ITopPersonJsonCollector.json");
-        $aExpectedSourceDefinition = json_decode($sJSONSourceDefinition, true);
-        $this->CheckDataSourceDefinition($aExpectedSourceDefinition);
+	public function testDataSourcesAreEquivalent($aPlaceholders)
+	{
+		$bResult = true;
+		$sJSONSourceDefinition = file_get_contents(APPROOT."/collectors/ITopPersonJsonCollector.json");
+		$aExpectedSourceDefinition = json_decode($sJSONSourceDefinition, true);
+		$this->CheckDataSourceDefinition($aExpectedSourceDefinition);
 
-        $sJSONExpectedDefinition = file_get_contents(APPROOT."/collectors/ITopPersonJsonSourceCollector.json");
-        $aCurrentSourceDefinition = json_decode($sJSONExpectedDefinition, true);
+		$sJSONExpectedDefinition = file_get_contents(APPROOT."/collectors/ITopPersonJsonSourceCollector.json");
+		$aCurrentSourceDefinition = json_decode($sJSONExpectedDefinition, true);
 
-        if ($this->DataSourcesAreEquivalent($aExpectedSourceDefinition, $aCurrentSourceDefinition)) {
-            Utils::Log(LOG_INFO, "Ok, the Synchro Data Source exists in iTop and is up to date");
-        } else {
-            Utils::Log(LOG_INFO, "The Synchro Data Source definition for must be updated in iTop.");
-        }
+		if ($this->DataSourcesAreEquivalent($aExpectedSourceDefinition, $aCurrentSourceDefinition)) {
+			Utils::Log(LOG_INFO, "Ok, the Synchro Data Source exists in iTop and is up to date");
+		} else {
+			Utils::Log(LOG_INFO, "The Synchro Data Source definition for must be updated in iTop.");
+		}
 
-        return $bResult;
-    }
+		return $bResult;
+	}
 }

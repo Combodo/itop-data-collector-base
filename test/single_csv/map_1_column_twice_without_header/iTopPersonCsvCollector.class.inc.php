@@ -2,8 +2,8 @@
 
 class iTopPersonCsvCollector extends CSVCollector
 {
-    protected function MustProcessBeforeSynchro()
-    {
-        return true;
-    }
+	protected function MustProcessBeforeSynchro()
+	{
+		return true;
+	}
 }
