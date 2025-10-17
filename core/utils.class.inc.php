@@ -314,7 +314,7 @@ class Utils
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
 		if (strlen($sToken) > 0) {
 			return [
-				'auth_token' => $sToken
+				'auth_token' => $sToken,
 			];
 		}
 

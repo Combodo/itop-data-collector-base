@@ -39,12 +39,12 @@ OUTPUT;
 			'default output' => [
 				'iConsoleLogLevel' => LOG_INFO,
 				'sExpectedOutputRequiredToItopSynchro' => 'retcode',
-				'sCallItopViaHttpOutput' => sprintf($sRetcodeOutput, 0)
+				'sCallItopViaHttpOutput' => sprintf($sRetcodeOutput, 0),
 			],
 			'debug level' => [
 				'iConsoleLogLevel' => 7,
 				'sExpectedOutputRequiredToItopSynchro' => 'details',
-				'sCallItopViaHttpOutput' => sprintf($sDetailedNoError, 0)
+				'sCallItopViaHttpOutput' => sprintf($sDetailedNoError, 0),
 			],
 		];
 	}
@@ -66,7 +66,7 @@ OUTPUT;
 			'output' => $sExpectedOutputRequiredToItopSynchro,
 			'csvdata' => 'FAKECSVCONTENT',
 			'charset' => 'UTF-8',
-			'date_format' => 'd/m/Y'
+			'date_format' => 'd/m/Y',
 		];
 		$this->oMockedCallItopService->expects($this->exactly(2))
 			->method('CallItopViaHttp')
@@ -124,27 +124,27 @@ OUTPUT;
 			'retcode no error' => [
 				'sOutput' => sprintf($sRetcodeOutput, 0),
 				'bDetailedOutput' => false,
-				'sExpectecCount' => 0
+				'sExpectecCount' => 0,
 			],
 			'retcode few errors' => [
 				'sOutput' => sprintf($sRetcodeOutput, 10),
 				'bDetailedOutput' => false,
-				'sExpectecCount' => 10
+				'sExpectecCount' => 10,
 			],
 			'detailed no error' => [
 				'sOutput' => sprintf($sDetailedNoError, 0),
 				'bDetailedOutput' => true,
-				'sExpectecCount' => 0
+				'sExpectecCount' => 0,
 			],
 			'detailed few errors' => [
 				'sOutput' => sprintf($sDetailedNoError, 10),
 				'bDetailedOutput' => true,
-				'sExpectecCount' => 10
+				'sExpectecCount' => 10,
 			],
 			'weird output' => [
 				'sOutput' => "weird output",
 				'bDetailedOutput' => true,
-				'sExpectecCount' => -1
+				'sExpectecCount' => -1,
 			],
 		];
 	}

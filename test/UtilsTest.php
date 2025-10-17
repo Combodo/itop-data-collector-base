@@ -39,7 +39,7 @@ class UtilsTest extends TestCase
 					32 => 3,
 					78 => 600,
 					13 => 600,
-				]
+				],
 			],
 			'nominal usecase: constant key/ constant provided as a string' => [
 				'aRawCurlOptions' =>  [
@@ -49,7 +49,7 @@ class UtilsTest extends TestCase
 					32 => 3,
 					78 => 600,
 					13 => 600,
-				]
+				],
 			],
 			'constant provided as a string key/ string value' => [
 				'aRawCurlOptions' =>  [
@@ -59,7 +59,7 @@ class UtilsTest extends TestCase
 					78 => 600,
 					13 => 600,
 					10022 => 'itop',
-				]
+				],
 			],
 			'constant key/ constant boolean value' => [
 				'aRawCurlOptions' =>  [
@@ -69,7 +69,7 @@ class UtilsTest extends TestCase
 					78 => 600,
 					13 => 600,
 					96 => true,
-				]
+				],
 			],
 		];
 	}
@@ -92,11 +92,11 @@ class UtilsTest extends TestCase
 					78 => 600,
 					13 => 600,
 				],
-				'iTimeout' => 600
+				'iTimeout' => 600,
 			],
 			'without timeout' => [
 				'aExpectedReturnedOptions' => [],
-				'iTimeout' => -1
+				'iTimeout' => -1,
 			],
 		];
 	}
@@ -119,9 +119,9 @@ class UtilsTest extends TestCase
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
-					'itop_password' => 'admin2'
+					'itop_password' => 'admin2',
 				],
-				'aExpectedCredentials' => ['auth_user' => 'admin1', 'auth_pwd' => 'admin2']
+				'aExpectedCredentials' => ['auth_user' => 'admin1', 'auth_pwd' => 'admin2'],
 			],
 			'new token' => [
 				'aParameters' => [
@@ -129,7 +129,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token' => 'admin4']
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -138,7 +138,7 @@ class UtilsTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token' => 'admin4']
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 			],
 		];
 	}
@@ -197,9 +197,9 @@ class UtilsTest extends TestCase
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
-					'itop_password' => 'admin2'
+					'itop_password' => 'admin2',
 				],
-				'sExpectedLoginMode' => 'form'
+				'sExpectedLoginMode' => 'form',
 			],
 			'authent-token v2' => [
 				'aParameters' => [
@@ -207,7 +207,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'sExpectedLoginMode' => 'token'
+				'sExpectedLoginMode' => 'token',
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -216,7 +216,7 @@ class UtilsTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'sExpectedLoginMode' => 'token'
+				'sExpectedLoginMode' => 'token',
 			],
 			'itop_login_mode over others' => [
 				'aParameters' => [
@@ -226,7 +226,7 @@ class UtilsTest extends TestCase
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
 				],
-				'sExpectedLoginMode' => 'newloginform'
+				'sExpectedLoginMode' => 'newloginform',
 			],
 		];
 	}

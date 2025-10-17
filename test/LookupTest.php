@@ -219,7 +219,7 @@ class LookupTest extends TestCase
 									->with('OSVersion', 'SELECT OSVersion', 'osfamily_id,osversion_id')
 									->willReturn([
 											'code' => 0,
-											'objects' => $aData
+											'objects' => $aData,
 											])  ;
 		$this->oLookupTable = new LookupTable('SELECT OSVersion', $aLookupFields, $bCaseSensitive, $bIgnoreMappingErrors);
 

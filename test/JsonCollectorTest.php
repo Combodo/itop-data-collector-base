@@ -218,7 +218,7 @@ class JsonCollectorTest extends TestCase
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "Id",
-			'name' => "Shadok/name"
+			'name' => "Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
@@ -243,7 +243,7 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
@@ -269,7 +269,7 @@ JSON;
 
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
@@ -296,7 +296,7 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
@@ -323,7 +323,7 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
@@ -350,7 +350,7 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
@@ -377,7 +377,7 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "0/Id",
-			'name' => "1/Shadok/name"
+			'name' => "1/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
