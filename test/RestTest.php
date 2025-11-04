@@ -116,4 +116,147 @@ class RestTest extends TestCase
 		$this->assertEquals(['retcode' => 0], $oRestClient->ListOperations());
 	}
 
+	public function testGetFullSynchroDataSource(){
+		require_once(APPROOT.'core/collector.class.inc.php');
+		$oMockClient = $this->CreateMock('RestClient');
+
+		$aFields = [
+			'name' => 'SynchroAttribute',
+			'name2' => 'SynchroAttribute',
+			'cis_list' => 'SynchroAttLinkSet',
+		];
+
+		$aAttributeList = [];
+		foreach ($aFields as $sField => $sClass){
+			$aAttributeList []= [
+				'attcode' => $sField,
+				'finalclass' => $sClass,
+			];
+		}
+		$aSource = [
+			'attribute_list' => $aAttributeList,
+			'friendlyname' => [], //should be removed from output response
+			'user_id_friendlyname' => [], //should be removed from output response
+			'user_id_finalclass_recall' => [], //should be removed from output response
+			'notify_contact_id_friendlyname' => [], //should be removed from output response
+			'notify_contact_id_finalclass_recall' => [], //should be removed from output response
+			'notify_contact_id_obsolescence_flag' => [], //should be removed from output response
+			'notify_contact_id_archive_flag' => [], //should be removed from output response
+		];
+
+		$sExpectedOql1 = <<<OQL
+SELECT SynchroAttribute WHERE attcode IN ('name','name2') AND sync_source_id = 123
+OQL;
+
+		$sExpectedOql2 = <<<OQL
+SELECT SynchroAttLinkSet WHERE attcode IN ('cis_list') AND sync_source_id = 123
+OQL;
+
+		$aReturnObjects1 = [
+			[
+				'fields' => [
+					'attcode' => 'name',
+					'update' => '1',
+					'reconcile' => '1',
+					'update_policy' => 'master_locked',
+					'row_separator' => '|',
+					'attribute_separator' => ';',
+					'value_separator' => ':',
+					'attribute_qualifier' => "'",
+					'finalclass' => 'SynchroAttribute',
+					'friendlyname' => 'name', //should be removed
+					"sync_source_id" =>  'sync_source_id', //should be removed
+					"sync_source_name" =>  'sync_source_name', //should be removed
+					"sync_source_id_friendlyname" =>  'sync_source_id_friendlyname',  //should be removed
+					"fake_field" =>  'fake_field'
+				]
+			],
+			[
+				'fields' => [
+					'attcode' => 'name2',
+					'update' => '1',
+					'reconcile' => '0',
+					'update_policy' => 'master_locked',
+					'row_separator' => '|',
+					'attribute_separator' => ';',
+					'value_separator' => ':',
+					'attribute_qualifier' => "'",
+					'finalclass' => 'SynchroAttribute',
+					'friendlyname' => 'name2', //should be removed
+					"sync_source_id" =>  'sync_source_id', //should be removed
+					"sync_source_name" =>  'sync_source_name', //should be removed
+					"sync_source_id_friendlyname" =>  'sync_source_id_friendlyname',  //should be removed
+					"fake_field2" =>  'fake_field2',
+				]
+			],
+		];
+		$aReturnObjects2 = [
+			[
+				'fields' => [
+					'attcode' => 'cis_list',
+					'update' => '1',
+					'reconcile' => '1',
+					'update_policy' => 'master_locked',
+					'row_separator' => '|',
+					'attribute_separator' => ';',
+					'value_separator' => ':',
+					'attribute_qualifier' => "'",
+					'finalclass' => 'SynchroAttLinkSet',
+					'friendlyname' => 'cis_list', //should be removed
+					"sync_source_id" =>  'sync_source_id', //should be removed
+					"sync_source_name" =>  'sync_source_name', //should be removed
+					"sync_source_id_friendlyname" =>  'sync_source_id_friendlyname',  //should be removed
+					"fake_field3" =>  'fake_field3'
+				]
+			],
+		];
+		$oMockClient->expects($this->exactly(2))
+			->method("Get")
+			->withConsecutive(['SynchroAttribute', $sExpectedOql1], ['SynchroAttLinkSet', $sExpectedOql2])
+			->willReturnOnConsecutiveCalls(['code' => 0, 'objects' => $aReturnObjects1], ['code' => 0, 'objects' => $aReturnObjects2]);
+
+		RestClient::GetFullSynchroDataSource($aSource, "123", $oMockClient);
+		$aExpected = [
+			'attribute_list' => [
+				[
+					'attcode' => 'name',
+					'finalclass' => "SynchroAttribute",
+					'update' => '1',
+					'reconcile' => '1',
+					'update_policy' => 'master_locked',
+					'row_separator' => '|',
+					'attribute_separator' => ';',
+					'value_separator' => ':',
+					'attribute_qualifier' => "'",
+					"fake_field" =>  'fake_field',
+				],
+				[
+					'attcode' => 'name2',
+					'finalclass' => "SynchroAttribute",
+					'update' => '1',
+					'reconcile' => '0',
+					'update_policy' => 'master_locked',
+					'row_separator' => '|',
+					'attribute_separator' => ';',
+					'value_separator' => ':',
+					'attribute_qualifier' => "'",
+					"fake_field2" =>  'fake_field2',
+				],
+				[
+					'attcode' => 'cis_list',
+					'finalclass' => "SynchroAttLinkSet",
+					'update' => '1',
+					'reconcile' => '1',
+					'update_policy' => 'master_locked',
+					'row_separator' => '|',
+					'attribute_separator' => ';',
+					'value_separator' => ':',
+					'attribute_qualifier' => "'",
+					"fake_field3" =>  'fake_field3',
+				],
+			]
+		];
+		$this->assertEquals($aExpected, $aSource);
+	}
+
 }
