@@ -114,10 +114,12 @@ class RestClient
 		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
 		$sLoginform = Utils::GetLoginMode();
-		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
+		$sEnv = Utils::GetSwitchEnv();
+		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s&switch_env=%s',
 			Utils::GetConfigurationValue('itop_url', ''),
 			$sLoginform,
-			$sVersion
+			$sVersion,
+			$sEnv
 		);
 		$aHeaders = array();
 		$aCurlOptions = Utils::GetCurlOptions();

@@ -5,6 +5,7 @@
   <itop_password>admin</itop_password>
   <itop_token></itop_token>
   <itop_login_mode></itop_login_mode>
+  <itop_env>production</itop_env>
   <console_log_level>6</console_log_level>
   <eventissue_log_level>-1</eventissue_log_level>
   <console_log_dateformat>[Y-m-d H:i:s]</console_log_dateformat>

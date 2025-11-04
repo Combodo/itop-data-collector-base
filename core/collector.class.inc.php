@@ -713,7 +713,8 @@ abstract class Collector
 			);
 
 			$sLoginform = Utils::GetLoginMode();
-			$sResult = self::CallItopViaHttp("/synchro/synchro_import.php?login_mode=$sLoginform",
+			$sEnv = Utils::GetSwitchEnv();
+			$sResult = self::CallItopViaHttp("/synchro/synchro_import.php?login_mode=$sLoginform&switch_env=$sEnv",
 				$aData);
 
 			$sTrimmedOutput = trim(strip_tags($sResult));
@@ -740,7 +741,8 @@ abstract class Collector
 		}
 
 		$sLoginform = Utils::GetLoginMode();
-		$sResult = self::CallItopViaHttp("/synchro/synchro_exec.php?login_mode=$sLoginform",
+		$sEnv = Utils::GetSwitchEnv();
+		$sResult = self::CallItopViaHttp("/synchro/synchro_exec.php?login_mode=$sLoginform&switch_env=$sEnv",
 			$aData);
 
 		$iErrorsCount = $this->ParseSynchroExecOutput($sResult);

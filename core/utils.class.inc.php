@@ -339,6 +339,18 @@ class Utils
 		return 'form';
 	}
 
+
+	/**
+	 * Returns the iTop environment to use when connecting to the iTop API.
+	 *
+	 * @return string
+	 */
+	static public function GetSwitchEnv() : string {
+
+		return Utils::GetConfigurationValue('itop_env', 'production');
+
+	}
+
 	/**
 	 * Dump information about the configuration (value of the parameters)
 	 *
