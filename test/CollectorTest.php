@@ -109,15 +109,19 @@ XML;
 
 		$this->assertEquals($bExpectedIsNullified, $oCollector->AttributeIsNullified('phone'));
 
-		$oCollector->Collect(1);
+		$oCollector->Collect();
 		$sExpectedCsv = <<<CSV
 primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function
-1;isaac;asimov;Demo;;123456;9998877665544;issac.asimov@function.io;writer
+1;isaac;asimov_null;Demo;;123456;9998877665544;issac.asimov@function.io;writer
+2;isaac;asimov_empty;Demo;;123456;9998877665544;issac.asimov@function.io;writer
+3;isaac;asimov_notempty;Demo;"not empty";123456;9998877665544;issac.asimov@function.io;writer
 
 CSV;
 		$sExpectedNullifiedCsv = <<<CSV
 primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function
-1;isaac;asimov;Demo;<NULL>;123456;9998877665544;issac.asimov@function.io;writer
+1;isaac;asimov_null;Demo;<NULL>;123456;9998877665544;issac.asimov@function.io;writer
+2;isaac;asimov_empty;Demo;<NULL>;123456;9998877665544;issac.asimov@function.io;writer
+3;isaac;asimov_notempty;Demo;"not empty";123456;9998877665544;issac.asimov@function.io;writer
 
 CSV;
 
@@ -158,12 +162,12 @@ CSV;
 	    $oCollector = new iTopPersonCollector();
 	    $oMockClient = $this->CreateMock('RestClient');
 	    $oMockClient->expects($this->exactly($bWillUpdate ? 1 : 0))->method("Update")->willReturn(['code' => 0]);
-	    
+
 	    $bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSDSAttributes', $oCollector, [$aExpectedAttrDef, $aSynchroAttrDef, '', $oMockClient]);
-	   
+
 	    $this->assertTrue($bRet);
 	}
-	
+
 	public function providerUpdateSDSAttributes()
 	{
 	    return [
@@ -271,7 +275,7 @@ CSV;
 	    $class = new \ReflectionClass($sObjectClass);
 	    $method = $class->getMethod($sMethodName);
 	    $method->setAccessible(true);
-	    
+
 	    return $method->invokeArgs($oObject, $aArgs);
 	}
 }

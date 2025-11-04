@@ -611,7 +611,7 @@ abstract class Collector
 	{
 		$aData = array();
 		foreach ($this->aCSVHeaders as $sHeader) {
-			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader)) {
+			if (strlen($aRow[$sHeader] ?? '')===0 && $this->AttributeIsNullified($sHeader)) {
 				$aData[] = NULL_VALUE;
 			} else {
 				$aData[] = $aRow[$sHeader];
