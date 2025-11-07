@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2022 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -21,7 +22,7 @@
 abstract class CollectionPlan
 {
 	// Instance of the collection plan
-	static protected $oCollectionPlan;
+	protected static $oCollectionPlan;
 
 	public function __construct()
 	{
@@ -58,7 +59,7 @@ abstract class CollectionPlan
 		$aCollectorsLaunchSequence = Utils::GetConfigurationValue('collectors_launch_sequence', []);
 		$aExtensionsCollectorsLaunchSequence = Utils::GetConfigurationValue('extensions_collectors_launch_sequence', []);
 		$aCollectorsLaunchSequence = array_merge($aCollectorsLaunchSequence, $aExtensionsCollectorsLaunchSequence);
-		$aRank=[];
+		$aRank = [];
 		if (!empty($aCollectorsLaunchSequence)) {
 			// Sort sequence
 			$aSortedCollectorsLaunchSequence = [];
@@ -135,7 +136,7 @@ abstract class CollectionPlan
 
 			/** @var Collector $oCollector */
 			// Instantiate collector
-			$oCollector = new $sCollectorName;
+			$oCollector = new $sCollectorName();
 			$oCollector->Init();
 			if ($oCollector->CheckToLaunch($aOrchestratedCollectors)) {
 				Utils::Log(LOG_INFO, $sCollectorName.' will be launched !');

@@ -5,7 +5,8 @@
  * Make this function available even for (PHP 8 < 8.1.0)
  */
 if (!function_exists("array_is_list")) {
-	function array_is_list(array $array): bool {
+	function array_is_list(array $array): bool
+	{
 		$i = 0;
 		foreach ($array as $k => $v) {
 			if ($k !== $i++) {
@@ -16,4 +17,3 @@ if (!function_exists("array_is_list")) {
 		return true;
 	}
 }
-

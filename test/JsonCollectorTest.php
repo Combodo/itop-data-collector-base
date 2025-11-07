@@ -121,7 +121,7 @@ class JsonCollectorTest extends TestCase
 			"sort of object xpath parsing via an index" => [ "format_json_5" ],
 			"first row nullified function" => [ "nullified_json_1" ],
 			"another row nullified function" => [ "nullified_json_2" ],
-            "json file with relative path" => [ "json_file_with_relative_path" ],
+			"json file with relative path" => [ "json_file_with_relative_path" ],
 		];
 	}
 
@@ -206,7 +206,8 @@ class JsonCollectorTest extends TestCase
 		}
 	}
 
-	public function testSearchByKey(){
+	public function testSearchByKey()
+	{
 		$sJson = <<<JSON
 {
   "Id": "1",
@@ -217,17 +218,19 @@ class JsonCollectorTest extends TestCase
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "Id",
-			'name' => "Shadok/name"
+			'name' => "Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
 
-	public function testSearchByKeyAndStar(){
+	public function testSearchByKeyAndStar()
+	{
 		$sJson = <<<JSON
 [
   {
@@ -240,17 +243,19 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
 
-	public function testSearchInItopJsonStructure(){
+	public function testSearchInItopJsonStructure()
+	{
 		$sJson = <<<JSON
 {
 	"Obj::1": {
@@ -264,17 +269,19 @@ JSON;
 
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
 
-	public function testSearchByKeyAndStar2(){
+	public function testSearchByKeyAndStar2()
+	{
 		$sJson = <<<JSON
 [
   {
@@ -289,17 +296,19 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
 
-	public function testSearchByKeyAndStar3(){
+	public function testSearchByKeyAndStar3()
+	{
 		$sJson = <<<JSON
 {
   "XXX": {
@@ -314,17 +323,19 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
 
-	public function testSearchByKeyAndStar4(){
+	public function testSearchByKeyAndStar4()
+	{
 		$sJson = <<<JSON
 {
   "XXX": {
@@ -339,17 +350,19 @@ JSON;
 JSON;
 		$aFieldPaths = [
 			'primary_key' => "*/Id",
-			'name' => "*/Shadok/name"
+			'name' => "*/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
 
-	public function testSearchByKeyAndIndex(){
+	public function testSearchByKeyAndIndex()
+	{
 		$sJson = <<<JSON
 [
   {
@@ -362,18 +375,18 @@ JSON;
   }
 ]
 JSON;
-		$aFieldPaths =[
+		$aFieldPaths = [
 			'primary_key' => "0/Id",
-			'name' => "1/Shadok/name"
+			'name' => "1/Shadok/name",
 		];
 
 		$aFetchedFields = $this->CallSearchFieldValues($sJson, $aFieldPaths);
-		$this->assertEquals(['primary_key' => '1', 'name' => 'gabuzomeu'],
+		$this->assertEquals(
+			['primary_key' => '1', 'name' => 'gabuzomeu'],
 			$aFetchedFields,
 			var_export($aFetchedFields, true)
 		);
 	}
-
 
 	public function CallSearchFieldValues($sJson, $aFieldPaths)
 	{

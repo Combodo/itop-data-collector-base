@@ -27,13 +27,13 @@ class CollectorTest extends TestCase
 		foreach ($aCollectorFiles as $sFile) {
 			unlink($sFile);
 		}
-        // Remove params.local.xml if it exists because it can interfere with the tests
-        if (file_exists(APPROOT."/conf/params.local.xml")) {
-            unlink(APPROOT."/conf/params.local.xml");
-        }
+		// Remove params.local.xml if it exists because it can interfere with the tests
+		if (file_exists(APPROOT."/conf/params.local.xml")) {
+			unlink(APPROOT."/conf/params.local.xml");
+		}
 	}
 
-    public function tearDown(): void
+	public function tearDown(): void
 	{
 		parent::tearDown();
 		$aCollectorFiles = glob(self::$sCollectorPath."*");
@@ -152,106 +152,106 @@ CSV;
 	 */
 	public function testUpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, bool $bWillUpdate)
 	{
-	    $this->copy(APPROOT."/test/collector/attribute_isnullified/*");
-	    require_once APPROOT."/core/restclient.class.inc.php";
-	    require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
-	    $oCollector = new iTopPersonCollector();
-	    $oMockClient = $this->CreateMock('RestClient');
-	    $oMockClient->expects($this->exactly($bWillUpdate ? 1 : 0))->method("Update")->willReturn(['code' => 0]);
-	    
-	    $bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSDSAttributes', $oCollector, [$aExpectedAttrDef, $aSynchroAttrDef, '', $oMockClient]);
-	   
-	    $this->assertTrue($bRet);
+		$this->copy(APPROOT."/test/collector/attribute_isnullified/*");
+		require_once APPROOT."/core/restclient.class.inc.php";
+		require_once self::$sCollectorPath."iTopPersonCollector.class.inc.php";
+		$oCollector = new iTopPersonCollector();
+		$oMockClient = $this->CreateMock('RestClient');
+		$oMockClient->expects($this->exactly($bWillUpdate ? 1 : 0))->method("Update")->willReturn(['code' => 0]);
+
+		$bRet = $this->InvokeNonPublicMethod(get_class($oCollector), 'UpdateSDSAttributes', $oCollector, [$aExpectedAttrDef, $aSynchroAttrDef, '', $oMockClient]);
+
+		$this->assertTrue($bRet);
 	}
-	
+
 	public function providerUpdateSDSAttributes()
 	{
-	    return [
-	        'no difference' => [
-	            'aExpectedAttrDef' => [
-	                [
-	                    "attcode" => "name",
-	                    "update" => "1",
-	                    "reconcile" => "1",
-	                    "update_policy" => "master_locked",
-	                    "finalclass" => "SynchroAttribute",
-	                    "friendlyname" => "name",
-	                ],
-	            ],
-	            'aSynchroAttrDef' => [
-	                [
-	                    "attcode" => "name",
-	                    "update" => "1",
-	                    "reconcile" => "1",
-	                    "update_policy" => "master_locked",
-	                    "finalclass" => "SynchroAttribute",
-	                    "friendlyname" => "name",
-	                ],
-	            ],
-	            'bWillUpdate' => false,
-	        ],
-	        'reconcile is different' => [
-    	    'aExpectedAttrDef' => [
-    	        [
-    	            "attcode" => "name",
-    	            "update" => "1",
-    	            "reconcile" => "1",
-    	            "update_policy" => "master_locked",
-    	            "finalclass" => "SynchroAttribute",
-    	            "friendlyname" => "name",
-    	        ],
-    	    ],
-    	    'aSynchroAttrDef' => [
-    	        [
-    	            "attcode" => "name",
-    	            "update" => "1",
-    	            "reconcile" => "0", // Difference here
-    	            "update_policy" => "master_locked",
-    	            "finalclass" => "SynchroAttribute",
-    	            "friendlyname" => "name",
-    	        ],
-    	    ],
-	        'bWillUpdate' => true,
-	       ],
-	        'update policy is different on OPTIONAL field' => [
-	            'aExpectedAttrDef' => [
-	                [
-	                    "attcode" => "optional", // Note: 'optional' is an attribute considered as "optional" in this test
-	                    "update" => "1",
-	                    "reconcile" => "1",
-	                    "update_policy" => "master_locked",
-	                    "finalclass" => "SynchroAttribute",
-	                    "friendlyname" => "optional",
-	                ],
-	            ],
-	            'aSynchroAttrDef' => [
-	                [
-	                    "attcode" => "optional",
-	                    "update" => "1",
-	                    "reconcile" => "1",
-	                    "update_policy" => "master_unlocked",  // Difference here
-	                    "finalclass" => "SynchroAttribute",
-	                    "friendlyname" => "optional",
-	                ],
-	            ],
-	            'bWillUpdate' => true,
-	        ],
-	        'OPTIONAL field actually missing' => [
-	            'aExpectedAttrDef' => [
-	            ],
-	            'aSynchroAttrDef' => [
-	                [
-	                    "attcode" => "optional",
-	                    "update" => "1",
-	                    "reconcile" => "1",
-	                    "update_policy" => "master_unlocked",  // Difference here
-	                    "finalclass" => "SynchroAttribute",
-	                    "friendlyname" => "optional",
-	                ],
-	            ],
-	            'bWillUpdate' => false,
-	        ],
-	    ];
+		return [
+			'no difference' => [
+				'aExpectedAttrDef' => [
+					[
+						"attcode" => "name",
+						"update" => "1",
+						"reconcile" => "1",
+						"update_policy" => "master_locked",
+						"finalclass" => "SynchroAttribute",
+						"friendlyname" => "name",
+					],
+				],
+				'aSynchroAttrDef' => [
+					[
+						"attcode" => "name",
+						"update" => "1",
+						"reconcile" => "1",
+						"update_policy" => "master_locked",
+						"finalclass" => "SynchroAttribute",
+						"friendlyname" => "name",
+					],
+				],
+				'bWillUpdate' => false,
+			],
+			'reconcile is different' => [
+			'aExpectedAttrDef' => [
+				[
+					"attcode" => "name",
+					"update" => "1",
+					"reconcile" => "1",
+					"update_policy" => "master_locked",
+					"finalclass" => "SynchroAttribute",
+					"friendlyname" => "name",
+				],
+			],
+			'aSynchroAttrDef' => [
+				[
+					"attcode" => "name",
+					"update" => "1",
+					"reconcile" => "0", // Difference here
+					"update_policy" => "master_locked",
+					"finalclass" => "SynchroAttribute",
+					"friendlyname" => "name",
+				],
+			],
+			'bWillUpdate' => true,
+		   ],
+			'update policy is different on OPTIONAL field' => [
+				'aExpectedAttrDef' => [
+					[
+						"attcode" => "optional", // Note: 'optional' is an attribute considered as "optional" in this test
+						"update" => "1",
+						"reconcile" => "1",
+						"update_policy" => "master_locked",
+						"finalclass" => "SynchroAttribute",
+						"friendlyname" => "optional",
+					],
+				],
+				'aSynchroAttrDef' => [
+					[
+						"attcode" => "optional",
+						"update" => "1",
+						"reconcile" => "1",
+						"update_policy" => "master_unlocked",  // Difference here
+						"finalclass" => "SynchroAttribute",
+						"friendlyname" => "optional",
+					],
+				],
+				'bWillUpdate' => true,
+			],
+			'OPTIONAL field actually missing' => [
+				'aExpectedAttrDef' => [
+				],
+				'aSynchroAttrDef' => [
+					[
+						"attcode" => "optional",
+						"update" => "1",
+						"reconcile" => "1",
+						"update_policy" => "master_unlocked",  // Difference here
+						"finalclass" => "SynchroAttribute",
+						"friendlyname" => "optional",
+					],
+				],
+				'bWillUpdate' => false,
+			],
+		];
 	}
 
 	/**
@@ -268,10 +268,10 @@ CSV;
 	 */
 	public function InvokeNonPublicMethod($sObjectClass, $sMethodName, $oObject, $aArgs)
 	{
-	    $class = new \ReflectionClass($sObjectClass);
-	    $method = $class->getMethod($sMethodName);
-	    $method->setAccessible(true);
-	    
-	    return $method->invokeArgs($oObject, $aArgs);
+		$class = new \ReflectionClass($sObjectClass);
+		$method = $class->getMethod($sMethodName);
+		$method->setAccessible(true);
+
+		return $method->invokeArgs($oObject, $aArgs);
 	}
 }

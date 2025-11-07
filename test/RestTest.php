@@ -31,16 +31,17 @@ class RestTest extends TestCase
 		$reflection->setValue(null, null);
 	}
 
-	public function GetCredentialsProvider(){
+	public function GetCredentialsProvider()
+	{
 		return [
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_url' => 'URI',
 					'itop_login' => 'admin1',
-					'itop_password' => 'admin2'
+					'itop_password' => 'admin2',
 				],
-				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2'],
-				'url' => 'URI/webservices/rest.php?login_mode=form&version=1.0'
+				'aExpectedCredentials' => ['auth_user' => 'admin1', 'auth_pwd' => 'admin2'],
+				'url' => 'URI/webservices/rest.php?login_mode=form&version=1.0',
 			],
 			'new token' => [
 				'aParameters' => [
@@ -49,8 +50,8 @@ class RestTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4'],
-				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
+				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0',
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -60,8 +61,8 @@ class RestTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4'],
-				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0'
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
+				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0',
 			],
 			'configured login_mode' => [
 				'aParameters' => [
@@ -72,8 +73,8 @@ class RestTest extends TestCase
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4'],
-				'url' => 'URI/webservices/rest.php?login_mode=newloginform&version=1.0'
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
+				'url' => 'URI/webservices/rest.php?login_mode=newloginform&version=1.0',
 			],
 		];
 	}
@@ -81,13 +82,14 @@ class RestTest extends TestCase
 	/**
 	 * @dataProvider GetCredentialsProvider
 	 */
-	public function testCallItopViaHttp($aParameters, $aExpectedCredentials, $sExpectedUrl){
+	public function testCallItopViaHttp($aParameters, $aExpectedCredentials, $sExpectedUrl)
+	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
 			->will($this->returnCallback(
-				function($sKey, $aDefaultValue) use ($aParameters) {
-					if (array_key_exists($sKey, $aParameters)){
+				function ($sKey, $aDefaultValue) use ($aParameters) {
+					if (array_key_exists($sKey, $aParameters)) {
 						return $aParameters[$sKey];
 					}
 					return $aDefaultValue;
@@ -101,14 +103,14 @@ class RestTest extends TestCase
 		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
 		Utils::MockDoPostRequestService($oMockedDoPostRequestService);
 
-		$aListParams = array(
+		$aListParams = [
 			'operation'     => 'list_operations', // operation code
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
-		);
+		];
 		$aAdditionalData = ['json_data' => json_encode($aListParams)];
 		$oMockedDoPostRequestService->expects($this->once())
 			->method('DoPostRequest')
-			->with($sExpectedUrl, array_merge($aExpectedCredentials, $aAdditionalData ))
+			->with($sExpectedUrl, array_merge($aExpectedCredentials, $aAdditionalData))
 			->willReturn(json_encode(['retcode' => 0]));
 		;
 

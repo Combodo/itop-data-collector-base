@@ -2,5 +2,4 @@
 
 class StandardCollector extends Collector
 {
-	
 }

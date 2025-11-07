@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -33,7 +34,7 @@ require_once(APPROOT.'core/csvcollector.class.inc.php');
 require_once(APPROOT.'core/jsoncollector.class.inc.php');
 require_once(APPROOT.'core/polyfill.inc.php');
 
-$aOptionalParams = array(
+$aOptionalParams = [
 	'configure_only' => 'boolean',
 	'collect_only' => 'boolean',
 	'synchro_only' => 'boolean',
@@ -43,7 +44,7 @@ $aOptionalParams = array(
 	'max_chunk_size' => 'integer',
 	'help' => 'boolean',
 	'config_file' => 'string',
-);
+];
 $bHelp = (Utils::ReadBooleanParameter('help', false) == true);
 $aUnknownParameters = Utils::CheckParameters($aOptionalParams);
 if ($bHelp || count($aUnknownParameters) > 0) {
@@ -131,4 +132,4 @@ try {
 	Utils::Log(LOG_ERR, "Exception: ".$e->getMessage());
 }
 
-exit ($bResult ? 0 : 1); // exit code is zero means success
+exit($bResult ? 0 : 1); // exit code is zero means success

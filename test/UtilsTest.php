@@ -28,7 +28,8 @@ class UtilsTest extends TestCase
 		$reflection->setValue(null, null);
 	}
 
-	public function ComputeCurlOptionsProvider(){
+	public function ComputeCurlOptionsProvider()
+	{
 		return [
 			'nominal usecase: constant key/ constant int value' => [
 				'aRawCurlOptions' =>  [
@@ -38,7 +39,7 @@ class UtilsTest extends TestCase
 					32 => 3,
 					78 => 600,
 					13 => 600,
-				]
+				],
 			],
 			'nominal usecase: constant key/ constant provided as a string' => [
 				'aRawCurlOptions' =>  [
@@ -48,7 +49,7 @@ class UtilsTest extends TestCase
 					32 => 3,
 					78 => 600,
 					13 => 600,
-				]
+				],
 			],
 			'constant provided as a string key/ string value' => [
 				'aRawCurlOptions' =>  [
@@ -58,7 +59,7 @@ class UtilsTest extends TestCase
 					78 => 600,
 					13 => 600,
 					10022 => 'itop',
-				]
+				],
 			],
 			'constant key/ constant boolean value' => [
 				'aRawCurlOptions' =>  [
@@ -68,7 +69,7 @@ class UtilsTest extends TestCase
 					78 => 600,
 					13 => 600,
 					96 => true,
-				]
+				],
 			],
 		];
 	}
@@ -76,25 +77,26 @@ class UtilsTest extends TestCase
 	/**
 	 * @dataProvider ComputeCurlOptionsProvider
 	 */
-	public function testComputeCurlOptions($aRawCurlOptions, $aExpectedReturnedOptions){
+	public function testComputeCurlOptions($aRawCurlOptions, $aExpectedReturnedOptions)
+	{
 		$aCurlOptions = Utils::ComputeCurlOptions($aRawCurlOptions, 600);
 
 		$this->assertEquals($aExpectedReturnedOptions, $aCurlOptions);
 	}
 
-
-	public function ComputeCurlOptionsTimeoutProvider(){
+	public function ComputeCurlOptionsTimeoutProvider()
+	{
 		return [
 			'with timeout' => [
 				'aExpectedReturnedOptions' => [
 					78 => 600,
 					13 => 600,
 				],
-				'iTimeout' => 600
+				'iTimeout' => 600,
 			],
 			'without timeout' => [
 				'aExpectedReturnedOptions' => [],
-				'iTimeout' => -1
+				'iTimeout' => -1,
 			],
 		];
 	}
@@ -102,7 +104,8 @@ class UtilsTest extends TestCase
 	/**
 	 * @dataProvider ComputeCurlOptionsTimeoutProvider
 	 */
-	public function testComputeCurlOptionsTimeoutProvider($aExpectedReturnedOptions, $iTimeout){
+	public function testComputeCurlOptionsTimeoutProvider($aExpectedReturnedOptions, $iTimeout)
+	{
 		$aRawCurlOptions = [];
 
 		$aCurlOptions = Utils::ComputeCurlOptions($aRawCurlOptions, $iTimeout);
@@ -110,14 +113,15 @@ class UtilsTest extends TestCase
 		$this->assertEquals($aExpectedReturnedOptions, $aCurlOptions);
 	}
 
-	public function GetCredentialsProvider(){
+	public function GetCredentialsProvider()
+	{
 		return [
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
-					'itop_password' => 'admin2'
+					'itop_password' => 'admin2',
 				],
-				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2']
+				'aExpectedCredentials' => ['auth_user' => 'admin1', 'auth_pwd' => 'admin2'],
 			],
 			'new token' => [
 				'aParameters' => [
@@ -125,7 +129,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -134,7 +138,7 @@ class UtilsTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 			],
 		];
 	}
@@ -142,13 +146,14 @@ class UtilsTest extends TestCase
 	/**
 	 * @dataProvider GetCredentialsProvider
 	 */
-	public function testGetCredentials($aParameters, $aExpectedCredentials){
+	public function testGetCredentials($aParameters, $aExpectedCredentials)
+	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
 			->will($this->returnCallback(
-				function($sKey, $aDefaultValue) use ($aParameters) {
-					if (array_key_exists($sKey, $aParameters)){
+				function ($sKey, $aDefaultValue) use ($aParameters) {
+					if (array_key_exists($sKey, $aParameters)) {
 						return $aParameters[$sKey];
 					}
 					return $aDefaultValue;
@@ -165,13 +170,14 @@ class UtilsTest extends TestCase
 	/**
 	 * @dataProvider GetLoginModeProvider
 	 */
-	public function testGetLoginForm($aParameters, $sExpectedLoginMode){
+	public function testGetLoginForm($aParameters, $sExpectedLoginMode)
+	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
 			->will($this->returnCallback(
-				function($sKey, $aDefaultValue) use ($aParameters) {
-					if (array_key_exists($sKey, $aParameters)){
+				function ($sKey, $aDefaultValue) use ($aParameters) {
+					if (array_key_exists($sKey, $aParameters)) {
 						return $aParameters[$sKey];
 					}
 					return $aDefaultValue;
@@ -185,14 +191,15 @@ class UtilsTest extends TestCase
 		$this->assertEquals($sExpectedLoginMode, Utils::GetLoginMode());
 	}
 
-	public function GetLoginModeProvider(){
+	public function GetLoginModeProvider()
+	{
 		return [
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
-					'itop_password' => 'admin2'
+					'itop_password' => 'admin2',
 				],
-				'sExpectedLoginMode' => 'form'
+				'sExpectedLoginMode' => 'form',
 			],
 			'authent-token v2' => [
 				'aParameters' => [
@@ -200,7 +207,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'sExpectedLoginMode' => 'token'
+				'sExpectedLoginMode' => 'token',
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -209,7 +216,7 @@ class UtilsTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'sExpectedLoginMode' => 'token'
+				'sExpectedLoginMode' => 'token',
 			],
 			'itop_login_mode over others' => [
 				'aParameters' => [
@@ -219,26 +226,28 @@ class UtilsTest extends TestCase
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
 				],
-				'sExpectedLoginMode' => 'newloginform'
+				'sExpectedLoginMode' => 'newloginform',
 			],
 		];
 	}
 
-	public function testDumpConfig(){
+	public function testDumpConfig()
+	{
 		global $argv;
 		$sXmlPath = __DIR__.'/utils/params.test.xml';
-		$argv[]= "--config_file=".$sXmlPath;
+		$argv[] = "--config_file=".$sXmlPath;
 		$sContent = file_get_contents($sXmlPath);
 		$this->assertEquals($sContent, Utils::DumpConfig());
 	}
-	
-	public function testCheckModuleInstallation(){
+
+	public function testCheckModuleInstallation()
+	{
 		$oRestClient = $this->createMock(\RestClient::class);
-		
+
 		$oReflectionLastInstallDate = new \ReflectionProperty(Utils::class, 'sLastInstallDate');
 		$oReflectionLastInstallDate->setAccessible(true);
-		$oReflectionLastInstallDate->setValue(null,'0000-00-00 00:00:00');
-		
+		$oReflectionLastInstallDate->setValue(null, '0000-00-00 00:00:00');
+
 		$oRestClient->expects($this->exactly(4))
 			->method('Get')
 			->willReturnMap([
@@ -253,7 +262,7 @@ class UtilsTest extends TestCase
 					'message' => 'Found: 0',
 				]],
 			]);
-		
+
 		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', false, $oRestClient));
 		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/0.0.0', false, $oRestClient));
 		$this->assertFalse(Utils::CheckModuleInstallation('itop-structure/1.2.3', false, $oRestClient));

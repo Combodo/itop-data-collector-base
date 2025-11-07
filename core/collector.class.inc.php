@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -29,7 +30,6 @@ class InvalidConfigException extends Exception
 {
 }
 
-
 /**
  * Base class for all collectors
  *
@@ -40,7 +40,7 @@ abstract class Collector
 	 * @see N°2417
 	 * @var string TABLENAME_PATTERN used to validate data synchro table name
 	 */
-	const TABLENAME_PATTERN = '/^[A-Za-z0-9_]*$/';
+	public const TABLENAME_PATTERN = '/^[A-Za-z0-9_]*$/';
 
 	protected $sProjectName;
 	protected $sSynchroDataSourceDefinitionFile;
@@ -63,12 +63,13 @@ abstract class Collector
 	/**
 	 * Construction
 	 */
-	public function __construct() {
+	public function __construct()
+	{
 		$this->sVersion = null;
 		$this->iSourceId = null;
 		$this->aFields = [];
 		$this->aCSVHeaders = [];
-		$this->aCSVFile = array();
+		$this->aCSVFile = [];
 		$this->iFileIndex = null;
 		$this->aCollectorConfig = [];
 		$this->sErrorMessage = '';
@@ -79,10 +80,10 @@ abstract class Collector
 	/**
 	 * @since 1.3.0
 	 */
-	public static function SetCallItopService(CallItopService $oCurrentCallItopService){
+	public static function SetCallItopService(CallItopService $oCurrentCallItopService)
+	{
 		static::$oCallItopService = $oCurrentCallItopService;
 	}
-
 
 	/**
 	 * Initialization
@@ -94,10 +95,13 @@ abstract class Collector
 	{
 		$sJSONSourceDefinition = $this->GetSynchroDataSourceDefinition();
 		if (empty($sJSONSourceDefinition)) {
-			Utils::Log(LOG_ERR,
-				sprintf("Empty Synchro Data Source definition for the collector '%s' (file to check/create: %s)",
+			Utils::Log(
+				LOG_ERR,
+				sprintf(
+					"Empty Synchro Data Source definition for the collector '%s' (file to check/create: %s)",
 					$this->GetName(),
-					$this->sSynchroDataSourceDefinitionFile)
+					$this->sSynchroDataSourceDefinitionFile
+				)
 			);
 			throw new Exception('Cannot create Collector (empty JSON definition)');
 		}
@@ -113,7 +117,7 @@ abstract class Collector
 		}
 
 		$this->ReadCollectorConfig();
-		if (array_key_exists('nullified_attributes', $this->aCollectorConfig)){
+		if (array_key_exists('nullified_attributes', $this->aCollectorConfig)) {
 			$this->aNullifiedAttributes = $this->aCollectorConfig['nullified_attributes'];
 		} else {
 			$this->aNullifiedAttributes = Utils::GetConfigurationValue(get_class($this)."_nullified_attributes", null);
@@ -125,13 +129,16 @@ abstract class Collector
 		}
 	}
 
-	public function ReadCollectorConfig() {
-		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this),  []);
+	public function ReadCollectorConfig()
+	{
+		$this->aCollectorConfig = Utils::GetConfigurationValue(get_class($this), []);
 		if (empty($this->aCollectorConfig)) {
 			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), []);
 		}
-		Utils::Log(LOG_DEBUG,
-			sprintf("aCollectorConfig %s:  [%s]",
+		Utils::Log(
+			LOG_DEBUG,
+			sprintf(
+				"aCollectorConfig %s:  [%s]",
 				get_class($this),
 				json_encode($this->aCollectorConfig)
 			)
@@ -186,7 +193,7 @@ abstract class Collector
 		}
 	}
 
-	public function GetSynchroDataSourceDefinition($aPlaceHolders = array())
+	public function GetSynchroDataSourceDefinition($aPlaceHolders = [])
 	{
 		$this->sSynchroDataSourceDefinitionFile = $this->GetSynchroDataSourceDefinitionFile();
 		if ($this->sSynchroDataSourceDefinitionFile === false) {
@@ -383,7 +390,7 @@ abstract class Collector
 			$this->SetProjectNameFromFileName($sModuleFile);
 
 			$sModuleFileContents = file_get_contents($sModuleFile);
-			$sModuleFileContents = str_replace(array('<?php', '?>'), '', $sModuleFileContents);
+			$sModuleFileContents = str_replace(['<?php', '?>'], '', $sModuleFileContents);
 			$sModuleFileContents = str_replace('SetupWebPage::AddModule(', '$this->InitFieldsFromModuleContentCallback(', $sModuleFileContents);
 			$bRet = eval($sModuleFileContents);
 
@@ -414,7 +421,6 @@ abstract class Collector
 		$this->sProjectName = $sProjectName;
 		Utils::SetProjectName($sProjectName);
 	}
-
 
 	/**
 	 * Sets the $sVersion property. Called when eval'uating the content of the module file
@@ -480,7 +486,7 @@ abstract class Collector
 		$this->sSourceName = $aExpectedSourceDefinition['name'];
 		try {
 			$oRestClient = new RestClient();
-			$aResult = $oRestClient->Get('SynchroDataSource', array('name' => $this->sSourceName));
+			$aResult = $oRestClient->Get('SynchroDataSource', ['name' => $this->sSourceName]);
 			if ($aResult['code'] != 0) {
 				Utils::Log(LOG_ERR, "{$aResult['message']} ({$aResult['code']})");
 				$bResult = false;
@@ -501,7 +507,7 @@ abstract class Collector
 							// Ok, found, is it up to date ?
 							$aData = reset($aResult['objects']);
 							$aCurrentSourceDefinition = $aData['fields'];
-							$iKey=0;
+							$iKey = 0;
 							if (!array_key_exists('key', $aData)) {
 								// Emulate the behavior for older versions of the API
 								if (preg_match('/::([0-9]+)$/', $sKey, $aMatches)) {
@@ -577,7 +583,7 @@ abstract class Collector
 
 	protected function AddHeader($aHeaders)
 	{
-		$this->aCSVHeaders = array();
+		$this->aCSVHeaders = [];
 		foreach ($aHeaders as $sHeader) {
 			if (($sHeader != 'primary_key') && !$this->HeaderIsAllowed($sHeader)) {
 				if (!$this->AttributeIsOptional($sHeader)) {
@@ -589,7 +595,7 @@ abstract class Collector
 		}
 		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
 	}
-	
+
 	/**
 	 * Added to add multi-column field support or situations
 	 * where column name is different than attribute code.
@@ -600,16 +606,18 @@ abstract class Collector
 	protected function HeaderIsAllowed($sHeader)
 	{
 		foreach ($this->aFields as $aField) {
-			if (in_array($sHeader, $aField['columns'])) return true;
+			if (in_array($sHeader, $aField['columns'])) {
+				return true;
+			}
 		}
-		
+
 		// fallback old behaviour
 		return array_key_exists($sHeader, $this->aFields);
 	}
 
 	protected function AddRow($aRow)
 	{
-		$aData = array();
+		$aData = [];
 		foreach ($this->aCSVHeaders as $sHeader) {
 			if (is_null($aRow[$sHeader]) && $this->AttributeIsNullified($sHeader)) {
 				$aData[] = NULL_VALUE;
@@ -690,7 +698,7 @@ abstract class Collector
 		//explanation: there is a weard behaviour with LOG level under windows (some PHP versions??)
 		// under linux LOG_DEBUG=7 and LOG_INFO=6
 		// under windows LOG_DEBUG=LOG_INFO=6...
-		$bDetailedOutput = ("7" === "" . Utils::$iConsoleLogLevel);
+		$bDetailedOutput = ("7" === "".Utils::$iConsoleLogLevel);
 		foreach ($aFiles as $sDataFile) {
 			Utils::Log(LOG_INFO, "Uploading data file '$sDataFile'");
 			// Load by chunk
@@ -701,7 +709,7 @@ abstract class Collector
 				$sOutput = 'retcode';
 			}
 
-			$aData = array(
+			$aData = [
 				'separator' => ';',
 				'data_source_id' => $this->iSourceId,
 				'synchronize' => '0',
@@ -709,12 +717,14 @@ abstract class Collector
 				'output' => $sOutput,
 				'csvdata' => file_get_contents($sDataFile),
 				'charset' => $this->GetCharset(),
-                'date_format' => Utils::GetConfigurationValue('date_format', 'Y-m-d H:i:s')
-			);
+				'date_format' => Utils::GetConfigurationValue('date_format', 'Y-m-d H:i:s'),
+			];
 
 			$sLoginform = Utils::GetLoginMode();
-			$sResult = self::CallItopViaHttp("/synchro/synchro_import.php?login_mode=$sLoginform",
-				$aData);
+			$sResult = self::CallItopViaHttp(
+				"/synchro/synchro_import.php?login_mode=$sLoginform",
+				$aData
+			);
 
 			$sTrimmedOutput = trim(strip_tags($sResult));
 			$sErrorCount = self::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
@@ -732,16 +742,18 @@ abstract class Collector
 
 		// Synchronize... also by chunks...
 		Utils::Log(LOG_INFO, "Starting synchronization of the data source '{$this->sSourceName}'...");
-		$aData = array(
+		$aData = [
 			'data_sources' => $this->iSourceId,
-		);
+		];
 		if ($iMaxChunkSize > 0) {
 			$aData['max_chunk_size'] = $iMaxChunkSize;
 		}
 
 		$sLoginform = Utils::GetLoginMode();
-		$sResult = self::CallItopViaHttp("/synchro/synchro_exec.php?login_mode=$sLoginform",
-			$aData);
+		$sResult = self::CallItopViaHttp(
+			"/synchro/synchro_exec.php?login_mode=$sLoginform",
+			$aData
+		);
 
 		$iErrorsCount = $this->ParseSynchroExecOutput($sResult);
 
@@ -755,7 +767,7 @@ abstract class Collector
 	 * @throws Exception
 	 * @since 1.3.1 N°6771
 	 */
-	public function ParseSynchroExecOutput($sResult) : int
+	public function ParseSynchroExecOutput($sResult): int
 	{
 		if (preg_match_all('|<input type="hidden" name="loginop" value="login"|', $sResult, $aMatches)) {
 			// Hmm, it seems that the HTML output contains the login form !!
@@ -802,12 +814,11 @@ abstract class Collector
 	 * @return string: error count string. should match "0" when successfull synchro import.
 	 * @since 1.3.1 N°6771
 	 */
-	public static function ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput) : string
+	public static function ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput): string
 	{
-		if ($bDetailedOutput)
-		{
-			if (preg_match('/#Issues \(before synchro\): (\d+)/', $sTrimmedOutput, $aMatches)){
-				if (sizeof($aMatches)>0){
+		if ($bDetailedOutput) {
+			if (preg_match('/#Issues \(before synchro\): (\d+)/', $sTrimmedOutput, $aMatches)) {
+				if (sizeof($aMatches) > 0) {
 					return $aMatches[1];
 				}
 			}
@@ -823,7 +834,8 @@ abstract class Collector
 	 * @deprecated 1.3.1 N°6771
 	 * @see static::ParseSynchroImportOutput
 	 */
-	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput) : string {
+	public static function ParseSynchroOutput($sTrimmedOutput, $bDetailedOutput): string
+	{
 		// log a deprecation message
 		Utils::Log(LOG_INFO, "Called to deprecated method ParseSynchroOutput. Use ParseSynchroImportOutput instead.");
 		return static::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
@@ -831,7 +843,7 @@ abstract class Collector
 
 	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
 	{
-		if (null === static::$oCallItopService){
+		if (null === static::$oCallItopService) {
 			static::$oCallItopService = new CallItopService();
 		}
 		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
@@ -902,8 +914,7 @@ abstract class Collector
 	protected function UpdateSDSAttributes($aExpectedAttrDef, $aSynchroAttrDef, $sComment, ?RestClient $oClient = null)
 	{
 		$bRet = true;
-		if ($oClient === null)
-		{
+		if ($oClient === null) {
 			$oClient = new RestClient();
 		}
 
@@ -911,7 +922,7 @@ abstract class Collector
 			$aExpectedAttr = $this->FindAttr($aAttr['attcode'], $aExpectedAttrDef);
 
 			if ($aAttr != $aExpectedAttr) {
-                if (($aExpectedAttr === false) && $this->AttributeIsOptional($aAttr['attcode'])) {
+				if (($aExpectedAttr === false) && $this->AttributeIsOptional($aAttr['attcode'])) {
 					Utils::Log(LOG_INFO, "Skipping optional (and not-present) attribute '{$aAttr['attcode']}'.");
 					$this->aSkippedAttributes[] = $aAttr['attcode']; // record that this attribute was skipped
 
@@ -927,7 +938,7 @@ abstract class Collector
 					$aAttr['reconcile'] = ($aAttr['reconcile'] == 1) ? "1" : "0";
 
 					Utils::Log(LOG_DEBUG, "Updating attribute '{$aAttr['attcode']}'.");
-					$aResult = $oClient->Update($sTargetClass, array('sync_source_id' => $this->iSourceId, 'attcode' => $aAttr['attcode']), $aAttr, $sComment);
+					$aResult = $oClient->Update($sTargetClass, ['sync_source_id' => $this->iSourceId, 'attcode' => $aAttr['attcode']], $aAttr, $sComment);
 					$bRet = ($aResult['code'] == 0);
 					if (!$bRet) {
 						if (preg_match('/Error: No item found with criteria: sync_source_id/', $aResult['message'])) {
@@ -1107,7 +1118,7 @@ abstract class Collector
 				$iError++;
 				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
 			} elseif (!empty($aMissingColumns) && $aDefs['update']) {
-				if ($this->AttributeIsNullified($sCode)){
+				if ($this->AttributeIsNullified($sCode)) {
 					Utils::Log(LOG_DEBUG, '['.$sClass.'] The field "'.$sCode.'", used for update, has missing column(s) in first row but nullified.');
 					continue;
 				}
@@ -1128,14 +1139,15 @@ abstract class Collector
 		}
 	}
 
-    /*
+	/*
 	 * Check if the collector can be launched
 	 *
-     * @param $aOrchestratedCollectors = list of collectors already orchestrated
-     *
+	 * @param $aOrchestratedCollectors = list of collectors already orchestrated
+	 *
 	 * @return bool
 	 */
-    public function CheckToLaunch(array $aOrchestratedCollectors): bool {
+	public function CheckToLaunch(array $aOrchestratedCollectors): bool
+	{
 		return true;
 	}
 

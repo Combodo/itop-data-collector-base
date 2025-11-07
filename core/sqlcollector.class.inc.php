@@ -1,7 +1,8 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -76,7 +77,6 @@ abstract class SQLCollector extends Collector
 			return false;
 		}
 
-
 		$this->oStatement = $this->oDB->prepare($this->sQuery);
 		if ($this->oStatement === false) {
 			$aInfo = $this->oDB->errorInfo();
@@ -126,8 +126,7 @@ abstract class SQLCollector extends Collector
 
 		try {
 			$this->oDB = new PDO($sConnectionString, $sLogin, $sPassword);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] Database connection failed: ".$e->getMessage());
 			$this->oDB = null;
 
@@ -236,8 +235,7 @@ abstract class MySQLCollector extends SQLCollector
 
 					return false;
 				}
-			}
-			catch (PDOException $e) {
+			} catch (PDOException $e) {
 				Utils::Log(LOG_ERR, "[".get_class($this)."] SQL query: \"SET NAMES 'utf8'\" failed: ".$e->getMessage());
 				$this->oDB = null;
 

@@ -1,7 +1,8 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -16,8 +17,8 @@
 
 class Orchestrator
 {
-	static $aCollectors = array();
-	static $aMinVersions = array('PHP' => '7.0', 'simplexml' => '7.0', 'dom' => '1');
+	public static $aCollectors = [];
+	public static $aMinVersions = ['PHP' => '7.0', 'simplexml' => '7.0', 'dom' => '1'];
 
 	/**
 	 * Add a collector class to be run in the specified order
@@ -28,7 +29,7 @@ class Orchestrator
 	 * @return void
 	 * @throws Exception
 	 */
-	static function AddCollector($fExecOrder, $sCollectorClass)
+	public static function AddCollector($fExecOrder, $sCollectorClass)
 	{
 		$oReflection = new ReflectionClass($sCollectorClass);
 		if (!$oReflection->IsSubclassOf('Collector')) {
@@ -37,7 +38,7 @@ class Orchestrator
 		if ($oReflection->IsAbstract()) {
 			throw new Exception('Cannot register an abstract class ('.$sCollectorClass.') as a collector.');
 		}
-		self::$aCollectors[$sCollectorClass] = array('order' => $fExecOrder, 'class' => $sCollectorClass, 'sds_name' => '', 'sds_id' => 0);
+		self::$aCollectors[$sCollectorClass] = ['order' => $fExecOrder, 'class' => $sCollectorClass, 'sds_name' => '', 'sds_id' => 0];
 	}
 
 	/**
@@ -46,7 +47,7 @@ class Orchestrator
 	 * @return void
 	 * @throws \ReflectionException
 	 */
-	static function UseCollectionPlan($sCollectionPlanClass)
+	public static function UseCollectionPlan($sCollectionPlanClass)
 	{
 		$oReflection = new ReflectionClass($sCollectionPlanClass);
 		if (!$oReflection->IsSubclassOf(CollectionPlan::class)) {
@@ -55,7 +56,7 @@ class Orchestrator
 		if ($oReflection->IsAbstract()) {
 			throw new Exception('Cannot register an CollectionPlan class ('.$sCollectionPlanClass.') as a CollectionPlan.');
 		}
-        /** @var CollectionPlan $oCollectionPlan */
+		/** @var CollectionPlan $oCollectionPlan */
 		$oCollectionPlan = new $sCollectionPlanClass();
 		$oCollectionPlan->Init();
 		$oCollectionPlan->AddCollectorsToOrchestrator();
@@ -69,11 +70,11 @@ class Orchestrator
 	 *
 	 * @return void
 	 */
-	static public function AddRequirement($sMinRequiredVersion, $sExtension = 'PHP')
+	public static function AddRequirement($sMinRequiredVersion, $sExtension = 'PHP')
 	{
 		if (!array_key_exists($sExtension, self::$aMinVersions)) {
 			// This is the first call to add some requirements for this extension, record it as-is
-            self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
+			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
 		} elseif (version_compare($sMinRequiredVersion, self::$aMinVersions[$sExtension], '>')) {
 			// This requirement is stricter than the previously requested one
 			self::$aMinVersions[$sExtension] = $sMinRequiredVersion;
@@ -85,7 +86,7 @@ class Orchestrator
 	 *
 	 * @return boolean True if it's Ok, false otherwise
 	 */
-	static public function CheckRequirements()
+	public static function CheckRequirements()
 	{
 		$bResult = true;
 		foreach (self::$aMinVersions as $sExtension => $sRequiredVersion) {
@@ -122,12 +123,12 @@ class Orchestrator
 	 */
 	public function ListCollectors()
 	{
-		$aResults = array();
+		$aResults = [];
 		//Sort the collectors based on their order
-		uasort(self::$aCollectors, array("Orchestrator", "CompareCollectors"));
+		uasort(self::$aCollectors, ["Orchestrator", "CompareCollectors"]);
 
 		foreach (self::$aCollectors as $aCollectorData) {
-            /** @var Collector $oClass */
+			/** @var Collector $oClass */
 			$oClass = new $aCollectorData['class']();
 			$oClass->Init();
 			$aResults[] = $oClass;
@@ -148,12 +149,12 @@ class Orchestrator
 	public function InitSynchroDataSources($aCollectors)
 	{
 		$bResult = true;
-		$aPlaceholders = array();
+		$aPlaceholders = [];
 		$sEmailToNotify = Utils::GetConfigurationValue('contact_to_notify', '');
 		$aPlaceholders['$contact_to_notify$'] = 0;
 		if ($sEmailToNotify != '') {
 			$oRestClient = new RestClient();
-			$aRes = $oRestClient->Get('Contact', array('email' => $sEmailToNotify));
+			$aRes = $oRestClient->Get('Contact', ['email' => $sEmailToNotify]);
 			if ($aRes['code'] == 0) {
 				if (!is_array($aRes['objects'])) {
 					Utils::Log(LOG_WARNING, "Contact to notify ($sEmailToNotify) not found in iTop. Nobody will be notified of the results of the synchronization.");
@@ -179,7 +180,7 @@ class Orchestrator
 		$aPlaceholders['$synchro_user$'] = 0;
 		if ($sSynchroUser != '') {
 			$oRestClient = new RestClient();
-			$aRes = $oRestClient->Get('User', array('login' => $sSynchroUser));
+			$aRes = $oRestClient->Get('User', ['login' => $sSynchroUser]);
 			if ($aRes['code'] == 0) {
 				foreach ($aRes['objects'] as $sKey => $aObj) {
 					if (!array_key_exists('key', $aObj)) {
@@ -201,7 +202,7 @@ class Orchestrator
 				}
 			}
 		}
-		$aOtherPlaceholders = Utils::GetConfigurationValue('json_placeholders', array());
+		$aOtherPlaceholders = Utils::GetConfigurationValue('json_placeholders', []);
 
 		if (is_array($aOtherPlaceholders)) {
 			foreach ($aOtherPlaceholders as $sKey => $sValue) {
@@ -294,7 +295,7 @@ class Orchestrator
 	 *
 	 * @return number
 	 */
-	static public function CompareCollectors($aCollector1, $aCollector2)
+	public static function CompareCollectors($aCollector1, $aCollector2)
 	{
 		if ($aCollector1['order'] == $aCollector2['order']) {
 			return 0;

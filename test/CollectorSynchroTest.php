@@ -19,7 +19,8 @@ class CollectorSynchroTest extends TestCase
 {
 	private $oMockedCallItopService;
 
-	public function SynchroOutputProvider(){
+	public function SynchroOutputProvider()
+	{
 		$sRetcodeOutput = <<<OUTPUT
 ...
 %s
@@ -38,12 +39,12 @@ OUTPUT;
 			'default output' => [
 				'iConsoleLogLevel' => LOG_INFO,
 				'sExpectedOutputRequiredToItopSynchro' => 'retcode',
-				'sCallItopViaHttpOutput' => sprintf($sRetcodeOutput, 0)
+				'sCallItopViaHttpOutput' => sprintf($sRetcodeOutput, 0),
 			],
 			'debug level' => [
 				'iConsoleLogLevel' => 7,
 				'sExpectedOutputRequiredToItopSynchro' => 'details',
-				'sCallItopViaHttpOutput' => sprintf($sDetailedNoError, 0)
+				'sCallItopViaHttpOutput' => sprintf($sDetailedNoError, 0),
 			],
 		];
 	}
@@ -51,20 +52,21 @@ OUTPUT;
 	/**
 	 * @dataProvider SynchroOutputProvider
 	 */
-	public function testSynchroOutput($iConsoleLogLevel, $sExpectedOutputRequiredToItopSynchro, $sCallItopViaHttpOutput){
+	public function testSynchroOutput($iConsoleLogLevel, $sExpectedOutputRequiredToItopSynchro, $sCallItopViaHttpOutput)
+	{
 		$oCollector = new \FakeCollector();
 
 		Utils::$iConsoleLogLevel = $iConsoleLogLevel;
 
 		$aAdditionalData = [
 			'separator' => ';',
-		    'data_source_id' => 666,
-		    'synchronize' => '0',
-		    'no_stop_on_import_error' => 1,
-		    'output' => $sExpectedOutputRequiredToItopSynchro,
-		    'csvdata' => 'FAKECSVCONTENT',
-		    'charset' => 'UTF-8',
-            'date_format' => 'd/m/Y'
+			'data_source_id' => 666,
+			'synchronize' => '0',
+			'no_stop_on_import_error' => 1,
+			'output' => $sExpectedOutputRequiredToItopSynchro,
+			'csvdata' => 'FAKECSVCONTENT',
+			'charset' => 'UTF-8',
+			'date_format' => 'd/m/Y',
 		];
 		$this->oMockedCallItopService->expects($this->exactly(2))
 			->method('CallItopViaHttp')
@@ -84,26 +86,26 @@ OUTPUT;
 		array_push($argv, "--config_file=".__DIR__."/utils/params.test.xml");
 
 		parent::setUp();
-        Utils::LoadConfig();
+		Utils::LoadConfig();
 
 		$this->oMockedCallItopService = $this->createMock("CallItopService");
 		Collector::SetCallItopService($this->oMockedCallItopService);
 
-
 		$dataFilePath = Utils::GetDataFilePath('FakeCollector-*.csv');
-		foreach(glob($dataFilePath) as $file){
+		foreach (glob($dataFilePath) as $file) {
 			unlink($file);
 		}
 
-		file_put_contents(APPROOT . 'data/FakeCollector-1.csv', 'FAKECSVCONTENT');
+		file_put_contents(APPROOT.'data/FakeCollector-1.csv', 'FAKECSVCONTENT');
 	}
 
-    public function tearDown(): void
+	public function tearDown(): void
 	{
 		parent::tearDown();
 	}
 
-	public function ParseSynchroImportOutputProvider(){
+	public function ParseSynchroImportOutputProvider()
+	{
 		$sRetcodeOutput = <<<OUTPUT
 ...
 %s
@@ -122,27 +124,27 @@ OUTPUT;
 			'retcode no error' => [
 				'sOutput' => sprintf($sRetcodeOutput, 0),
 				'bDetailedOutput' => false,
-				'sExpectecCount' => 0
+				'sExpectecCount' => 0,
 			],
 			'retcode few errors' => [
 				'sOutput' => sprintf($sRetcodeOutput, 10),
 				'bDetailedOutput' => false,
-				'sExpectecCount' => 10
+				'sExpectecCount' => 10,
 			],
 			'detailed no error' => [
 				'sOutput' => sprintf($sDetailedNoError, 0),
 				'bDetailedOutput' => true,
-				'sExpectecCount' => 0
+				'sExpectecCount' => 0,
 			],
 			'detailed few errors' => [
 				'sOutput' => sprintf($sDetailedNoError, 10),
 				'bDetailedOutput' => true,
-				'sExpectecCount' => 10
+				'sExpectecCount' => 10,
 			],
 			'weird output' => [
 				'sOutput' => "weird output",
 				'bDetailedOutput' => true,
-				'sExpectecCount' => -1
+				'sExpectecCount' => -1,
 			],
 		];
 	}
@@ -150,11 +152,13 @@ OUTPUT;
 	/**
 	 * @dataProvider ParseSynchroImportOutputProvider
 	 */
-	public function testParseSynchroImportOutput($sOutput, $bDetailedOutput, $sExpectecCount){
+	public function testParseSynchroImportOutput($sOutput, $bDetailedOutput, $sExpectecCount)
+	{
 		$this->assertEquals($sExpectecCount, Collector::ParseSynchroImportOutput($sOutput, $bDetailedOutput), $sOutput);
 	}
 
-	public function ParseSynchroExecOutput(){
+	public function ParseSynchroExecOutput()
+	{
 		$sFailedOutput = <<<TXT
 <p>Working on Synchro LDAP Person (id=3)...<p>Replicas: 14</p><p>Replicas touched since last synchro: 0</p><p>Objects deleted: 0</p><p>Objects deletion errors: 1</p><p>Objects obsoleted: 0</p><p>Objects obsolescence errors: 2</p><p>Objects created: 0 (0 warnings)</p><p>Objects creation errors: 3</p><p>Objects updated: 0 (0 warnings)</p><p>Objects update errors: 4</p><p>Objects reconciled (updated): 0 (0 warnings)</p><p>Objects reconciled (unchanged): 0 (0 warnings)</p><p>Objects reconciliation errors: 5</p><p>Replica disappeared, no action taken: 0</p>
 TXT;
@@ -202,7 +206,8 @@ TXT;
 	/**
 	 * @dataProvider ParseSynchroExecOutput
 	 */
-	public function testParseSynchroExecOutput($sOutput, $iExpectedErrorCount, $sErrorMessage=null){
+	public function testParseSynchroExecOutput($sOutput, $iExpectedErrorCount, $sErrorMessage = null)
+	{
 		$oCollector = new \FakeCollector();
 		$this->assertEquals($iExpectedErrorCount, $oCollector->ParseSynchroExecOutput($sOutput), $sOutput);
 		$this->assertEquals($sErrorMessage, $oCollector->GetErrorMessage(), $sOutput);
