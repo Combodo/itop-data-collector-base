@@ -272,4 +272,34 @@ class UtilsTest extends TestCase
 		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
 		Utils::CheckModuleInstallation('fake-module', true, $oRestClient);
 	}
+
+	public function testGetModuleVersion(): void
+	{
+		$oRestClient = $this->createMock(\RestClient::class);
+
+		$oReflectionLastInstallDate = new \ReflectionProperty(Utils::class, 'sLastInstallDate');
+		$oReflectionLastInstallDate->setValue(null, '0000-00-00 00:00:00');
+
+		$oRestClient->expects($this->atMost(2))
+			->method('Get')
+			->willReturnMap([
+				['ModuleInstallation', ['name' => 'itop-structure', 'installed' => '0000-00-00 00:00:00'], 'version', 1, [
+					'code' => 0,
+					'objects' => ['ModuleInstallation::0' => ['fields' => ['version' => '0.0.0']]],
+					'message' => 'Found: 1',
+				]],
+				['ModuleInstallation', ['name' => 'fake-module', 'installed' => '0000-00-00 00:00:00'], 'version', 1, [
+					'code' => 0,
+					'objects' => null,
+					'message' => 'Found: 0',
+				]],
+			]);
+
+		// success
+		$this->assertEquals('0.0.0', Utils::GetModuleVersion('itop-structure', $oRestClient));
+
+		// fail
+		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
+		Utils::GetModuleVersion('fake-module', $oRestClient);
+	}
 }
