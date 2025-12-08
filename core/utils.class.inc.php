@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -22,48 +23,48 @@ require_once(APPROOT.'core/dopostrequestservice.class.inc.php');
 
 class Utils
 {
-	static public $iConsoleLogLevel = LOG_INFO;
-	static public $iSyslogLogLevel = LOG_NONE;
-	static public $iEventIssueLogLevel = LOG_NONE;
-	static public $sProjectName = "";
-	static public $sStep = "";
-	static public $oCollector = "";
-	static protected $oConfig = null;
-	static protected $aConfigFiles = array();
-	static protected $iMockLogLevel = LOG_ERR;
+	public static $iConsoleLogLevel = LOG_INFO;
+	public static $iSyslogLogLevel = LOG_NONE;
+	public static $iEventIssueLogLevel = LOG_NONE;
+	public static $sProjectName = "";
+	public static $sStep = "";
+	public static $oCollector = "";
+	protected static $oConfig = null;
+	protected static $aConfigFiles = [];
+	protected static $iMockLogLevel = LOG_ERR;
 
-	static protected $oMockedLogger;
+	protected static $oMockedLogger;
 
 	/**
 	 * @since 1.3.0 N°6012
 	 */
-	static protected $oMockedDoPostRequestService;
-	
+	protected static $oMockedDoPostRequestService;
+
 	/**
 	 * @var string Keeps track of the latest date the datamodel has been installed/updated
 	 * (in order to check which modules were installed with it)
 	 */
-	static protected $sLastInstallDate;
+	protected static $sLastInstallDate;
 
 	/**
 	 * @var array<string, string> Keeps track of which version is installed for a module
 	 */
-	static protected $aModuleVersions = array();
+	protected static $aModuleVersions = array();
 
-	static public function SetProjectName($sProjectName)
+	public static function SetProjectName($sProjectName)
 	{
 		if ($sProjectName != null) {
 			self::$sProjectName = $sProjectName;
 		}
 	}
 
-	static public function SetCollector($oCollector, $sStep = "")
+	public static function SetCollector($oCollector, $sStep = "")
 	{
 		self::$oCollector = $oCollector;
 		self::$sStep = $sStep;
 	}
 
-	static public function ReadParameter($sParamName, $defaultValue)
+	public static function ReadParameter($sParamName, $defaultValue)
 	{
 		global $argv;
 
@@ -79,7 +80,7 @@ class Utils
 		return $retValue;
 	}
 
-	static public function ReadBooleanParameter($sParamName, $defaultValue)
+	public static function ReadBooleanParameter($sParamName, $defaultValue)
 	{
 		global $argv;
 
@@ -88,7 +89,7 @@ class Utils
 			foreach ($argv as $iArg => $sArg) {
 				if (preg_match('/^--'.$sParamName.'$/', $sArg, $aMatches)) {
 					$retValue = true;
-				} else if (preg_match('/^--'.$sParamName.'=(.*)$/', $sArg, $aMatches)) {
+				} elseif (preg_match('/^--'.$sParamName.'=(.*)$/', $sArg, $aMatches)) {
 					$retValue = ($aMatches[1] != 0);
 				}
 			}
@@ -97,11 +98,11 @@ class Utils
 		return $retValue;
 	}
 
-	static public function CheckParameters($aOptionalParams)
+	public static function CheckParameters($aOptionalParams)
 	{
 		global $argv;
 
-		$aUnknownParams = array();
+		$aUnknownParams = [];
 		if (is_array($argv)) {
 			foreach ($argv as $iArg => $sArg) {
 				if ($iArg == 0) {
@@ -112,7 +113,7 @@ class Utils
 					if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] != 'boolean')) {
 						$aUnknownParams[] = $sArg;
 					}
-				} else if (preg_match('/^--([A-Za-z0-9_]+)=(.*)$/', $sArg, $aMatches)) {
+				} elseif (preg_match('/^--([A-Za-z0-9_]+)=(.*)$/', $sArg, $aMatches)) {
 					// Looks like a regular parameter
 					if (!array_key_exists($aMatches[1], $aOptionalParams) || ($aOptionalParams[$aMatches[1]] == 'boolean')) {
 						$aUnknownParams[] = $sArg;
@@ -150,7 +151,7 @@ class Utils
 	 * @return void
 	 * @throws \Exception
 	 */
-	static public function Log($iPriority, $sMessage)
+	public static function Log($iPriority, $sMessage)
 	{
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
@@ -191,6 +192,9 @@ class Utils
 			case LOG_DEBUG:
 				$sPrio = 'Debug';
 				break;
+
+			default:
+				$sPrio = 'Critical Error';
 		}
 
 		if ($iPriority <= self::$iConsoleLogLevel) {
@@ -231,7 +235,7 @@ class Utils
 		$oClient->Create("EventIssue", $aFields, "create event issue from collector $sCollectorName execution.");
 	}
 
-	static public function MockLog($oMockedLogger,  $iMockLogLevel = LOG_ERR)
+	public static function MockLog($oMockedLogger, $iMockLogLevel = LOG_ERR)
 	{
 		self::$oMockedLogger = $oMockedLogger;
 		self::$iMockLogLevel = $iMockLogLevel;
@@ -242,7 +246,7 @@ class Utils
 	 * @since 1.3.0 N°6012
 	 * @return void
 	 */
-	static public function MockDoPostRequestService($oMockedDoPostRequestService)
+	public static function MockDoPostRequestService($oMockedDoPostRequestService)
 	{
 		self::$oMockedDoPostRequestService = $oMockedDoPostRequestService;
 	}
@@ -253,7 +257,7 @@ class Utils
 	 * @return Parameters
 	 * @throws Exception
 	 */
-	static public function LoadConfig()
+	public static function LoadConfig()
 	{
 		$sCustomConfigFile = Utils::ReadParameter('config_file', null);
 
@@ -272,14 +276,14 @@ class Utils
 			} else {
 				throw new Exception("The specified configuration file '$sCustomConfigFile' does not exist.");
 			}
-		} else if (file_exists(CONF_DIR.'params.local.xml')) {
+		} elseif (file_exists(CONF_DIR.'params.local.xml')) {
 			self::MergeConfFile(CONF_DIR.'params.local.xml');
 		}
 
 		return self::$oConfig;
 	}
 
-	static private function MergeConfFile($sFilePath)
+	private static function MergeConfFile($sFilePath)
 	{
 		self::$aConfigFiles[] = $sFilePath;
 		$oLocalConfig = new Parameters($sFilePath);
@@ -295,7 +299,7 @@ class Utils
 	 * @return mixed
 	 * @throws Exception
 	 */
-	static public function GetConfigurationValue($sCode, $defaultValue = '')
+	public static function GetConfigurationValue($sCode, $defaultValue = '')
 	{
 		if (self::$oConfig == null) {
 			self::LoadConfig();
@@ -310,11 +314,12 @@ class Utils
 	/**
 	 * @since 1.3.0 N°6012
 	 */
-	static public function GetCredentials() : array {
+	public static function GetCredentials(): array
+	{
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
-		if (strlen($sToken) > 0){
+		if (strlen($sToken) > 0) {
 			return [
-				'auth_token' => $sToken
+				'auth_token' => $sToken,
 			];
 		}
 
@@ -327,14 +332,15 @@ class Utils
 	/**
 	 * @since 1.3.0 N°6012
 	 */
-	static public function GetLoginMode() : string {
+	public static function GetLoginMode(): string
+	{
 		$sLoginform = Utils::GetConfigurationValue('itop_login_mode', '');
-		if (strlen($sLoginform) > 0){
+		if (strlen($sLoginform) > 0) {
 			return $sLoginform;
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
-		if (strlen($sToken) > 0){
+		if (strlen($sToken) > 0) {
 			return 'token';
 		}
 
@@ -347,7 +353,7 @@ class Utils
 	 * @return string
 	 * @throws Exception
 	 */
-	static public function DumpConfig()
+	public static function DumpConfig()
 	{
 		if (self::$oConfig == null) {
 			self::LoadConfig();
@@ -362,7 +368,7 @@ class Utils
 	 * @return string
 	 * @throws Exception
 	 */
-	static public function GetConfigFiles()
+	public static function GetConfigFiles()
 	{
 		if (self::$oConfig == null) {
 			self::LoadConfig();
@@ -371,16 +377,16 @@ class Utils
 		return self::$aConfigFiles;
 	}
 
-	static protected function Substitute($value)
+	protected static function Substitute($value)
 	{
 		if (is_array($value)) {
 			// Recursiverly process each entry
 			foreach ($value as $key => $val) {
 				$value[$key] = self::Substitute($val);
 			}
-		} else if (is_string($value)) {
+		} elseif (is_string($value)) {
 			preg_match_all('/\$([A-Za-z0-9-_]+)\$/', $value, $aMatches);
-			$aReplacements = array();
+			$aReplacements = [];
 			if (count($aMatches) > 0) {
 				foreach ($aMatches[1] as $sSubCode) {
 					$aReplacements['$'.$sSubCode.'$'] = self::GetConfigurationValue($sSubCode, '#ERROR_UNDEFINED_PLACEHOLDER_'.$sSubCode.'#');
@@ -403,7 +409,7 @@ class Utils
 	 * @return string
 	 * @throws Exception
 	 */
-	static public function GetDataFilePath($sFileName)
+	public static function GetDataFilePath($sFileName)
 	{
 		$sPath = static::GetConfigurationValue('data_path', '%APPROOT%/data/');
 		$sPath = str_replace('%APPROOT%', APPROOT, $sPath); // substitute the %APPROOT% placeholder with its actual value
@@ -432,7 +438,7 @@ class Utils
 	 * @return string The result of the POST request
 	 * @throws Exception
 	 */
-	static public function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = [])
+	public static function DoPostRequest($sUrl, $aData, $sOptionnalHeaders = null, &$aResponseHeaders = null, $aCurlOptions = [])
 	{
 		if (self::$oMockedDoPostRequestService) {
 			return self::$oMockedDoPostRequestService->DoPostRequest($sUrl, $aData, $sOptionnalHeaders, $aResponseHeaders, $aCurlOptions);
@@ -447,12 +453,12 @@ class Utils
 			$aHeaders = explode("\n", $sOptionnalHeaders);
 			// N°3267 - Webservices: Fix optional headers not being taken into account
 			//          See https://www.php.net/curl_setopt CURLOPT_HTTPHEADER
-			$aHTTPHeaders = array();
+			$aHTTPHeaders = [];
 			foreach ($aHeaders as $sHeaderString) {
 				$aHTTPHeaders[] = trim($sHeaderString);
 			}
 			// Default options, can be overloaded/extended with the 4th parameter of this method, see above $aCurlOptions
-			$aOptions = array(
+			$aOptions = [
 				CURLOPT_RETURNTRANSFER => true,     // return the content of the request
 				CURLOPT_HEADER         => false,    // don't return the headers in the output
 				CURLOPT_FOLLOWLOCATION => true,     // follow redirects
@@ -470,7 +476,7 @@ class Utils
 				CURLOPT_POST           => count($aData),
 				CURLOPT_POSTFIELDS     => http_build_query($aData),
 				CURLOPT_HTTPHEADER     => $aHTTPHeaders,
-			);
+			];
 
 			$aAllOptions = $aCurlOptions + $aOptions;
 			$ch = curl_init($sUrl);
@@ -496,13 +502,13 @@ class Utils
 			// cURL is not available let's try with streams and fopen...
 
 			$sData = http_build_query($aData);
-			$aParams = array(
-				'http' => array(
+			$aParams = [
+				'http' => [
 					'method'  => 'POST',
 					'content' => $sData,
 					'header'  => "Content-type: application/x-www-form-urlencoded\r\nContent-Length: ".strlen($sData)."\r\n",
-				),
-			);
+				],
+			];
 			if ($sOptionnalHeaders !== null) {
 				$aParams['http']['header'] .= $sOptionnalHeaders;
 			}
@@ -521,7 +527,7 @@ class Utils
 			}
 			$response = @stream_get_contents($fp);
 			if ($response === false) {
-				throw new IOException("Problem reading data from $sUrl, $php_errormsg");
+				throw new IOException("Problem reading data from $sUrl, ".error_get_last());
 			}
 			if (is_array($aResponseHeaders)) {
 				$aMeta = stream_get_meta_data($fp);
@@ -567,9 +573,9 @@ class Utils
 			}
 			if ($in_escape) {
 				$in_escape = false;
-			} else if ($char === '"') {
+			} elseif ($char === '"') {
 				$in_quotes = !$in_quotes;
-			} else if (!$in_quotes) {
+			} elseif (!$in_quotes) {
 				switch ($char) {
 					case '}':
 					case ']':
@@ -581,6 +587,7 @@ class Utils
 					case '{':
 					case '[':
 						$level++;
+						// no break
 					case ',':
 						$ends_line_level = $level;
 						break;
@@ -598,7 +605,7 @@ class Utils
 						$new_line_level = null;
 						break;
 				}
-			} else if ($char === '\\') {
+			} elseif ($char === '\\') {
 				$in_escape = true;
 			}
 			if ($new_line_level !== null) {
@@ -622,11 +629,11 @@ class Utils
 	{
 		$iBeginTime = time();
 		$sWorkDir = APPROOT;
-		$aDescriptorSpec = array(
-			0 => array("pipe", "r"),  // stdin
-			1 => array("pipe", "w"),  // stdout
-			2 => array("pipe", "w"),  // stderr
-		);
+		$aDescriptorSpec = [
+			0 => ["pipe", "r"],  // stdin
+			1 => ["pipe", "w"],  // stdout
+			2 => ["pipe", "w"],  // stderr
+		];
 		Utils::Log(LOG_INFO, "Command: $sCmd. Workdir: $sWorkDir");
 		$rProcess = proc_open($sCmd, $aDescriptorSpec, $aPipes, $sWorkDir, null);
 
@@ -651,7 +658,7 @@ class Utils
 	/**
 	 * @since 1.3.0
 	 */
-	public static function GetCurlOptions(int $iCurrentTimeOut=-1) : array
+	public static function GetCurlOptions(int $iCurrentTimeOut = -1): array
 	{
 		$aRawCurlOptions = Utils::GetConfigurationValue('curl_options', [CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3]);
 		return self::ComputeCurlOptions($aRawCurlOptions, $iCurrentTimeOut);
@@ -660,9 +667,9 @@ class Utils
 	/**
 	 * @since 1.3.0
 	 */
-	public static function ComputeCurlOptions(array $aRawCurlOptions, int $iCurrentTimeOut) : array
+	public static function ComputeCurlOptions(array $aRawCurlOptions, int $iCurrentTimeOut): array
 	{
-		$aCurlOptions = array();
+		$aCurlOptions = [];
 		foreach ($aRawCurlOptions as $key => $value) {
 			// Convert strings like 'CURLOPT_SSLVERSION' to the value of the corresponding define i.e CURLOPT_SSLVERSION = 32 !
 			$iKey = (!is_numeric($key)) ? constant((string)$key) : (int)$key;
@@ -676,7 +683,7 @@ class Utils
 
 		return $aCurlOptions;
 	}
-	
+
 	/**
 	 * Check if the given module is installed in iTop.
 	 * Mind that this assumes the `ModuleInstallation` class is ordered by descending installation date
@@ -689,21 +696,22 @@ class Utils
 	 */
 	public static function CheckModuleInstallation(string $sModuleId, bool $bRequired = false, RestClient $oClient = null): bool
 	{
-		if (!isset($oClient))
-		{
+		if (!isset($oClient)) {
 			$oClient = new RestClient();
 		}
-		
+
+		$sName = '';
+		$sOperator = '';
 		if (preg_match('/^([^\/]+)(?:\/([<>]?=?)(.+))?$/', $sModuleId, $aModuleMatches)) {
 			$sName = $aModuleMatches[1];
 			$sOperator = $aModuleMatches[2] ?? null ?: '>=';
 			$sExpectedVersion = $aModuleMatches[3] ?? null;
 		}
-		
+
 		try {
 			if (!isset(static::$sLastInstallDate)) {
 				$aDatamodelResults = $oClient->Get('ModuleInstallation', ['name' => 'datamodel'], 'installed', 1);
-				if ($aDatamodelResults['code'] != 0 || empty($aDatamodelResults['objects'])){
+				if ($aDatamodelResults['code'] != 0 || empty($aDatamodelResults['objects'])) {
 					throw new Exception($aDatamodelResults['message'], $aDatamodelResults['code']);
 				}
 				$aDatamodel = current($aDatamodelResults['objects']);
@@ -722,7 +730,7 @@ class Utils
 			if (isset($sExpectedVersion) && !version_compare(static::$aModuleVersions[$sName], $sExpectedVersion, $sOperator)) {
 				throw new Exception(sprintf('Version mismatch (%s %s %s)', static::$aModuleVersions[$sName], $sOperator, $sExpectedVersion));
 			}
-			
+
 			Utils::Log(LOG_DEBUG, sprintf('iTop module %s version %s is installed.', $sName, static::$aModuleVersions[$sName]));
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());

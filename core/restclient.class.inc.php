@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -33,78 +34,77 @@ class RestClient
 		$this->sVersion = $sVersion;
 	}
 
-
 	public function Get($sClass, $keySpec, $sOutputFields = '*', $iLimit = 0)
 	{
-		$aOperation = array(
+		$aOperation = [
 			'operation'     => 'core/get', // operation code
 			'class'         => $sClass,
 			'key'           => $keySpec,
 			'output_fields' => $sOutputFields, // list of fields to show in the results (* or a,b,c)
 			'limit'         => $iLimit,
-		);
+		];
 
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 
 	public function CheckCredentials($sUser, $sPassword)
 	{
-		$aOperation = array(
+		$aOperation = [
 			'operation' => 'core/check_credentials', // operation code
 			'user'      => $sUser,
 			'password'  => $sPassword,
-		);
+		];
 
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 
 	public function ListOperations()
 	{
-		$aOperation = array(
+		$aOperation = [
 			'operation'     => 'list_operations', // operation code
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
-		);
+		];
 
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 
 	public function Create($sClass, $aFields, $sComment)
 	{
-		$aOperation = array(
+		$aOperation = [
 			'operation'     => 'core/create', // operation code
 			'class'         => $sClass,
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
 			'fields'        => $aFields,
 			'comment'       => $sComment,
-		);
+		];
 
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 
 	public function Update($sClass, $keySpec, $aFields, $sComment)
 	{
-		$aOperation = array(
+		$aOperation = [
 			'operation'     => 'core/update', // operation code
 			'class'         => $sClass,
 			'key'           => $keySpec,
 			'fields'        => $aFields, // fields to update
 			'output_fields' => '*', // list of fields to show in the results (* or a,b,c)
 			'comment'       => $sComment,
-		);
+		];
 
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
 
 	public function GetRelatedObjects($sClass, $sKey, $sRelation, $bRedundancy = false, $iDepth = 99)
 	{
-		$aOperation = array(
+		$aOperation = [
 			'operation'  => 'core/get_related', // operation code
 			'class'      => $sClass,
 			'key'        => $sKey,
 			'relation'   => $sRelation,
 			'depth'      => $iDepth,
 			'redundancy' => $bRedundancy,
-		);
+		];
 
 		return self::ExecOperation($aOperation, $this->sVersion);
 	}
@@ -114,12 +114,13 @@ class RestClient
 		$aData = Utils::GetCredentials();
 		$aData['json_data'] = json_encode($aOperation);
 		$sLoginform = Utils::GetLoginMode();
-		$sUrl = sprintf('%s/webservices/rest.php?login_mode=%s&version=%s',
+		$sUrl = sprintf(
+			'%s/webservices/rest.php?login_mode=%s&version=%s',
 			Utils::GetConfigurationValue('itop_url', ''),
 			$sLoginform,
 			$sVersion
 		);
-		$aHeaders = array();
+		$aHeaders = [];
 		$aCurlOptions = Utils::GetCurlOptions();
 		$response = Utils::DoPostRequest($sUrl, $aData, '', $aHeaders, $aCurlOptions);
 		$aResults = json_decode($response, true);
@@ -134,7 +135,7 @@ class RestClient
 	{
 		$sNewestVersion = '1.0';
 		$oC = new RestClient();
-		$aKnownVersions = array('1.0', '1.1', '1.2', '2.0');
+		$aKnownVersions = ['1.0', '1.1', '1.2', '2.0'];
 		foreach ($aKnownVersions as $sVersion) {
 			$oC->SetVersion($sVersion);
 			$aRet = $oC->ListOperations();
@@ -157,11 +158,11 @@ class RestClient
 	public static function GetFullSynchroDataSource(&$aSource, $iSourceId)
 	{
 		$bResult = true;
-		$aAttributes = array();
+		$aAttributes = [];
 		// Optimize the calls to the REST API: one call per finalclass
 		foreach ($aSource['attribute_list'] as $aAttr) {
 			if (!array_key_exists($aAttr['finalclass'], $aAttributes)) {
-				$aAttributes[$aAttr['finalclass']] = array();
+				$aAttributes[$aAttr['finalclass']] = [];
 			}
 			$aAttributes[$aAttr['finalclass']][] = $aAttr['attcode'];
 		}

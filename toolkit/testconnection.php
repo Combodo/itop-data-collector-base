@@ -14,8 +14,7 @@ try {
 	var_dump($oRestClient->ListOperations());
 	print 'Calling iTop Rest API worked!'.PHP_EOL;
 	exit(0);
-}
-catch (Exception $e) {
+} catch (Exception $e) {
 	print $e->getMessage().PHP_EOL;
 	exit(1);
 }

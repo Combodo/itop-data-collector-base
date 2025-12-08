@@ -23,6 +23,7 @@ class LookupTest extends TestCase
 {
 	private $oRestClient;
 	private $oLookupTable;
+	private $oMockedLogger;
 
 	public function setUp(): void
 	{
@@ -37,7 +38,7 @@ class LookupTest extends TestCase
 
 	}
 
-    public function tearDown(): void
+	public function tearDown(): void
 	{
 		parent::tearDown();
 
@@ -46,7 +47,8 @@ class LookupTest extends TestCase
 	/*
 	 * test function lookup from class LookupTable
 	 * */
-	public function LookupProvider() {
+	public function LookupProvider()
+	{
 		return [
 			'normal' => [
 				'aFirstLine' => ["primary_key", "name", "osfamily_id", "osversion_id"],
@@ -210,18 +212,18 @@ class LookupTest extends TestCase
 	/**
 	 * @dataProvider LookupProvider
 	 */
-	public function testLookup($aFirstLine,  $aData, $aLineData, $aLookupFields, $sDestField, $iFieldIndex, $bSkipIfEmpty, $bCaseSensitive, $bIgnoreMappingErrors, $sExpectedRes, $sExpectedErrorType, $sExpectedErrorMessage, $sExpectedValue)
+	public function testLookup($aFirstLine, $aData, $aLineData, $aLookupFields, $sDestField, $iFieldIndex, $bSkipIfEmpty, $bCaseSensitive, $bIgnoreMappingErrors, $sExpectedRes, $sExpectedErrorType, $sExpectedErrorMessage, $sExpectedValue)
 	{
 		$this->oRestClient->expects($this->once())
 									->method('Get')
 									->with('OSVersion', 'SELECT OSVersion', 'osfamily_id,osversion_id')
 									->willReturn([
 											'code' => 0,
-											'objects' => $aData
+											'objects' => $aData,
 											])  ;
-		$this->oLookupTable = new LookupTable('SELECT OSVersion', $aLookupFields,$bCaseSensitive, $bIgnoreMappingErrors );
+		$this->oLookupTable = new LookupTable('SELECT OSVersion', $aLookupFields, $bCaseSensitive, $bIgnoreMappingErrors);
 
-		if($sExpectedErrorType != ''){
+		if ($sExpectedErrorType != '') {
 			$this->oMockedLogger->expects($this->once())
 									->method('Log')
 									->with($sExpectedErrorType, $sExpectedErrorMessage) ;
@@ -233,11 +235,10 @@ class LookupTest extends TestCase
 		$this->oLookupTable->Lookup($aFirstLine, $aLookupFields, $sDestField, 0);
 		$sRes = $this->oLookupTable->Lookup($aLineData, $aLookupFields, $sDestField, 1, $bSkipIfEmpty);
 
-
-		$this->assertEquals( $sExpectedRes,$sRes );
+		$this->assertEquals($sExpectedRes, $sRes);
 
 		if ($sRes) {
-			$this->assertEquals($sExpectedValue,$aLineData[$iFieldIndex]);
+			$this->assertEquals($sExpectedValue, $aLineData[$iFieldIndex]);
 		}
-}
+	}
 }

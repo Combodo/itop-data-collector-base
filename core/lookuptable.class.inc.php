@@ -1,7 +1,8 @@
 <?php
+
 // Copyright (C) 2014-2018 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -47,8 +48,8 @@ class LookupTable
 	 */
 	public function __construct($sOQL, $aKeyFields, $bCaseSensitive = true, $bIgnoreMappingErrors = false, $sReturnAttCode = 'id')
 	{
-		$this->aData = array();
-		$this->aFieldsPos = array();
+		$this->aData = [];
+		$this->aFieldsPos = [];
 		$this->bCaseSensitive = $bCaseSensitive;
 		$this->bIgnoreMappingErrors = $bIgnoreMappingErrors;
 		$this->sReturnAttCode = $sReturnAttCode;
@@ -57,7 +58,7 @@ class LookupTable
 			throw new Exception("Invalid OQL query: '$sOQL'. Expecting a query starting with 'SELECT xxx'");
 		}
 		$sClass = $aMatches[1];
-		if(static::$oRestClient != null) {
+		if (static::$oRestClient != null) {
 			$oRestClient = static::$oRestClient;
 		} else {
 			$oRestClient = new RestClient();
@@ -71,7 +72,7 @@ class LookupTable
 		if ($aRes['code'] == 0) {
 			foreach ((array)$aRes['objects'] as $sObjKey => $aObj) {
 				$iObjKey = 0;
-				$aMappingKeys = array();
+				$aMappingKeys = [];
 				foreach ($aKeyFields as $sField) {
 					if (!array_key_exists($sField, $aObj['fields'])) {
 						Utils::Log(LOG_ERR, "field '$sField' does not exist in '".json_encode($aObj['fields'])."'");
@@ -80,7 +81,7 @@ class LookupTable
 						$aMappingKeys[] = $aObj['fields'][$sField];
 					}
 				}
-				$sMappingKey = implode( '_', $aMappingKeys);
+				$sMappingKey = implode('_', $aMappingKeys);
 				if (!$this->bCaseSensitive) {
 					if (function_exists('mb_strtolower')) {
 						$sMappingKey = mb_strtolower($sMappingKey);
@@ -124,18 +125,18 @@ class LookupTable
 	 *
 	 * @return bool true if the mapping succeeded, false otherwise
 	 */
-	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex, $bSkipIfEmpty = false )
+	public function Lookup(&$aLineData, $aLookupFields, $sDestField, $iLineIndex, $bSkipIfEmpty = false)
 	{
 		$bRet = true;
 		if ($iLineIndex == 0) {
-			$this->InitLineMappings($aLineData, array_merge($aLookupFields, array($sDestField)));
+			$this->InitLineMappings($aLineData, array_merge($aLookupFields, [$sDestField]));
 		} else {
 			$iPos = $this->aFieldsPos[$sDestField];
 			//skip search if field is empty
-			if ($bSkipIfEmpty && $iPos !== null && $aLineData[$iPos] === '' ) {
+			if ($bSkipIfEmpty && $iPos !== null && $aLineData[$iPos] === '') {
 				return false;
 			}
-			$aLookupKey = array();
+			$aLookupKey = [];
 			foreach ($aLookupFields as $sField) {
 				$iPos = $this->aFieldsPos[$sField];
 				if ($iPos !== null) {

@@ -41,7 +41,7 @@ abstract class JsonCollector extends Collector
 	protected $aFieldsKey;
 	protected $sJsonCliCommand;
 	protected $iIdx;
-	protected $aSynchroFieldsToDefaultValues = array();
+	protected $aSynchroFieldsToDefaultValues = [];
 
 	/**
 	 * Initalization
@@ -77,7 +77,6 @@ abstract class JsonCollector extends Collector
 			$this->sJsonCliCommand = $aParamsSourceJson["COMMAND"];
 			Utils::Log(LOG_INFO, "[".get_class($this)."] CLI command used is [".$this->sJsonCliCommand."]");
 		}
-
 
 		// Read the URL or Path from the configuration
 		if (isset($aParamsSourceJson["jsonurl"])) {
@@ -116,26 +115,27 @@ abstract class JsonCollector extends Collector
 			}
 		}
 
+		$aPath = [];
 		if (isset($aParamsSourceJson["path"])) {
 			$aPath = explode('/', $aParamsSourceJson["path"]);
 		}
 		if (isset($aParamsSourceJson["PATH"])) {
 			$aPath = explode('/', $aParamsSourceJson["PATH"]);
 		}
-		if ($aPath == '') {
+		if (count($aPath) == 0) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] no path to find data in JSON file");
 		}
 
 		//**** step 2 : get json file
 		//execute cmd before get the json
 		if (!empty($this->sJsonCliCommand)) {
-			utils::Exec($this->sJsonCliCommand);
+			Utils::Exec($this->sJsonCliCommand);
 		}
 
 		//get Json file
 		if ($this->sURL != '') {
 			Utils::Log(LOG_DEBUG, 'Get params for uploading data file ');
-            $aDataGet = [];
+			$aDataGet = [];
 			if (isset($aParamsSourceJson["jsonpost"])) {
 				$aDataGet = $aParamsSourceJson['jsonpost'];
 			} else {
@@ -148,15 +148,15 @@ abstract class JsonCollector extends Collector
 			Utils::Log(LOG_DEBUG, 'Source aDataGet: '.json_encode($aDataGet));
 			$this->sFileJson = Utils::DoPostRequest($this->sURL, $aDataGet, '', $aResponseHeaders, $aCurlOptions);
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
-			Utils::Log(LOG_INFO, 'Synchro URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
+			Utils::Log(LOG_INFO, 'Synchro URL (target): '.Utils::GetConfigurationValue('itop_url', []));
 		} else {
-            $this->sFileJson = @file_get_contents($this->sFilePath);
-            if ($this->sFileJson === false) {
-                $this->sFilePath = APPROOT.$this->sFilePath;
-                $this->sFileJson = @file_get_contents($this->sFilePath);
-            }
+			$this->sFileJson = @file_get_contents($this->sFilePath);
+			if ($this->sFileJson === false) {
+				$this->sFilePath = APPROOT.$this->sFilePath;
+				$this->sFileJson = @file_get_contents($this->sFilePath);
+			}
 			Utils::Log(LOG_DEBUG, 'Source sFileJson: '.$this->sFileJson);
-			Utils::Log(LOG_INFO, 'Synchro  URL (target): '.Utils::GetConfigurationValue('itop_url', array()));
+			Utils::Log(LOG_INFO, 'Synchro  URL (target): '.Utils::GetConfigurationValue('itop_url', []));
 		}
 
 		//verify the file
@@ -165,7 +165,6 @@ abstract class JsonCollector extends Collector
 
 			return false;
 		}
-
 
 		//**** step 3 : read json file
 		$this->aJson = json_decode($this->sFileJson, true);
@@ -182,10 +181,9 @@ abstract class JsonCollector extends Collector
 			if (!array_key_exists(0, $this->aJson) && $sTag != '*') {
 				$this->aJson = $this->aJson[$sTag];
 			} else {
-				$aJsonNew = array();
+				$aJsonNew = [];
 				foreach ($this->aJson as $aElement) {
-					if ($sTag == '*') //Any tag
-					{
+					if ($sTag == '*') { //Any tag
 						array_push($aJsonNew, $aElement);
 					} else {
 						if (isset($aElement[$sTag])) {
@@ -269,7 +267,8 @@ abstract class JsonCollector extends Collector
 	 * @return array
 	 * @throws \Exception
 	 */
-	private function SearchFieldValues($aData, $aTestOnlyFieldsKey=null) {
+	private function SearchFieldValues($aData, $aTestOnlyFieldsKey = null)
+	{
 		$aDataToSynchronize = [];
 
 		$aCurrentFieldKeys = (is_null($aTestOnlyFieldsKey)) ? $this->aFieldsKey : $aTestOnlyFieldsKey;
@@ -281,11 +280,11 @@ abstract class JsonCollector extends Collector
 			$aJsonKeyPath = explode('/', $sPath);
 			$aValue = $this->SearchValue($aJsonKeyPath, $aData);
 
-			if (empty($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)){
+			if (empty($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
 				$sDefaultValue = $this->aSynchroFieldsToDefaultValues[$key];
 				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: $sDefaultValue");
 				$aDataToSynchronize[$key] = $sDefaultValue;
-			} else if (! is_null($aValue)){
+			} elseif (! is_null($aValue)) {
 				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: $aValue");
 				$aDataToSynchronize[$key] = $aValue;
 			}
@@ -295,13 +294,14 @@ abstract class JsonCollector extends Collector
 		return $aDataToSynchronize;
 	}
 
-	private function SearchValue($aJsonKeyPath, $aData){
+	private function SearchValue($aJsonKeyPath, $aData)
+	{
 		$sTag = array_shift($aJsonKeyPath);
 
-		if($sTag === '*'){
-			foreach ($aData as $sKey => $aDataValue){
+		if ($sTag === '*') {
+			foreach ($aData as $sKey => $aDataValue) {
 				$aCurrentValue = $this->SearchValue($aJsonKeyPath, $aDataValue);
-				if (null !== $aCurrentValue){
+				if (null !== $aCurrentValue) {
 					return $aCurrentValue;
 				}
 			}
@@ -313,16 +313,16 @@ abstract class JsonCollector extends Collector
 			&&  array_key_exists((int) $sTag, $aData)
 		) {
 			$aValue = $aData[(int) $sTag];
-		} else if(($sTag != '*')
+		} elseif (($sTag != '*')
 			&& is_array($aData)
 			&& isset($aData[$sTag])
-		){
+		) {
 			$aValue = $aData[$sTag];
 		} else {
 			return null;
 		}
 
-		if (empty($aJsonKeyPath)){
+		if (empty($aJsonKeyPath)) {
 			return (is_array($aValue)) ? null : $aValue;
 		}
 

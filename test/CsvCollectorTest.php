@@ -39,7 +39,7 @@ class CsvCollectorTest extends CollectorTest
 
 	/**
 	 * @param bool $sAdditionalDir
-     * Note: The order of fields in Expected_generated.csv does not matter -> it is not tested
+	 * Note: The order of fields in Expected_generated.csv does not matter -> it is not tested
 	 *
 	 * @dataProvider OrgCollectorProvider
 	 * @throws \Exception
@@ -79,13 +79,14 @@ class CsvCollectorTest extends CollectorTest
 			"configured header" => ["configured_header"],
 			"mapping" => ["mapping"],
 			"separator_incolumns" => ["separator_incolumns"],
-            "mapping 1 column twice" => ["map_1_column_twice"],
-            "mapping 1 column twice adding primary key" => ["map_1_column_twice_primary_key"],
-            "mapping 1 column 3 times" => ["map_1_column_3_times"],
-            "mapping 2 columns twice" => ["map_2_columns_twice"],
-            "mapping 2 columns 3 times" => ["map_2_columns_3_times"],
-            "return_in_fieldvalues" => ["return_in_fieldvalues"],
-            "multicolumns_attachment" => ["multicolumns_attachment"],
+			"mapping 1 column twice" => ["map_1_column_twice"],
+			"mapping 1 column twice adding primary key" => ["map_1_column_twice_primary_key"],
+			"mapping 1 column twice without header" => ["map_1_column_twice_without_header"],
+			"mapping 1 column 3 times" => ["map_1_column_3_times"],
+			"mapping 2 columns twice" => ["map_2_columns_twice"],
+			"mapping 2 columns 3 times" => ["map_2_columns_3_times"],
+			"return_in_fieldvalues" => ["return_in_fieldvalues"],
+			"multicolumns_attachment" => ["multicolumns_attachment"],
 		];
 	}
 
@@ -145,7 +146,7 @@ class CsvCollectorTest extends CollectorTest
 		if ($sExceptionMsg) {
 			$this->oMockedLogger->expects($this->exactly(2))
 				->method("Log")
-				->withConsecutive(array(LOG_ERR, $sErrorMsg), array(LOG_ERR, $sExceptionMsg));
+				->withConsecutive([LOG_ERR, $sErrorMsg], [LOG_ERR, $sExceptionMsg]);
 		} else {
 			if ($sErrorMsg) {
 				$this->oMockedLogger->expects($this->exactly(1))
@@ -166,40 +167,40 @@ class CsvCollectorTest extends CollectorTest
 
 	public function ErrorFileProvider()
 	{
-		return array(
-			"wrong number of line" => array(
+		return [
+			"wrong number of line" => [
 				"wrongnumber_columns_inaline.csv",
 				"[iTopPersonCsvCollector] Wrong number of columns (1) on line 2 (expected 18 columns just like in header): aa",
 				'iTopPersonCsvCollector::Collect() got an exception: Invalid CSV file.',
-			),
-			"no primary key" => array(
+			],
+			"no primary key" => [
 				"no_primarykey.csv",
 				"[iTopPersonCsvCollector] The mandatory column \"primary_key\" is missing in the csv file.",
 				'iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.',
-			),
-			"no email" => array(
+			],
+			"no email" => [
 				"no_email.csv",
 				"[iTopPersonCsvCollector] The field \"email\", used for reconciliation, has missing column(s) in the csv file.",
 				"iTopPersonCsvCollector::Collect() got an exception: Missing columns in the csv file.",
-			),
-			"empty csv" => array(
+			],
+			"empty csv" => [
 				"empty_file.csv",
 				"[iTopPersonCsvCollector] CSV file is empty. Data collection stops here.",
 				"",
-			),
-			"empty csv with header" => array(
+			],
+			"empty csv with header" => [
 				"empty_file_with_header.csv",
 				"[iTopPersonCsvCollector] CSV file is empty. Data collection stops here.",
 				"",
-			),
-			"OK" => array("../nominal/iTopPersonCsvCollector.csv", ""),
-		);
+			],
+			"OK" => ["../nominal/iTopPersonCsvCollector.csv", ""],
+		];
 	}
 
 	public function testExploode()
 	{
 		$stest = "primary_key;first_name;name;org_id;phone;mobile_phone;employee_number;email;function;status";
-		$aValues = array(
+		$aValues = [
 			"primary_key",
 			"first_name",
 			"name",
@@ -210,7 +211,7 @@ class CsvCollectorTest extends CollectorTest
 			"email",
 			"function",
 			"status",
-		);
+		];
 		$this->assertEquals($aValues, explode(";", $stest));
 	}
 }

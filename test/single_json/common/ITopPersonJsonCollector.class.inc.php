@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2018 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -18,7 +19,9 @@ class ITopPersonJsonCollector extends JsonCollector
 {
 	public function AttributeIsOptional($sAttCode)
 	{
-		if ($sAttCode == 'function') return true;
+		if ($sAttCode == 'function') {
+			return true;
+		}
 		return parent::AttributeIsOptional($sAttCode);
 	}
 
