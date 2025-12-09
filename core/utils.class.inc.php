@@ -735,7 +735,7 @@ class Utils
 		} catch (Exception $e) {
 			$sMessage = sprintf('%s iTop module %s is considered as not installed due to: %s', $bRequired ? 'Required' : 'Optional', $sName, $e->getMessage());
 			if ($bRequired) {
-				throw new Exception($sMessage, previous: $e);
+				throw new Exception($sMessage, 0, $e);
 			} else {
 				Utils::Log(LOG_INFO, $sMessage);
 				return false;
