@@ -3,6 +3,7 @@
 namespace UnitTestFiles\Test;
 
 use PHPUnit\Framework\TestCase;
+use RestClient;
 use Utils;
 
 @define('APPROOT', dirname(__FILE__, 2).'/');
@@ -240,32 +241,72 @@ class UtilsTest extends TestCase
 		$this->assertEquals($sContent, Utils::DumpConfig());
 	}
 
-	public function testCheckModuleInstallation()
+	protected function PrepareCheckModuleInstallation(int $iExpectedCallCount): RestClient
 	{
-		$oRestClient = $this->createMock(\RestClient::class);
+		$oRestClient = $this->createMock(RestClient::class);
 
 		$oReflectionLastInstallDate = new \ReflectionProperty(Utils::class, 'sLastInstallDate');
-		$oReflectionLastInstallDate->setAccessible(true);
 		$oReflectionLastInstallDate->setValue(null, '0000-00-00 00:00:00');
 
-		$oRestClient->expects($this->exactly(4))
+		//reset cache
+		$oReflectionModuleVersions = new \ReflectionProperty(Utils::class, 'aModuleVersions');
+		$oReflectionModuleVersions->setValue(null, []);
+
+		$oRestClient->expects($this->exactly($iExpectedCallCount))
 			->method('Get')
 			->willReturnMap([
-				['ModuleInstallation', ['name' => 'itop-structure', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
+				['ModuleInstallation', ['name' => 'itop-structure', 'installed' => '0000-00-00 00:00:00'], 'version', 1, [
 					'code' => 0,
-					'objects' => ['ModuleInstallation::0' => ['fields' => ['name' => 'itop-structure', 'version' => '0.0.0']]],
+					'objects' => ['ModuleInstallation::0' => ['fields' => ['version' => '1.0.0']]],
 					'message' => 'Found: 1',
 				]],
-				['ModuleInstallation', ['name' => 'fake-module', 'installed' => '0000-00-00 00:00:00'], 'name,version', 1, [
+				['ModuleInstallation', ['name' => 'fake-module', 'installed' => '0000-00-00 00:00:00'], 'version', 1, [
 					'code' => 0,
 					'objects' => null,
 					'message' => 'Found: 0',
 				]],
 			]);
 
-		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', false, $oRestClient));
-		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/0.0.0', false, $oRestClient));
+		return $oRestClient;
+	}
+
+	public function testCheckModuleInstallation_ModuleFound()
+	{
+		$oRestClient = $this->PrepareCheckModuleInstallation(1);
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/1.0.0', false, $oRestClient));
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', true, $oRestClient));
+	}
+
+	public function testCheckModuleInstallation_ModuleVersionNotFound()
+	{
+		$oRestClient = $this->PrepareCheckModuleInstallation(1);
 		$this->assertFalse(Utils::CheckModuleInstallation('itop-structure/1.2.3', false, $oRestClient));
+
+		$this->expectExceptionMessage('Required iTop module itop-structure is considered as not installed due to: Version mismatch (1.0.0 >= 1.2.3)');
+		Utils::CheckModuleInstallation('itop-structure/1.2.3', true, $oRestClient);
+	}
+
+	public function testCheckModuleInstallation_ModuleNotFound()
+	{
+		$oRestClient = $this->PrepareCheckModuleInstallation(2);
 		$this->assertFalse(Utils::CheckModuleInstallation('fake-module', false, $oRestClient));
+
+		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
+		$this->assertFalse(Utils::CheckModuleInstallation('fake-module', true, $oRestClient));
+	}
+
+	public function testGetModuleVersion_ModuleFound()
+	{
+		$oRestClient = $this->PrepareCheckModuleInstallation(1);
+		$this->assertEquals('1.0.0', Utils::GetModuleVersion('itop-structure', $oRestClient));
+		// Second invocation to test the cache
+		$this->assertEquals('1.0.0', Utils::GetModuleVersion('itop-structure', $oRestClient));
+	}
+
+	public function testGetModuleVersion_ModuleNotFound()
+	{
+		$oRestClient = $this->PrepareCheckModuleInstallation(1);
+		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
+		Utils::GetModuleVersion('fake-module', $oRestClient);
 	}
 }
