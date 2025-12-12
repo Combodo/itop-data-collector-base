@@ -241,7 +241,7 @@ class UtilsTest extends TestCase
 		$this->assertEquals($sContent, Utils::DumpConfig());
 	}
 
-	protected function PrepareCheckModuleInstallation(int $iExpectedCallCount) : RestClient
+	protected function PrepareCheckModuleInstallation(int $iExpectedCallCount): RestClient
 	{
 		$oRestClient = $this->createMock(RestClient::class);
 
@@ -272,21 +272,14 @@ class UtilsTest extends TestCase
 
 	public function testCheckModuleInstallation_ModuleFound()
 	{
-		$oRestClient = $this->PrepareCheckModuleInstallation();
+		$oRestClient = $this->PrepareCheckModuleInstallation(1);
+		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/1.0.0', false, $oRestClient));
 		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', true, $oRestClient));
-		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure', true, $oRestClient));
-	}
-
-	public function testCheckModuleInstallation_ModuleVersionFound()
-	{
-		$oRestClient = $this->PrepareCheckModuleInstallation();
-		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/1.0.0', true, $oRestClient));
-		$this->assertTrue(Utils::CheckModuleInstallation('itop-structure/1.0.0', true, $oRestClient));
 	}
 
 	public function testCheckModuleInstallation_ModuleVersionNotFound()
 	{
-		$oRestClient = $this->PrepareCheckModuleInstallation();
+		$oRestClient = $this->PrepareCheckModuleInstallation(1);
 		$this->assertFalse(Utils::CheckModuleInstallation('itop-structure/1.2.3', false, $oRestClient));
 
 		$this->expectExceptionMessage('Required iTop module itop-structure is considered as not installed due to: Version mismatch (1.0.0 >= 1.2.3)');
@@ -306,6 +299,7 @@ class UtilsTest extends TestCase
 	{
 		$oRestClient = $this->PrepareCheckModuleInstallation(1);
 		$this->assertEquals('1.0.0', Utils::GetModuleVersion('itop-structure', $oRestClient));
+		// Second invocation to test the cache
 		$this->assertEquals('1.0.0', Utils::GetModuleVersion('itop-structure', $oRestClient));
 	}
 
