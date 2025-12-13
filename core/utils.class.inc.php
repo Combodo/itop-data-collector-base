@@ -49,7 +49,7 @@ class Utils
 	/**
 	 * @var array<string, string> Keeps track of which version is installed for a module
 	 */
-	protected static $aModuleVersions = array();
+	protected static $aModuleVersions = [];
 
 	public static function SetProjectName($sProjectName)
 	{
@@ -754,7 +754,9 @@ class Utils
 	 */
 	public static function GetModuleVersion(string $sModuleId, RestClient $oClient = null): string
 	{
-		if (!isset(static::$aModuleVersions[$sModuleId])) static::CheckModuleInstallation($sModuleId, true, $oClient);
+		if (!isset(static::$aModuleVersions[$sModuleId])) {
+			static::CheckModuleInstallation($sModuleId, true, $oClient);
+		}
 		return static::$aModuleVersions[$sModuleId];
 	}
 }
