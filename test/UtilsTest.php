@@ -246,10 +246,12 @@ class UtilsTest extends TestCase
 		$oRestClient = $this->createMock(RestClient::class);
 
 		$oReflectionLastInstallDate = new \ReflectionProperty(Utils::class, 'sLastInstallDate');
+		$oReflectionLastInstallDate->setAccessible(true);
 		$oReflectionLastInstallDate->setValue(null, '0000-00-00 00:00:00');
 
 		//reset cache
 		$oReflectionModuleVersions = new \ReflectionProperty(Utils::class, 'aModuleVersions');
+		$oReflectionModuleVersions->setAccessible(true);
 		$oReflectionModuleVersions->setValue(null, []);
 
 		$oRestClient->expects($this->exactly($iExpectedCallCount))
