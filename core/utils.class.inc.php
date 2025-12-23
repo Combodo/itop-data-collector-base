@@ -473,9 +473,9 @@ class Utils
 					.PHP_EOL."    error msg: $sErrMsg"
 					.PHP_EOL."    curl_init error code: $iErr (cf https://www.php.net/manual/en/function.curl-errno.php)");
 			}
-			if(curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 400) {
-				IssueLog::Log(LOG_ERR, "HTTP error ".curl_getinfo($ch, CURLINFO_HTTP_CODE)." returned from URL: $sUrl"
-					.PHP_EOL."    response: $response");
+			if (curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 400) {
+				IssueLog::Log(LOG_ERR, 'HTTP error ' . curl_getinfo($ch, CURLINFO_HTTP_CODE) . " returned from URL: $sUrl"
+					. PHP_EOL . "    response: $response");
 			}
 			if (is_array($aResponseHeaders)) {
 				$aHeaders = curl_getinfo($ch);
