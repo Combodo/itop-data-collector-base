@@ -43,6 +43,9 @@ abstract class JsonCollector extends Collector
 	protected $iIdx;
 	protected $aSynchroFieldsToDefaultValues = array();
 
+	/** @var bool $bErrorOnNoItemsFound If set to true, an error is raised when no items are found in the JSON file. */
+	protected bool $bErrorOnNoItemsFound = false;
+
 	/**
 	 * Initalization
 	 */
@@ -192,9 +195,10 @@ abstract class JsonCollector extends Collector
 				$this->aJson = $aJsonNew;
 			}
 			if (count($this->aJson) == 0) {
-				Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to find path ".implode("/", $aPath)." until data in json file: $this->sURL $this->sFilePath.");
-
-				return false;
+				Utils::Log(LOG_WARNING, "[".get_class($this)."] Failed to find items in path '".implode("/", $aPath)."' until data in json file: $this->sURL $this->sFilePath.");
+				if ($this->bErrorOnNoItemsFound) {
+					return false;
+				}
 			}
 		}
 		$this->aJsonKey = array_keys($this->aJson);
