@@ -118,8 +118,8 @@ class LookupTable
 	/**
 	 * Replaces the given field in the CSV data by the identifier of the object in iTop, based on a list of lookup fields
 	 *
-	 * @param hash $aLineData The data corresponding to the line of the CSV file being processed
-	 * @param array $aLookupFields The list of fields used for the mapping key
+	 * @param array $aLineData The data corresponding to the line of the CSV file being processed
+	 * @param string[] $aLookupFields The list of fields used for the mapping key
 	 * @param string $sDestField The name of field (i.e. column) to populate with the id of the iTop object
 	 * @param int $iLineIndex The index of the line (0 = first line of the CSV file)
 	 *
