@@ -133,7 +133,7 @@ class LookupTable
 		} else {
 			$iPos = $this->aFieldsPos[$sDestField];
 			//skip search if field is empty
-			if ($bSkipIfEmpty && $iPos !== null && $aLineData[$iPos] === '') {
+			if ($bSkipIfEmpty && $iPos !== null && ($aLineData[$iPos] === '' || $aLineData[$iPos] === NULL_VALUE)) {
 				return false;
 			}
 			$aLookupKey = [];
