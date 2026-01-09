@@ -265,8 +265,13 @@ class Orchestrator
 		$bStopOnError = ($sStopOnError == 'yes');
 		/** @var \Collector $oCollector */
 		foreach ($aCollectors as $oCollector) {
-			Utils::SetCollector($oCollector, "Synchronize");
-			$bResult = $oCollector->Synchronize();
+			try {
+				Utils::SetCollector($oCollector, "Synchronize");
+				$bResult = $oCollector->Synchronize();
+			} catch (Exception $e) {
+				Utils::Log(LOG_ERR, sprintf('Synchronization exception: %s', $e->getMessage()));
+				$bResult = false;
+			}
 			if (!$bResult) {
 				if ($bStopOnError) {
 					break;
