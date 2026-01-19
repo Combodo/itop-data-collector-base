@@ -108,7 +108,7 @@ abstract class Collector
 		$aSourceDefinition = json_decode($sJSONSourceDefinition, true);
 
 		if ($aSourceDefinition === null) {
-			Utils::Log(LOG_ERR, "Invalid Synchro Data Source definition for the collector '".$this->GetName()."' (not a JSON string)");
+			Utils::Log(LOG_ERR, 'Invalid Synchro Data Source definition for the collector \'%1$s\' (not a JSON string)', $this->GetName());
 			throw new Exception('Cannot create Collector (invalid JSON definition)');
 		}
 		foreach ($aSourceDefinition['attribute_list'] as $aAttr) {
@@ -137,11 +137,9 @@ abstract class Collector
 		}
 		Utils::Log(
 			LOG_DEBUG,
-			sprintf(
-				"aCollectorConfig %s:  [%s]",
-				get_class($this),
-				json_encode($this->aCollectorConfig)
-			)
+			'aCollectorConfig %1$s:  [%2$s]',
+			get_class($this),
+			json_encode($this->aCollectorConfig)
 		);
 	}
 
@@ -587,7 +585,7 @@ abstract class Collector
 		foreach ($aHeaders as $sHeader) {
 			if (($sHeader != 'primary_key') && !$this->HeaderIsAllowed($sHeader)) {
 				if (!$this->AttributeIsOptional($sHeader)) {
-					Utils::Log(LOG_WARNING, "Invalid column '$sHeader', will be ignored.");
+					Utils::Log(LOG_WARNING, 'Invalid column \'%1$s\', will be ignored.', $sHeader);
 				}
 			} else {
 				$this->aCSVHeaders[] = $sHeader;
@@ -942,9 +940,9 @@ abstract class Collector
 					$bRet = ($aResult['code'] == 0);
 					if (!$bRet) {
 						if (preg_match('/Error: No item found with criteria: sync_source_id/', $aResult['message'])) {
-							Utils::Log(LOG_ERR, "Failed to update the Synchro Data Source. Inconsistent data model, the attribute '{$aAttr['attcode']}' does not exist in iTop.");
+							Utils::Log(LOG_ERR, 'Failed to update the Synchro Data Source. Inconsistent data model, the attribute \'%1$s\' does not exist in iTop.', $aAttr['attcode']);
 						} else {
-							Utils::Log(LOG_ERR, "Failed to update the SynchroAttribute '{$aAttr['attcode']}'. Reason: {$aResult['message']} ({$aResult['code']})");
+							Utils::Log(LOG_ERR, 'Failed to update the SynchroAttribute \'%1$s\'. Reason: %2$s (%3$s)', $aAttr['attcode'], $aResult['message'], $aResult['code']);
 						}
 						break;
 					}
@@ -1001,12 +999,12 @@ abstract class Collector
 						if ($aDef2 === false) {
 							if ($this->AttributeIsOptional($sAttCode)) {
 								// Ignore missing optional attributes
-								Utils::Log(LOG_DEBUG, "Comparison: ignoring the missing, but optional, attribute: '$sAttCode'.");
+								Utils::Log(LOG_DEBUG, 'Comparison: ignoring the missing, but optional, attribute: \'%1$s\'.', $sAttCode);
 								$this->aSkippedAttributes[] = $sAttCode;
 								continue;
 							} else {
 								// Missing non-optional attribute
-								Utils::Log(LOG_DEBUG, "Comparison: The definition of the non-optional attribute '$sAttCode' is missing. Data sources differ.");
+								Utils::Log(LOG_DEBUG, 'Comparison: The definition of the non-optional attribute \'%1$s\' is missing. Data sources differ.', $sAttCode);
 
 								return false;
 							}
@@ -1014,7 +1012,13 @@ abstract class Collector
 						} else {
 							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
 								// Definitions are different
-								Utils::Log(LOG_DEBUG, "Comparison: The definitions of the attribute '$sAttCode' are different. Data sources differ:\nExpected values:".print_r($aDef, true)."------------\nCurrent values in iTop:".print_r($aDef2, true)."\n");
+								Utils::Log(
+									LOG_DEBUG,
+									'Comparison: The definitions of the attribute \'%1$s\' are different. Data sources differ:\nExpected values:%2$s------------\nCurrent values in iTop:%3\$s\n',
+									$sAttCode,
+									print_r($aDef, true),
+									print_r($aDef2, true)
+								);
 
 								return false;
 							}
@@ -1025,7 +1029,7 @@ abstract class Collector
 					foreach ($aDS2['attribute_list'] as $sKey => $aDef) {
 						$sAttCode = $aDef['attcode'];
 						if (!$this->FindAttr($sAttCode, $aDS1['attribute_list']) && !$this->AttributeIsOptional($sAttCode)) {
-							Utils::Log(LOG_NOTICE, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ. Nothing to do. Update json definition if you want to update this field in iTop.");
+							Utils::Log(LOG_NOTICE, 'Comparison: Found the extra definition of the non-optional attribute \'%1$s\' in iTop. Data sources differ. Nothing to do. Update json definition if you want to update this field in iTop.', $sAttCode);
 						}
 					}
 					break;
@@ -1034,7 +1038,7 @@ abstract class Collector
 					if (!array_key_exists($sKey, $aDS2) || $aDS2[$sKey] != $value) {
 						if ($sKey != 'database_table_name') {
 							// one meaningful difference is enough
-							Utils::Log(LOG_DEBUG, "Comparison: The property '$sKey' is missing or has a different value. Data sources differ.");
+							Utils::Log(LOG_DEBUG, 'Comparison: The property \'%1$s\' is missing or has a different value. Data sources differ.', $sKey);
 
 							return false;
 						}
@@ -1056,7 +1060,7 @@ abstract class Collector
 
 				default:
 					if (!array_key_exists($sKey, $aDS1)) {
-						Utils::Log(LOG_DEBUG, "Comparison: Found an extra property '$sKey' in iTop. Data sources differ.");
+						Utils::Log(LOG_DEBUG, 'Comparison: Found an extra property \'%1$s\' in iTop. Data sources differ.', $sKey);
 
 						return false;
 					}
@@ -1114,22 +1118,22 @@ abstract class Collector
 			// Check for missing columns
 			$aMissingColumns = array_diff($aDefs['columns'], array_keys($aSynchroColumns));
 			if (!empty($aMissingColumns) && $aDefs['reconcile']) {
-				Utils::Log(LOG_ERR, sprintf('[%s] The field "%s", used for reconciliation, has missing column(s) in the %s.', $sClass, $sCode, $sSource));
+				Utils::Log(LOG_ERR, '[%1$s] The field "%2$s", used for reconciliation, has missing column(s) in the %3$s.', $sClass, $sCode, $sSource);
 				$iError++;
-				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
+				Utils::Log(LOG_DEBUG, '[%1$s] Missing columns: %1$s', $sClass, implode(', ', $aMissingColumns));
 			} elseif (!empty($aMissingColumns) && $aDefs['update']) {
 				if ($this->AttributeIsNullified($sCode)) {
-					Utils::Log(LOG_DEBUG, '['.$sClass.'] The field "'.$sCode.'", used for update, has missing column(s) in first row but nullified.');
+					Utils::Log(LOG_DEBUG, '[%1$s] The field "%2$s", used for update, has missing column(s) in first row but nullified.', $sClass, $sCode);
 					continue;
 				}
-				Utils::Log(LOG_ERR, sprintf('[%s] The field "%s", used for update, has missing column(s) in the %s.', $sClass, $sCode, $sSource));
+				Utils::Log(LOG_ERR, '[%1$s] The field "%2$s", used for update, has missing column(s) in the %3$s.', $sClass, $sCode, $sSource);
 				$iError++;
-				Utils::Log(LOG_DEBUG, sprintf('[%s] Missing columns: %s', $sClass, implode(', ', $aMissingColumns)));
+				Utils::Log(LOG_DEBUG, '[%1$s] Missing columns: %2$s', $sClass, implode(', ', $aMissingColumns));
 			}
 
 			// Check for useless columns
 			if (empty($aMissingColumns) && !$aDefs['reconcile'] && !$aDefs['update']) {
-				Utils::Log(LOG_WARNING, sprintf('[%s] The field "%s" is used neither for update nor for reconciliation.', $sClass, $sCode));
+				Utils::Log(LOG_WARNING, '[%1$s] The field "%2$s" is used neither for update nor for reconciliation.', $sClass, $sCode);
 			}
 
 		}

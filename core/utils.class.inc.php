@@ -151,14 +151,26 @@ class Utils
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function Log($iPriority, $sMessage)
+	public static function Log($iPriority, $sMessage /*, ... arguments ....*/)
 	{
+		$aArguments = func_get_args();
+		array_shift($aArguments);
+		array_shift($aArguments);
+		if (count($aArguments) > 0) {
+			$aJsonEncodedArgs = [];
+			foreach ($aArguments as $sArg) {
+				$aJsonEncodedArgs[] = substr(json_encode($sArg), 1, -1);
+			}
+			$sMessage = vsprintf($sMessage, $aJsonEncodedArgs);
+		}
+
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
 			if ($iPriority <= self::$iMockLogLevel) {
 				var_dump($sMessage);
 				self::$oMockedLogger->Log($iPriority, $sMessage);
 			}
+			return;
 		}
 
 		switch ($iPriority) {
