@@ -156,10 +156,10 @@ class Utils
 		$aArguments = func_get_args();
 		array_shift($aArguments);
 		array_shift($aArguments);
-		if (count($aArguments)>0){
+		if (count($aArguments) > 0) {
 			$aJsonEncodedArgs = [];
-			foreach ($aArguments as $sArg){
-				$aJsonEncodedArgs[]=substr(json_encode($sArg),1, -1);
+			foreach ($aArguments as $sArg) {
+				$aJsonEncodedArgs[] = substr(json_encode($sArg), 1, -1);
 			}
 			$sMessage = vsprintf($sMessage, $aJsonEncodedArgs);
 		}

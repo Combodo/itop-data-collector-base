@@ -136,7 +136,10 @@ abstract class Collector
 			$this->aCollectorConfig = Utils::GetConfigurationValue(strtolower(get_class($this)), []);
 		}
 		Utils::Log(
-			LOG_DEBUG, 'aCollectorConfig %1$s:  [%2$s]', get_class($this), json_encode($this->aCollectorConfig)
+			LOG_DEBUG,
+			'aCollectorConfig %1$s:  [%2$s]',
+			get_class($this),
+			json_encode($this->aCollectorConfig)
 		);
 	}
 
@@ -1009,8 +1012,13 @@ abstract class Collector
 						} else {
 							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
 								// Definitions are different
-								Utils::Log(LOG_DEBUG, 'Comparison: The definitions of the attribute \'%1$s\' are different. Data sources differ:\nExpected values:%2$s------------\nCurrent values in iTop:%3\$s\n',
-								$sAttCode, print_r($aDef, true), print_r($aDef2, true));
+								Utils::Log(
+									LOG_DEBUG,
+									'Comparison: The definitions of the attribute \'%1$s\' are different. Data sources differ:\nExpected values:%2$s------------\nCurrent values in iTop:%3\$s\n',
+									$sAttCode,
+									print_r($aDef, true),
+									print_r($aDef2, true)
+								);
 
 								return false;
 							}
@@ -1115,7 +1123,7 @@ abstract class Collector
 				Utils::Log(LOG_DEBUG, '[%1$s] Missing columns: %1$s', $sClass, implode(', ', $aMissingColumns));
 			} elseif (!empty($aMissingColumns) && $aDefs['update']) {
 				if ($this->AttributeIsNullified($sCode)) {
-					Utils::Log(LOG_DEBUG, '[%1$s] The field "%2$s", used for update, has missing column(s) in first row but nullified.',$sClass, $sCode);
+					Utils::Log(LOG_DEBUG, '[%1$s] The field "%2$s", used for update, has missing column(s) in first row but nullified.', $sClass, $sCode);
 					continue;
 				}
 				Utils::Log(LOG_ERR, '[%1$s] The field "%2$s", used for update, has missing column(s) in the %3$s.', $sClass, $sCode, $sSource);

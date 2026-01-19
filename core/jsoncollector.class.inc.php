@@ -206,10 +206,10 @@ abstract class JsonCollector extends Collector
 		if (isset($aParamsSourceJson["FIELDS"])) {
 			$this->aFieldsKey = $aParamsSourceJson["FIELDS"];
 		}
-		Utils::Log(LOG_DEBUG, 'aFieldsKey: %1$s',$this->aFieldsKey);
-		Utils::Log(LOG_DEBUG, 'aJson: %1$s',$this->aJson);
-		Utils::Log(LOG_DEBUG, 'aJsonKey: %1$s',$this->aJsonKey);
-		Utils::Log(LOG_DEBUG, 'nb of elements:%1$s',count($this->aJson));
+		Utils::Log(LOG_DEBUG, 'aFieldsKey: %1$s', $this->aFieldsKey);
+		Utils::Log(LOG_DEBUG, 'aJson: %1$s', $this->aJson);
+		Utils::Log(LOG_DEBUG, 'aJsonKey: %1$s', $this->aJsonKey);
+		Utils::Log(LOG_DEBUG, 'nb of elements:%1$s', count($this->aJson));
 
 		$this->iIdx = 0;
 

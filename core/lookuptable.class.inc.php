@@ -75,7 +75,7 @@ class LookupTable
 				$aMappingKeys = [];
 				foreach ($aKeyFields as $sField) {
 					if (!array_key_exists($sField, $aObj['fields'])) {
-						Utils::Log(LOG_ERR, 'field \'%1$s\' does not exist in \'%2$s\'',$sField, $aObj['fields']);
+						Utils::Log(LOG_ERR, 'field \'%1$s\' does not exist in \'%2$s\'', $sField, $aObj['fields']);
 						$aMappingKeys[] = '';
 					} else {
 						$aMappingKeys[] = $aObj['fields'][$sField];
