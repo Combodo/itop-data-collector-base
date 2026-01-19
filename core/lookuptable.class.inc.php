@@ -75,7 +75,7 @@ class LookupTable
 				$aMappingKeys = [];
 				foreach ($aKeyFields as $sField) {
 					if (!array_key_exists($sField, $aObj['fields'])) {
-						Utils::Log(LOG_ERR, "field '$sField' does not exist in '".json_encode($aObj['fields'])."'");
+						Utils::Log(LOG_ERR, 'field \'%1$s\' does not exist in \'%2$s\'',$sField, $aObj['fields']);
 						$aMappingKeys[] = '';
 					} else {
 						$aMappingKeys[] = $aObj['fields'][$sField];
@@ -92,7 +92,7 @@ class LookupTable
 				if ($this->sReturnAttCode !== 'id') {
 					// If the return attcode is not the ID of the object, check that it exists
 					if (!array_key_exists($this->sReturnAttCode, $aObj['fields'])) {
-						Utils::Log(LOG_ERR, "field '{$this->sReturnAttCode}' does not exist in '".json_encode($aObj['fields'])."'");
+						Utils::Log(LOG_ERR, 'field \'%1$s\' does not exist in \'%2$s\'', $this->sReturnAttCode, $aObj['fields']);
 						$iObjKey = 0;
 					} else {
 						$iObjKey = $aObj['fields'][$this->sReturnAttCode];
@@ -156,9 +156,9 @@ class LookupTable
 			if (!array_key_exists($sLookupKey, $this->aData)) {
 				if ($this->bIgnoreMappingErrors) {
 					// Mapping *errors* are expected, just report them in debug mode
-					Utils::Log(LOG_DEBUG, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+					Utils::Log(LOG_DEBUG, 'No mapping found with key: \'%1$s\', \'%2$s\' will be set to zero.', $sLookupKey, $sDestField);
 				} else {
-					Utils::Log(LOG_WARNING, "No mapping found with key: '$sLookupKey', '$sDestField' will be set to zero.");
+					Utils::Log(LOG_WARNING, 'No mapping found with key: \'%1$s\', \'%2$s\' will be set to zero.', $sLookupKey, $sDestField);
 					$bRet = false;
 				}
 			} else {
@@ -166,7 +166,7 @@ class LookupTable
 				if ($iPos !== null) {
 					$aLineData[$iPos] = $this->aData[$sLookupKey];
 				} else {
-					Utils::Log(LOG_WARNING, "'$sDestField' is not a valid column name in the CSV file. Mapping will be ignored.");
+					Utils::Log(LOG_WARNING, '\'%1$s\' is not a valid column name in the CSV file. Mapping will be ignored.', $sDestField);
 				}
 			}
 		}
@@ -191,7 +191,7 @@ class LookupTable
 		// Check that all requested fields were found in the headers
 		foreach ($aFields as $sField) {
 			if (!array_key_exists($sField, $this->aFieldsPos)) {
-				Utils::Log(LOG_ERR, "'$sField' is not a valid column name in the CSV file. Mapping will fail.");
+				Utils::Log(LOG_ERR, '\'%1$s\' is not a valid column name in the CSV file. Mapping will fail.', $sField);
 			}
 		}
 	}

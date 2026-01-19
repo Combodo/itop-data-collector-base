@@ -23,6 +23,7 @@ class UtilsTest extends TestCase
 	{
 		parent::tearDown();
 		Utils::MockDoPostRequestService(null);
+		Utils::MockLog(null);
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
 		$reflection->setAccessible(true);
@@ -310,5 +311,64 @@ class UtilsTest extends TestCase
 		$oRestClient = $this->PrepareCheckModuleInstallation(1);
 		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
 		Utils::GetModuleVersion('fake-module', $oRestClient);
+	}
+
+	public static function LogMessageProvider() {
+		$sPlaceHolderWithUEFF = file_get_contents(__DIR__ . '/resources/string_with_ueff_char.txt');
+		return [
+			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key', will be ignored."],
+			'string with hidden whitespace <FEFF>' => ['placeholder' => self::AddUEFFAtBegining('primary_key'), 'expected_log' => "Invalid column '\uFEFFprimary_key', will be ignored."],
+		];
+	}
+
+	/**
+	 * @dataProvider LogMessageProvider
+	 */
+	public function testLogSimpleMessage(string $sPlaceHolder, string $sExpectedLog) {
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, $sExpectedLog);
+
+		Utils::Log(LOG_WARNING, "Invalid column '$sPlaceHolder', will be ignored.");
+	}
+
+	private static function AddUEFFAtBegining(string $sPlaceHolder) : string {
+		return  "\uFEFF" . $sPlaceHolder;
+	}
+
+	public static function LogMessageWithPlaceHoldersProvider() {
+		return [
+			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key', will be ignored."],
+			'string with hidden whitespace <FEFF>' => ['placeholder' => self::AddUEFFAtBegining('primary_key'), 'expected_log' => "Invalid column '\\\\uFEFFprimary_key', will be ignored."],
+			'array' => ['placeholder' => ['primary_key' => "123"], 'expected_log' => "Invalid column '\"primary_key\":\"123\"', will be ignored."],
+		];
+	}
+
+	/**
+	 * @dataProvider LogMessageWithPlaceHoldersProvider
+	 */
+	public function testLogFormattedMessageWithPlaceHolder($sPlaceHolder, string $sExpectedLog) {
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, $sExpectedLog);
+
+		Utils::Log(LOG_WARNING, "Invalid column '%1\$s', will be ignored.", $sPlaceHolder);
+	}
+
+	public function testLogFormattedMessageWithFurtherPlaceHolders() {
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, "Invalid columns 'primary_key' 'colA' 'colB'.");
+
+		Utils::Log(LOG_WARNING, "Invalid columns '%1\$s' '%2\$s' '%3\$s'.", "primary_key", "colA", "colB");
 	}
 }
