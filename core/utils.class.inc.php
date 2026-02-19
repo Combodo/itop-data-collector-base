@@ -694,7 +694,7 @@ class Utils
 	 * @return bool True when the given module is installed, false otherwise
 	 * @throws Exception When the module is required but could not be found
 	 */
-	public static function CheckModuleInstallation(string $sModuleId, bool $bRequired = false, RestClient $oClient = null): bool
+	public static function CheckModuleInstallation(string $sModuleId, bool $bRequired = false, ?RestClient $oClient = null): bool
 	{
 		if (!isset($oClient)) {
 			$oClient = new RestClient();
@@ -752,7 +752,7 @@ class Utils
 	 * @return string The installed version of the module
 	 * @throws Exception When the module could not be found
 	 */
-	public static function GetModuleVersion(string $sModuleId, RestClient $oClient = null): string
+	public static function GetModuleVersion(string $sModuleId, ?RestClient $oClient = null): string
 	{
 		if (!isset(static::$aModuleVersions[$sModuleId])) {
 			static::CheckModuleInstallation($sModuleId, true, $oClient);

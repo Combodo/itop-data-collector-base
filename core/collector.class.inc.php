@@ -335,12 +335,12 @@ abstract class Collector
 
 				if (($hCSV !== false) && ($hOutputCSV !== false)) {
 					$iLineIndex = 0;
-					while (($aData = fgetcsv($hCSV, 10000, $this->sSeparator)) !== false) {
+					while (($aData = fgetcsv($hCSV, 10000, $this->sSeparator, escape: '\\')) !== false) {
 						//process
 						try {
 							$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
 							// Write the CSV data
-							fputcsv($hOutputCSV, $aData, $this->sSeparator);
+							fputcsv($hOutputCSV, $aData, $this->sSeparator, escape: '\\');
 						} catch (IgnoredRowException $e) {
 							// Skip this line
 							Utils::Log(LOG_DEBUG, "Ignoring the line $iLineIndex. Reason: ".$e->getMessage());
@@ -593,7 +593,7 @@ abstract class Collector
 				$this->aCSVHeaders[] = $sHeader;
 			}
 		}
-		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator);
+		fputcsv($this->aCSVFile[$this->iFileIndex], $this->aCSVHeaders, $this->sSeparator, escape: '\\');
 	}
 
 	/**
@@ -626,7 +626,7 @@ abstract class Collector
 			}
 		}
 		//fwrite($this->aCSVFile[$this->iFileIndex], implode($this->sSeparator, $aData)."\n");
-		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator);
+		fputcsv($this->aCSVFile[$this->iFileIndex], $aData, $this->sSeparator, escape: '\\');
 	}
 
 	/**

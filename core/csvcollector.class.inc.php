@@ -201,7 +201,7 @@ abstract class CSVCollector extends Collector
 		file_put_contents($sTmpFile, iconv($this->sCsvEncoding, $this->GetCharset(), stream_get_contents($hHandle)));
 		$oTmpHandle = fopen($sTmpFile, "r");
 
-		while (($aData = fgetcsv($oTmpHandle, 0, $this->sCsvSeparator)) !== false) {
+		while (($aData = fgetcsv($oTmpHandle, 0, $this->sCsvSeparator, escape: '\\')) !== false) {
 			$this->aCsvFieldsPerLine[] = $aData;
 		}
 
