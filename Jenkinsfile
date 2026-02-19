@@ -12,7 +12,7 @@ pipeline {
   stages {
     stage('composer install') {
       steps {
-          sh '/usr/bin/php8.1 composer install'
+          sh '/usr/bin/php8.1 /usr/local/bin/composer install'
       }
     }
 
