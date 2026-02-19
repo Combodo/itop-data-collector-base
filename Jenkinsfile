@@ -34,7 +34,7 @@ pipeline {
               if ("${phpstan_level}" == ""){
                 def phpstan_level = "1";
               }
-              sh 'vendor/bin/phpstan analyse -l ${phpstan_level} --error-format=junit > logs/phpstan_results.xml'
+              sh '/usr/bin/php8.1 vendor/bin/phpstan analyse -l ${phpstan_level} --error-format=junit > logs/phpstan_results.xml'
             }
           }
       }
@@ -44,7 +44,7 @@ pipeline {
       steps {
         script {
               sh 'mkdir -p logs'
-              sh 'php vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
+              sh '/usr/bin/php8.1 vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
           }
       }
     }
