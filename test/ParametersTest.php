@@ -40,6 +40,10 @@ class ParametersTest extends TestCase
 				'aData' => ['paramroot' => ['param1' => 'param1val', 'param2' => 'param2val']],
 				'sExpectedDump' => "<paramroot>\n    <param1>param1val</param1>\n    <param2>param2val</param2>\n  </paramroot>",
 			],
+			'Parameter with integer' => [
+				'aData' => ['my_int' => 42],
+				'sExpectedDump' => '<my_int type="int">42</my_int>',
+			],
 		];
 	}
 
