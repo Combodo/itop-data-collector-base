@@ -206,10 +206,10 @@ abstract class JsonCollector extends Collector
 		if (isset($aParamsSourceJson["FIELDS"])) {
 			$this->aFieldsKey = $aParamsSourceJson["FIELDS"];
 		}
-		Utils::Log(LOG_DEBUG, "aFieldsKey: ".json_encode($this->aFieldsKey));
-		Utils::Log(LOG_DEBUG, "aJson: ".json_encode($this->aJson));
-		Utils::Log(LOG_DEBUG, "aJsonKey: ".json_encode($this->aJsonKey));
-		Utils::Log(LOG_DEBUG, "nb of elements:".count($this->aJson));
+		Utils::Log(LOG_DEBUG, 'aFieldsKey: %1$s', $this->aFieldsKey);
+		Utils::Log(LOG_DEBUG, 'aJson: %1$s', $this->aJson);
+		Utils::Log(LOG_DEBUG, 'aJsonKey: %1$s', $this->aJsonKey);
+		Utils::Log(LOG_DEBUG, 'nb of elements:%1$s', count($this->aJson));
 
 		$this->iIdx = 0;
 
@@ -229,7 +229,7 @@ abstract class JsonCollector extends Collector
 		}
 		if ($this->iIdx < count($this->aJson)) {
 			$aData = $this->aJson[$this->aJsonKey[$this->iIdx]];
-			Utils::Log(LOG_DEBUG, '$aData: '.json_encode($aData));
+			Utils::Log(LOG_DEBUG, 'aData: %1$s', $aData);
 
 			$aDataToSynchronize = $this->SearchFieldValues($aData);
 
@@ -282,15 +282,15 @@ abstract class JsonCollector extends Collector
 
 			if (empty($aValue) && array_key_exists($key, $this->aSynchroFieldsToDefaultValues)) {
 				$sDefaultValue = $this->aSynchroFieldsToDefaultValues[$key];
-				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: $sDefaultValue");
+				Utils::Log(LOG_DEBUG, 'aDataToSynchronize[%1$s]: %2$s', $key, $sDefaultValue);
 				$aDataToSynchronize[$key] = $sDefaultValue;
 			} elseif (! is_null($aValue)) {
-				Utils::Log(LOG_DEBUG, "aDataToSynchronize[$key]: $aValue");
+				Utils::Log(LOG_DEBUG, 'aDataToSynchronize[%1$s]: %2$s', $key, $aValue);
 				$aDataToSynchronize[$key] = $aValue;
 			}
 		}
 
-		Utils::Log(LOG_DEBUG, '$aDataToSynchronize: '.json_encode($aDataToSynchronize));
+		Utils::Log(LOG_DEBUG, 'aDataToSynchronize: %1$s', $aDataToSynchronize);
 		return $aDataToSynchronize;
 	}
 
