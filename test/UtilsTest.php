@@ -444,7 +444,13 @@ class UtilsTest extends TestCase
 				'default' => '',
 				'expected' => ['foo' => 123, 'bar' => 456],
 				'iFilter' => FILTER_VALIDATE_INT,
-			]
+			],
+			'hash filter integer wrong value' => [
+				'value' => ['foo' => '123', 'bar' => 'baz'],
+				'default' => '',
+				'expected' => ['foo' => 123, 'bar' => null],
+				'iFilter' => FILTER_VALIDATE_INT,
+			],
 		];
 	}
 
