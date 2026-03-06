@@ -318,95 +318,133 @@ class UtilsTest extends TestCase
 	{
 		return [
 			'simple string value' => [
-				'sValue' => 'foobar',
+				'value' => 'foobar',
 				'default' => '',
 				'expected' => 'foobar',
 			],
 			'default string value' => [
-				'sValue' => null,
+				'value' => null,
 				'default' => 'foobar',
 				'expected' => 'foobar',
 			],
 			'integer simple value' => [
-				'sValue' => '123',
+				'value' => '123',
 				'default' => '',
 				'expected' => '123',
 			],
 			'integer default value' => [
-				'sValue' => null,
+				'value' => null,
 				'default' => 123,
 				'expected' => 123,
 			],
 			'integer filter value' => [
-				'sValue' => '123',
+				'value' => '123',
 				'default' => '',
 				'expected' => 123,
 				'iFilter' => FILTER_VALIDATE_INT,
 			],
 			'integer filter default value' => [
-				'sValue' => null,
+				'value' => null,
 				'default' => 123,
 				'expected' => 123,
 				'iFilter' => FILTER_VALIDATE_INT,
 			],
 			'integer filter wrong value' => [
-				'sValue' => 'foobar',
+				'value' => 'foobar',
 				'default' => 123,
 				'expected' => 123,
 				'iFilter' => FILTER_VALIDATE_INT,
 			],
 			'boolean simple value' => [
-				'sValue' => 'yes',
+				'value' => 'yes',
 				'default' => '',
 				'expected' => 'yes',
 			],
 			'boolean default value' => [
-				'sValue' => null,
+				'value' => null,
 				'default' => true,
 				'expected' => true,
 			],
 			'boolean filter value yes' => [
-				'sValue' => 'yes',
+				'value' => 'yes',
 				'default' => '',
 				'expected' => true,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'boolean filter value no' => [
-				'sValue' => 'no',
+				'value' => 'no',
 				'default' => '',
 				'expected' => false,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'boolean filter value true' => [
-				'sValue' => 'true',
+				'value' => 'true',
 				'default' => '',
 				'expected' => true,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'boolean filter value false' => [
-				'sValue' => 'false',
+				'value' => 'false',
 				'default' => '',
 				'expected' => false,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'boolean filter default value' => [
-				'sValue' => null,
+				'value' => null,
 				'default' => 'yes',
 				'expected' => true,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'boolean filter wrong value' => [
-				'sValue' => 'foobar',
+				'value' => 'foobar',
 				'default' => 'yes',
 				'expected' => true,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'boolean filter wrong default value' => [
-				'sValue' => null,
+				'value' => null,
 				'default' => 'foobar',
 				'expected' => 'foobar',
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
+			'boolean filter empty default value' => [
+				'value' => null,
+				'default' => '',
+				'expected' => false,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'array simple value' => [
+				'value' => ['foo','bar','baz'],
+				'default' => '',
+				'expected' => ['foo','bar','baz'],
+			],
+			'array default value' => [
+				'value' => null,
+				'default' => ['foo','bar','baz'],
+				'expected' => ['foo','bar','baz'],
+			],
+			'array filter integer value' => [
+				'value' => ['123','456'],
+				'default' => '',
+				'expected' => [123,456],
+				'iFilter' => FILTER_VALIDATE_INT,
+			],
+			'hash filter value' => [
+				'value' => ['foo' => 'bar'],
+				'default' => '',
+				'expected' => ['foo' => 'bar'],
+			],
+			'hash default value' => [
+				'value' => null,
+				'default' => ['foo' => 'bar'],
+				'expected' => ['foo' => 'bar'],
+			],
+			'hash filter integer value' => [
+				'value' => ['foo' => '123', 'bar' => '456'],
+				'default' => '',
+				'expected' => ['foo' => 123, 'bar' => 456],
+				'iFilter' => FILTER_VALIDATE_INT,
+			]
 		];
 	}
 
@@ -414,14 +452,14 @@ class UtilsTest extends TestCase
 	 * @dataProvider GetConfigurationValueProvider
 	 * @throws Exception
 	 */
-	public function testGetConfigurationValue($sValue, $default, $expected, $iFilter = FILTER_FLAG_NONE)
+	public function testGetConfigurationValue($value, $default, $expected, $iFilter = FILTER_FLAG_NONE)
 	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->exactly(1))
 			->method('Get')
 			->will($this->returnCallback(
-				function ($sCode, $default = '') use ($sValue) {
-					return is_null($sValue) ? $default : $sValue;
+				function ($sCode, $default = '') use ($value) {
+					return is_null($value) ? $default : $value;
 				}
 			));
 

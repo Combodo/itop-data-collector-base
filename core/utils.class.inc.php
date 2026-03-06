@@ -312,8 +312,9 @@ class Utils
 		$value = self::Substitute($value);
 
 		if ($iFilter) {
-			$value = filter_var($value, $iFilter, FILTER_NULL_ON_FAILURE);
-			$value ??= filter_var($defaultValue, $iFilter, FILTER_NULL_ON_FAILURE) ?? $defaultValue;
+			$iOptions = FILTER_FLAG_NONE | (is_array($value) ? FILTER_REQUIRE_ARRAY : 0);
+			$value = filter_var($value, $iFilter, $iOptions);
+			$value ??= filter_var($defaultValue, $iFilter, $iOptions) ?? $defaultValue;
 		}
 
 		return $value;
