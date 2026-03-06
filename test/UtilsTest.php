@@ -2,6 +2,8 @@
 
 namespace UnitTestFiles\Test;
 
+use Exception;
+use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\TestCase;
 use RestClient;
 use Utils;
@@ -310,5 +312,123 @@ class UtilsTest extends TestCase
 		$oRestClient = $this->PrepareCheckModuleInstallation(1);
 		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
 		Utils::GetModuleVersion('fake-module', $oRestClient);
+	}
+
+	public function GetConfigurationValueProvider(): array
+	{
+		return [
+			'simple string value' => [
+				'sValue' => 'foobar',
+				'default' => '',
+				'expected' => 'foobar',
+			],
+			'default string value' => [
+				'sValue' => null,
+				'default' => 'foobar',
+				'expected' => 'foobar',
+			],
+			'integer simple value' => [
+				'sValue' => '123',
+				'default' => '',
+				'expected' => '123',
+			],
+			'integer default value' => [
+				'sValue' => null,
+				'default' => 123,
+				'expected' => 123,
+			],
+			'integer filter value' => [
+				'sValue' => '123',
+				'default' => '',
+				'expected' => 123,
+				'iFilter' => FILTER_VALIDATE_INT,
+			],
+			'integer filter default value' => [
+				'sValue' => null,
+				'default' => 123,
+				'expected' => 123,
+				'iFilter' => FILTER_VALIDATE_INT,
+			],
+			'integer filter wrong value' => [
+				'sValue' => 'foobar',
+				'default' => 123,
+				'expected' => 123,
+				'iFilter' => FILTER_VALIDATE_INT,
+			],
+			'boolean simple value' => [
+				'sValue' => 'yes',
+				'default' => '',
+				'expected' => 'yes',
+			],
+			'boolean default value' => [
+				'sValue' => null,
+				'default' => true,
+				'expected' => true,
+			],
+			'boolean filter value yes' => [
+				'sValue' => 'yes',
+				'default' => '',
+				'expected' => true,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'boolean filter value no' => [
+				'sValue' => 'no',
+				'default' => '',
+				'expected' => false,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'boolean filter value true' => [
+				'sValue' => 'true',
+				'default' => '',
+				'expected' => true,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'boolean filter value false' => [
+				'sValue' => 'false',
+				'default' => '',
+				'expected' => false,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'boolean filter default value' => [
+				'sValue' => null,
+				'default' => 'yes',
+				'expected' => true,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'boolean filter wrong value' => [
+				'sValue' => 'foobar',
+				'default' => 'yes',
+				'expected' => true,
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+			'boolean filter wrong default value' => [
+				'sValue' => null,
+				'default' => 'foobar',
+				'expected' => 'foobar',
+				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider GetConfigurationValueProvider
+	 * @throws Exception
+	 */
+	public function testGetConfigurationValue($sValue, $default, $expected, $iFilter = FILTER_FLAG_NONE)
+	{
+		$oParametersMock = $this->createMock(\Parameters::class);
+		$oParametersMock->expects($this->exactly(1))
+			->method('Get')
+			->will($this->returnCallback(
+				function ($sCode, $default = '') use ($sValue) {
+					return is_null($sValue) ? $default : $sValue;
+				}
+			));
+
+		$oConfigProperty = new \ReflectionProperty(Utils::class, 'oConfig');
+		$oConfigProperty->setValue(null, $oParametersMock);
+
+		// Note: assertEquals did not seem to be type-safe
+		$this->assertThat(Utils::GetConfigurationValue('foobar', $default, $iFilter), new IsIdentical($expected));
 	}
 }
