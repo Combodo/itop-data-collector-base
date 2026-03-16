@@ -1011,7 +1011,7 @@ abstract class Collector
 					}
 
 					// Now check the other way around: are there too many attributes defined?
-					foreach ($aDS2['attribute_list'] as $sKey => $aDef) {
+					foreach ($aDS2['attribute_list'] as $aDef) {
 						$sAttCode = $aDef['attcode'];
 						if (!$this->FindAttr($sAttCode, $aDS1['attribute_list']) && !$this->AttributeIsOptional($sAttCode)) {
 							Utils::Log(LOG_NOTICE, "Comparison: Found the extra definition of the non-optional attribute '$sAttCode' in iTop. Data sources differ. Nothing to do. Update json definition if you want to update this field in iTop.");
