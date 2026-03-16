@@ -50,12 +50,6 @@ class iTopPersonCollector extends Collector
 	 */
 	public function AttributeIsOptional($sAttCode)
 	{
-		foreach ($this->GetOptionalAttributes() as $sAttOptionalCode){
-			if ($sAttCode === $sAttOptionalCode){
-				return true;
-			}
-		}
-
-		return false;
+		return in_array($sAttCode, $this->GetOptionalAttributes());
 	}
 }
