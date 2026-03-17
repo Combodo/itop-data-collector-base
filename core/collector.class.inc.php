@@ -882,7 +882,7 @@ abstract class Collector
 			$oClient = new RestClient();
 		}
 		// Ignore read-only fields
-		foreach (Collector::READONLY_FIELDS as $sField){
+		foreach (static::READONLY_FIELDS as $sField){
 			if (array_key_exists($sField, $aSourceDefinition)){
 				unset($aSourceDefinition[$sField]);
 			}
@@ -977,7 +977,7 @@ abstract class Collector
 	protected function DataSourcesAreEquivalent($aDS1, $aDS2)
 	{
 		foreach ($aDS1 as $sKey => $value) {
-			if (in_array($sKey, Collector::READONLY_FIELDS)){
+			if (in_array($sKey, static::READONLY_FIELDS)){
 				// Ignore all read-only attributes
 				continue;
 			}
@@ -1032,7 +1032,7 @@ abstract class Collector
 		}
 		//Check the other way around
 		foreach ($aDS2 as $sKey => $value) {
-			if (in_array($sKey, Collector::READONLY_FIELDS)){
+			if (in_array($sKey, static::READONLY_FIELDS)){
 				// Ignore all read-only attributes
 				continue;
 			}
