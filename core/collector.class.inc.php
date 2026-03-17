@@ -848,7 +848,7 @@ abstract class Collector
 		$ret = false;
 
 		// Ignore read-only fields
-		foreach (self::READONLY_FIELDS as $sField){
+		foreach (static::READONLY_FIELDS as $sField){
 			if (array_key_exists($sField, $aSourceDefinition)){
 				unset($aSourceDefinition[$sField]);
 			}
