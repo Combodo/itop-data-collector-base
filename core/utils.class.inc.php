@@ -29,7 +29,7 @@ class Utils
 	public static $sProjectName = "";
 	public static $sStep = "";
 	public static $oCollector = "";
-	protected static $oConfig = null;
+	protected static Parameters|null $oConfig;
 	protected static $aConfigFiles = [];
 	protected static $iMockLogLevel = LOG_ERR;
 
@@ -295,11 +295,14 @@ class Utils
 	 *
 	 * @param string $sCode
 	 * @param mixed $defaultValue
+	 * @param int $iFilter The filter to apply
 	 *
 	 * @return mixed
 	 * @throws Exception
+	 *
+	 * @see filter_var()
 	 */
-	public static function GetConfigurationValue($sCode, $defaultValue = '')
+	public static function GetConfigurationValue(string $sCode, mixed $defaultValue = '', int $iFilter = FILTER_FLAG_NONE): mixed
 	{
 		if (self::$oConfig == null) {
 			self::LoadConfig();
@@ -307,6 +310,12 @@ class Utils
 
 		$value = self::$oConfig->Get($sCode, $defaultValue);
 		$value = self::Substitute($value);
+
+		if ($iFilter) {
+			$iOptions = FILTER_NULL_ON_FAILURE | (is_array($value) ? FILTER_REQUIRE_ARRAY : 0);
+			$value = filter_var($value, $iFilter, $iOptions);
+			$value ??= filter_var($defaultValue, $iFilter, $iOptions) ?? $defaultValue;
+		}
 
 		return $value;
 	}
