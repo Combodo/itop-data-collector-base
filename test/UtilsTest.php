@@ -315,10 +315,9 @@ class UtilsTest extends TestCase
 
 	public static function LogMessageProvider()
 	{
-		$sPlaceHolderWithUEFF = file_get_contents(__DIR__.'/resources/string_with_ueff_char.txt');
 		return [
-			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key', will be ignored."],
-			'string with hidden whitespace <FEFF>' => ['placeholder' => self::AddUEFFAtBegining('primary_key'), 'expected_log' => "Invalid column '\uFEFFprimary_key', will be ignored."],
+			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key'"],
+			'string with hidden whitespace <FEFF>' => ['placeholder' => self::AddUEFFAtBegining('primary_key'), 'expected_log' => "Invalid column '\uFEFFprimary_key'"],
 		];
 	}
 
@@ -334,7 +333,7 @@ class UtilsTest extends TestCase
 			->method('Log')
 			->with(LOG_WARNING, $sExpectedLog);
 
-		Utils::Log(LOG_WARNING, "Invalid column '$sPlaceHolder', will be ignored.");
+		Utils::Log(LOG_WARNING, "Invalid column '$sPlaceHolder'");
 	}
 
 	private static function AddUEFFAtBegining(string $sPlaceHolder): string
@@ -344,10 +343,18 @@ class UtilsTest extends TestCase
 
 	public static function LogMessageWithPlaceHoldersProvider()
 	{
+		$sStringWithUEFFAtBegining = self::AddUEFFAtBegining('primary_key');
+
 		return [
-			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key', will be ignored."],
-			'string with hidden whitespace <FEFF>' => ['placeholder' => self::AddUEFFAtBegining('primary_key'), 'expected_log' => "Invalid column '\\\\uFEFFprimary_key', will be ignored."],
-			'array' => ['placeholder' => ['primary_key' => "123"], 'expected_log' => "Invalid column '\"primary_key\":\"123\"', will be ignored."],
+			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key'"],
+			'empty string' => ['placeholder' => '', 'expected_log' => "Invalid column ''"],
+			'string with hidden whitespace <FEFF>' => ['placeholder' => $sStringWithUEFFAtBegining, 'expected_log' => "Invalid column '\\\\uFEFFprimary_key'"],
+			'dict' => ['placeholder' => ['primary_key' => "123"], 'expected_log' => "Invalid column '\"primary_key\":\"123\"'"],
+			'dict with hidden whitespace <FEFF>' => ['placeholder' => [$sStringWithUEFFAtBegining => "123"], 'expected_log' => "Invalid column '\"\\\\uFEFFprimary_key\":\"123\"'"],
+			'array' => ['placeholder' => ["123"], 'expected_log' => "Invalid column '\"123\"'"],
+			'array with hidden whitespace <FEFF>' => ['placeholder' => [$sStringWithUEFFAtBegining], 'expected_log' => "Invalid column '\"\\\\uFEFFprimary_key\"'"],
+			'int' => ['placeholder' => 123, 'expected_log' => "Invalid column '123'"],
+			'null' => ['placeholder' => null, 'expected_log' => "Invalid column ''"],
 		];
 	}
 
@@ -363,7 +370,7 @@ class UtilsTest extends TestCase
 			->method('Log')
 			->with(LOG_WARNING, $sExpectedLog);
 
-		Utils::Log(LOG_WARNING, "Invalid column '%1\$s', will be ignored.", $sPlaceHolder);
+		Utils::Log(LOG_WARNING, "Invalid column '%1\$s'", $sPlaceHolder);
 	}
 
 	public function testLogFormattedMessageWithFurtherPlaceHolders()

@@ -159,7 +159,12 @@ class Utils
 		if (count($aArguments) > 0) {
 			$aJsonEncodedArgs = [];
 			foreach ($aArguments as $sArg) {
-				$aJsonEncodedArgs[] = substr(json_encode($sArg), 1, -1);
+				if (is_array($sArg) || is_string($sArg)) {
+					$sJson = json_encode($sArg) ?? '';
+					$aJsonEncodedArgs[] = substr($sJson, 1, -1);
+				} else {
+					$aJsonEncodedArgs[] = (string) $sArg;
+				}
 			}
 			$sMessage = vsprintf($sMessage, $aJsonEncodedArgs);
 		}
