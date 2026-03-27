@@ -142,7 +142,7 @@ class RestClient
 
 		$oC = new RestClient();
 		// Order: Put the newest versions first.
-		$aKnownVersions = ['2.0', '1.2', '1.1', '1.0');
+		$aKnownVersions = ['1.4', '1.3', '1.2', '1.1', '1.0'];
 		foreach ($aKnownVersions as $sVersion) {
 			$oC->SetVersion($sVersion);
 			$aRet = $oC->ListOperations();
