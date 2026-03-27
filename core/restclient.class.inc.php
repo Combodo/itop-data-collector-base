@@ -131,14 +131,14 @@ class RestClient
 		return $aResults;
 	}
 
-
 	/**
 	 * Gets the iTop API version in use. It tries all the known versions, starting from the newest one.
 	 *
 	 * @return string The newest supported version.
 	 * @throws Exception If no supported version is found.
 	 */
-	public static function GetNewestKnownVersion() : string {
+	public static function GetNewestKnownVersion(): string
+	{
 
 		$oC = new RestClient();
 		// Order: Put the newest versions first.
@@ -153,7 +153,7 @@ class RestClient
 		}
 
 		throw new Exception("Unable to detect an iTop API. Validate the URL and the credentials, and check if appropriate profiles have been assigned to the user (e.g. 'REST Services User').");
-		
+
 	}
 
 	/**
