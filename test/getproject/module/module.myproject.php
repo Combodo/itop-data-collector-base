@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This program is free software; you can redistribute it and/or modify
@@ -17,7 +18,7 @@
 SetupWebPage::AddModule(
 	__FILE__, // Path to the current file, all other file names are relative to the directory containing this file
 	'centreon-collector/1.0.0',
-	array(
+	[
 		// Identification
 		//
 		'label'                => 'Centreon collector',
@@ -25,18 +26,18 @@ SetupWebPage::AddModule(
 
 		// Setup
 		//
-		'dependencies'         => array(),
+		'dependencies'         => [],
 		'mandatory'            => false,
 		'visible'              => false,
 
 		// Components
 		//
-		'datamodel'            => array(),
-		'webservice'           => array(),
-		'data.struct'          => array(// add your 'structure' definition XML files here,
-		),
-		'data.sample'          => array(// add your sample data XML files here,
-		),
+		'datamodel'            => [],
+		'webservice'           => [],
+		'data.struct'          => [// add your 'structure' definition XML files here,
+		],
+		'data.sample'          => [// add your sample data XML files here,
+		],
 
 		// Documentation
 		//
@@ -45,7 +46,7 @@ SetupWebPage::AddModule(
 
 		// Default settings
 		//
-		'settings'             => array(// Module specific settings go here, if any
-		),
-	)
+		'settings'             => [// Module specific settings go here, if any
+		],
+	]
 );

@@ -24,13 +24,13 @@ class iTopPersonCollector extends Collector
 
 		return null;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 * @see Collector::AttributeIsOptional()
 	 */
 	public function AttributeIsOptional($sAttCode)
 	{
-	    return ($sAttCode === 'optional');
+		return ($sAttCode === 'optional');
 	}
 }

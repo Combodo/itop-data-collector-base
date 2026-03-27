@@ -3,4 +3,3 @@
 class TestCollectionPlan extends CollectionPlan
 {
 }
-

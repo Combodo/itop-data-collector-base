@@ -56,7 +56,6 @@ class OrchestratorTest extends TestCase
 
 		require_once self::$sCollectorPath."iTopPersonCsvCollector.class.inc.php";
 
-
 		$this->oMockedLogger->expects($this->exactly(0))
 			->method("Log");
 
@@ -84,9 +83,9 @@ class OrchestratorTest extends TestCase
 
 	public function OrgCollectorProvider()
 	{
-		return array(
-			"empty_module_file" => array("myproject"),
-			"module" => array("centreon-collector", "module"),
-		);
+		return [
+			"empty_module_file" => ["myproject"],
+			"module" => ["centreon-collector", "module"],
+		];
 	}
 }

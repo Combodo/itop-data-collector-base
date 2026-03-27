@@ -1,7 +1,8 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -34,6 +35,7 @@ abstract class SQLCollector extends Collector
 	protected $oDB;
 	protected $oStatement;
 	protected $idx;
+	protected $sQuery;
 
 	/**
 	 * Initalization
@@ -63,23 +65,22 @@ abstract class SQLCollector extends Collector
 		}
 
 		// Read the SQL query from the configuration
-		$sQuery = Utils::GetConfigurationValue(get_class($this)."_query", '');
-		if ($sQuery == '') {
+		$this->sQuery = Utils::GetConfigurationValue(get_class($this)."_query", '');
+		if ($this->sQuery == '') {
 			// Try all lowercase
-			$sQuery = Utils::GetConfigurationValue(strtolower(get_class($this))."_query", '');
+			$this->sQuery = Utils::GetConfigurationValue(strtolower(get_class($this))."_query", '');
 		}
-		if ($sQuery == '') {
+		if ($this->sQuery == '') {
 			// No query at all !!
 			Utils::Log(LOG_ERR, "[".get_class($this)."] no SQL query configured! Cannot collect data. The query was expected to be configured as '".strtolower(get_class($this))."_query' in the configuration file.");
 
 			return false;
 		}
 
-
-		$this->oStatement = $this->oDB->prepare($sQuery);
+		$this->oStatement = $this->oDB->prepare($this->sQuery);
 		if ($this->oStatement === false) {
 			$aInfo = $this->oDB->errorInfo();
-			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 			return false;
 		}
@@ -87,7 +88,7 @@ abstract class SQLCollector extends Collector
 		$this->oStatement->execute();
 		if ($this->oStatement->errorCode() !== '00000') {
 			$aInfo = $this->oStatement->errorInfo();
-			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+			Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 			return false;
 		}
@@ -125,8 +126,7 @@ abstract class SQLCollector extends Collector
 
 		try {
 			$this->oDB = new PDO($sConnectionString, $sLogin, $sPassword);
-		}
-		catch (PDOException $e) {
+		} catch (PDOException $e) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] Database connection failed: ".$e->getMessage());
 			$this->oDB = null;
 
@@ -223,7 +223,7 @@ abstract class MySQLCollector extends SQLCollector
 				$this->oStatement = $this->oDB->prepare("SET NAMES 'utf8'");
 				if ($this->oStatement === false) {
 					$aInfo = $this->oDB->errorInfo();
-					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to prepare the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 					return false;
 				}
@@ -231,12 +231,11 @@ abstract class MySQLCollector extends SQLCollector
 				$bRet = $this->oStatement->execute();
 				if ($this->oStatement->errorCode() !== '00000') {
 					$aInfo = $this->oStatement->errorInfo();
-					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
+					Utils::Log(LOG_ERR, "[".get_class($this)."] Failed to execute the query: '$this->sQuery'. Reason: ".$aInfo[0].', '.$aInfo[2]);
 
 					return false;
 				}
-			}
-			catch (PDOException $e) {
+			} catch (PDOException $e) {
 				Utils::Log(LOG_ERR, "[".get_class($this)."] SQL query: \"SET NAMES 'utf8'\" failed: ".$e->getMessage());
 				$this->oDB = null;
 

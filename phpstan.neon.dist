@@ -1,0 +1,21 @@
+includes:
+    # for an explanation of the baseline concept, see: https://phpstan.org/user-guide/baseline
+    - phpstan-baseline.neon
+
+parameters:
+    level: 1
+
+    scanDirectories:
+        - vendor
+
+    excludePaths:
+        - test/php-code-style
+
+    paths:
+        - core
+        - test
+        - toolkit
+        - exec.php
+
+    bootstrapFiles:
+        - vendor/autoload.php

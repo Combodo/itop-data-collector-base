@@ -5,6 +5,7 @@
 
   <iTopPersonCsvCollector>
     <csv_file>collectors/iTopPersonCsvCollector.csv</csv_file>
+    <separator>,</separator>
     <has_header>no</has_header>
     <fields>
       <first_name>2</first_name>
@@ -18,7 +19,7 @@
       <org_id>4</org_id>
       <name>3</name>
     </fields>
-    <command>echo '1;isaac;asimov;Demo;123456789;06543210;9998877665544;issac.asimov@function.io;writer;Active' >collectors/iTopPersonCsvCollector.csv</command>
+    <command>echo 1,isaac,asimov,Demo,123456789,06543210,9998877665544,issac.asimov@function.io,writer,Active>collectors/iTopPersonCsvCollector.csv</command>
   </iTopPersonCsvCollector>
 
   <synchro_user>admin</synchro_user>

@@ -1,7 +1,8 @@
 <?php
+
 // Copyright (C) 2020 Combodo SARL
 //
-//   This application is free software; you can redistribute it and/or modify	
+//   This application is free software; you can redistribute it and/or modify
 //   it under the terms of the GNU Affero General Public License as published by
 //   the Free Software Foundation, either version 3 of the License, or
 //   (at your option) any later version.
@@ -16,9 +17,7 @@
 
 require_once(APPROOT.'collectors\ITopPersonJsonCollector.class.inc.php');
 
-
 // Register the collectors (one collector class per data synchro task to run)
 // and tell the orchestrator in which order to run them
 $iRank = 1;
 Orchestrator::AddCollector($iRank++, 'ITopPersonJsonCollector');
-

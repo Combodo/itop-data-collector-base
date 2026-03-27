@@ -1,0 +1,4 @@
+primary_key;name;status;first_name;email;phone;function;org_id;picture_mimetype;picture_filename;picture_data
+1;"My last name";active;"My first name";my.email@foo.org;"+00 000 000 000";;1;image/gif;avatar.gif;wxyz
+2;Picasso;active;Pablo;pablo@demo.com;;;3;image/jpg;avatar2.jpg;abcd
+3;Dali;active;Salvador;dali@demo.com;;;3;image/png;avatar3.png;efgh

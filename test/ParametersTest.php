@@ -1,4 +1,5 @@
 <?php
+
 /*
  * @copyright   Copyright (C) 2010-2023 Combodo SARL
  * @license     http://opensource.org/licenses/AGPL-3.0
@@ -13,20 +14,23 @@ use PHPUnit\Framework\TestCase;
 
 require_once(APPROOT.'core/parameters.class.inc.php');
 
-class ParametersTest extends TestCase {
+class ParametersTest extends TestCase
+{
 	/**
 	 * @dataProvider ToXMLProvider
 	 */
-	public function testToXML(array $aData, string $sExpectedDump) {
+	public function testToXML(array $aData, string $sExpectedDump)
+	{
 		$oParameters = new Parameters();
 		$this->SetNonPublicProperty($oParameters, 'aData', $aData);
 
 		$sDumpParameters = $oParameters->Dump();
 
-		$this->assertContains($sExpectedDump, $sDumpParameters);
+		$this->assertStringContainsString($sExpectedDump, $sDumpParameters);
 	}
 
-	public function ToXMLProvider() {
+	public function ToXMLProvider()
+	{
 		return [
 			'Parameter with &amp;' => [
 				'aData' => ['escaped_param' => '(&(objectClass=person)(mail=*))'],

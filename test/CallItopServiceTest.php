@@ -31,15 +31,15 @@ class CallItopServiceTest extends TestCase
 		$reflection->setValue(null, null);
 	}
 
-
-	public function GetCredentialsProvider(){
+	public function GetCredentialsProvider()
+	{
 		return [
 			'login/password (nominal)' => [
 				'aParameters' => [
 					'itop_login' => 'admin1',
-					'itop_password' => 'admin2'
+					'itop_password' => 'admin2',
 				],
-				'aExpectedCredentials' => ['auth_user'=> 'admin1', 'auth_pwd'=>'admin2']
+				'aExpectedCredentials' => ['auth_user' => 'admin1', 'auth_pwd' => 'admin2'],
 			],
 			'new token' => [
 				'aParameters' => [
@@ -47,7 +47,7 @@ class CallItopServiceTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 			],
 			'new token over legacy one' => [
 				'aParameters' => [
@@ -56,7 +56,7 @@ class CallItopServiceTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 				],
-				'aExpectedCredentials' => ['auth_token'=> 'admin4']
+				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 			],
 		];
 	}
@@ -64,13 +64,14 @@ class CallItopServiceTest extends TestCase
 	/**
 	 * @dataProvider GetCredentialsProvider
 	 */
-	public function testCallItopViaHttp($aParameters, $aExpectedCredentials){
+	public function testCallItopViaHttp($aParameters, $aExpectedCredentials)
+	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
 			->will($this->returnCallback(
-				function($sKey, $aDefaultValue) use ($aParameters) {
-					if (array_key_exists($sKey, $aParameters)){
+				function ($sKey, $aDefaultValue) use ($aParameters) {
+					if (array_key_exists($sKey, $aParameters)) {
 						return $aParameters[$sKey];
 					}
 					return $aDefaultValue;
@@ -88,7 +89,7 @@ class CallItopServiceTest extends TestCase
 		$aAdditionalData = ['gabu' => 'zomeu'];
 		$oMockedDoPostRequestService->expects($this->once())
 			->method('DoPostRequest')
-			->with($uri, array_merge($aExpectedCredentials, $aAdditionalData ))
+			->with($uri, array_merge($aExpectedCredentials, $aAdditionalData))
 		;
 
 		$oCallItopService = new CallItopService();

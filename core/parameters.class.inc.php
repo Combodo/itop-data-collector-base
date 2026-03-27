@@ -1,4 +1,5 @@
 <?php
+
 // Copyright (C) 2014 Combodo SARL
 //
 //   This application is free software; you can redistribute it and/or modify
@@ -29,7 +30,7 @@ class Parameters
 
 	public function __construct($sInputFile = null)
 	{
-		$this->aData = array();
+		$this->aData = [];
 		if ($sInputFile != null) {
 			$this->LoadFromFile($sInputFile);
 		}
@@ -116,7 +117,7 @@ class Parameters
 			libxml_use_internal_errors(true);
 			$oXML = @simplexml_load_file($this->sParametersFile);
 			if (!$oXML) {
-				$aMessage = array();
+				$aMessage = [];
 				foreach (libxml_get_errors() as $oError) {
 					$aMessage[] = "(line: {$oError->line}) ".$oError->message; // Beware: $oError->columns sometimes returns wrong (misleading) value
 				}
@@ -124,7 +125,7 @@ class Parameters
 				throw new InvalidParameterException("Invalid Parameters file '{$this->sParametersFile}': ".implode(' ', $aMessage));
 			}
 
-			$this->aData = array();
+			$this->aData = [];
 			foreach ($oXML as $key => $oElement) {
 				$this->aData[(string)$key] = $this->ReadElement($oElement);
 			}
@@ -137,13 +138,13 @@ class Parameters
 		$sNodeType = $this->GetAttribute('type', $oElement, $sDefaultNodeType);
 		switch ($sNodeType) {
 			case 'array':
-				$value = array();
+				$value = [];
 				// Treat the current element as zero based array, child tag names are NOT meaningful
 				$sFirstTagName = null;
 				foreach ($oElement->children() as $oChildElement) {
 					if ($sFirstTagName == null) {
 						$sFirstTagName = $oChildElement->getName();
-					} else if ($sFirstTagName != $oChildElement->getName()) {
+					} elseif ($sFirstTagName != $oChildElement->getName()) {
 						throw new InvalidParameterException("Invalid Parameters file '{$this->sParametersFile}': mixed tags ('$sFirstTagName' and '".$oChildElement->getName()."') inside array '".$oElement->getName()."'");
 					}
 					$val = $this->ReadElement($oChildElement);
@@ -152,7 +153,7 @@ class Parameters
 				break;
 
 			case 'hash':
-				$value = array();
+				$value = [];
 				// Treat the current element as a hash, child tag names are keys
 				foreach ($oElement->children() as $oChildElement) {
 					if (array_key_exists($oChildElement->getName(), $value)) {
@@ -190,7 +191,7 @@ class Parameters
 		return $sRet;
 	}
 
-	function Merge(Parameters $oTask)
+	public function Merge(Parameters $oTask)
 	{
 		$this->aData = $this->array_merge_recursive_distinct($this->aData, $oTask->aData);
 	}
@@ -226,7 +227,7 @@ class Parameters
 		$merged = $array1;
 
 		foreach ($array2 as $key => &$value) {
-			if (is_array($value) && isset ($merged [$key]) && is_array($merged [$key])) {
+			if (is_array($value) && isset($merged [$key]) && is_array($merged [$key])) {
 				$merged [$key] = $this->array_merge_recursive_distinct($merged [$key], $value);
 			} else {
 				$merged [$key] = $value;
