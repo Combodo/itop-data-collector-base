@@ -23,6 +23,7 @@ class UtilsTest extends TestCase
 	{
 		parent::tearDown();
 		Utils::MockDoPostRequestService(null);
+		Utils::MockLog(null);
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
 		$reflection->setAccessible(true);
@@ -310,5 +311,89 @@ class UtilsTest extends TestCase
 		$oRestClient = $this->PrepareCheckModuleInstallation(1);
 		$this->expectExceptionMessage('Required iTop module fake-module is considered as not installed due to: Found: 0');
 		Utils::GetModuleVersion('fake-module', $oRestClient);
+	}
+
+	public static function LogMessageProvider()
+	{
+		return [
+			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key'"],
+			'string with hidden whitespace <FEFF>' => ['placeholder' => self::AddFEFFAtBegining('primary_key'), 'expected_log' => "Invalid column '\uFEFFprimary_key'"],
+		];
+	}
+
+	/**
+	 * @dataProvider LogMessageProvider
+	 */
+	public function testLogSimpleMessage(string $sPlaceHolder, string $sExpectedLog)
+	{
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, $sExpectedLog);
+
+		Utils::Log(LOG_WARNING, "Invalid column '$sPlaceHolder'");
+	}
+
+	private static function AddFEFFAtBegining(string $sPlaceHolder): string
+	{
+		return  "\uFEFF".$sPlaceHolder;
+	}
+
+	public static function LogMessageWithPlaceHoldersProvider()
+	{
+		$sStringWithUEFFAtBegining = self::AddFEFFAtBegining('primary_key');
+
+		return [
+			'string' => ['placeholder' => 'primary_key', 'expected_log' => "Invalid column 'primary_key'"],
+			'empty string' => ['placeholder' => '', 'expected_log' => "Invalid column ''"],
+			'string with hidden whitespace <FEFF>' => ['placeholder' => $sStringWithUEFFAtBegining, 'expected_log' => "Invalid column '\\\\uFEFFprimary_key'"],
+			'dict' => ['placeholder' => ['primary_key' => "123"], 'expected_log' => "Invalid column '\"primary_key\":\"123\"'"],
+			'dict with hidden whitespace <FEFF>' => ['placeholder' => [$sStringWithUEFFAtBegining => "123"], 'expected_log' => "Invalid column '\"\\\\uFEFFprimary_key\":\"123\"'"],
+			'array' => ['placeholder' => ["123"], 'expected_log' => "Invalid column '\"123\"'"],
+			'array with hidden whitespace <FEFF>' => ['placeholder' => [$sStringWithUEFFAtBegining], 'expected_log' => "Invalid column '\"\\\\uFEFFprimary_key\"'"],
+			'int' => ['placeholder' => 123, 'expected_log' => "Invalid column '123'"],
+			'null' => ['placeholder' => null, 'expected_log' => "Invalid column ''"],
+		];
+	}
+
+	/**
+	 * @dataProvider LogMessageWithPlaceHoldersProvider
+	 */
+	public function testLogFormattedMessageWithPlaceHolder($sPlaceHolder, string $sExpectedLog)
+	{
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, $sExpectedLog);
+
+		Utils::Log(LOG_WARNING, "Invalid column '%1\$s'", $sPlaceHolder);
+	}
+
+	public function testLogFormattedMessageWithIntPlaceHolder()
+	{
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, "Nb of columns '0'");
+
+		Utils::Log(LOG_WARNING, "Nb of columns '%d'", count([]));
+	}
+
+	public function testLogFormattedMessageWithFurtherPlaceHolders()
+	{
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->once())
+			->method('Log')
+			->with(LOG_WARNING, "Invalid columns 'primary_key' 'colA' 'colB'.");
+
+		Utils::Log(LOG_WARNING, "Invalid columns '%1\$s' '%2\$s' '%3\$s'.", "primary_key", "colA", "colB");
 	}
 }
