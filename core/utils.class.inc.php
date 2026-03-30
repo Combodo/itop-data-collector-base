@@ -163,7 +163,7 @@ class Utils
 					$sJson = json_encode($sArg) ?? '';
 					$aJsonEncodedArgs[] = substr($sJson, 1, -1);
 				} else {
-					$aJsonEncodedArgs[] = (string) $sArg;
+					$aJsonEncodedArgs[] = $sArg;
 				}
 			}
 			$sMessage = vsprintf($sMessage, $aJsonEncodedArgs);
