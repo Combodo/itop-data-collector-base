@@ -147,11 +147,12 @@ class Utils
 	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see:
 	 *     www.php.net/manual/en/function.syslog.php)
 	 * @param string $sMessage The message to log
+	 * @param array $aArguments
 	 *
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function Log($iPriority, $sMessage, ...$aArguments)
+	public static function Log($iPriority, $sMessage, ...$aArguments) : void
 	{
 		if (count($aArguments) > 0) {
 			$aJsonEncodedArgs = [];
