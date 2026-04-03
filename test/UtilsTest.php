@@ -406,8 +406,8 @@ class UtilsTest extends TestCase
 			->method('Log')
 			->with(LOG_WARNING, "column: 'primary_key'");
 
-		Utils::Log(LOG_WARNING, "column: '%1\$s", "primary_key");
-		Utils::Log(LOG_WARNING, 'column: %1$s', "primary_key");
+		Utils::Log(LOG_WARNING, "column: '%1\$s'", "primary_key");
+		Utils::Log(LOG_WARNING, 'column: \'%1$s\'', "primary_key");
 	}
 
 	public function testLog_PlaceHolderInvalid()

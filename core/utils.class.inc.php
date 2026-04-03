@@ -151,11 +151,8 @@ class Utils
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function Log($iPriority, $sMessage /*, ... arguments ....*/)
+	public static function Log($iPriority, $sMessage, ...$aArguments)
 	{
-		$aArguments = func_get_args();
-		array_shift($aArguments);
-		array_shift($aArguments);
 		if (count($aArguments) > 0) {
 			$aJsonEncodedArgs = [];
 			foreach ($aArguments as $sArg) {
