@@ -152,7 +152,7 @@ class Utils
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function Log($iPriority, $sMessage, ...$aArguments) : void
+	public static function Log($iPriority, $sMessage, ...$aArguments): void
 	{
 		if (count($aArguments) > 0) {
 			$aJsonEncodedArgs = [];
