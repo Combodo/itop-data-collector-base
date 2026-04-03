@@ -84,6 +84,7 @@ class Parameters
 				}
 			}
 		} else {
+			if (is_int($data)) $oNode->setAttribute('type', 'int');
 			$oTextNode = $oRoot->ownerDocument->createTextNode($data);
 			$oNode->appendChild($oTextNode);
 		}
