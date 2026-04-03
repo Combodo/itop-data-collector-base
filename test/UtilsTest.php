@@ -396,4 +396,24 @@ class UtilsTest extends TestCase
 
 		Utils::Log(LOG_WARNING, "Invalid columns '%1\$s' '%2\$s' '%3\$s'.", "primary_key", "colA", "colB");
 	}
+
+	public function testLog_PlaceHolderOk()
+	{
+		$oMockedLogger = $this->createMock("UtilsLogger");
+		Utils::MockLog($oMockedLogger, LOG_WARNING);
+
+		$oMockedLogger->expects($this->exactly(2))
+			->method('Log')
+			->with(LOG_WARNING, "column: 'primary_key'");
+
+		Utils::Log(LOG_WARNING, "column: '%1\$s", "primary_key");
+		Utils::Log(LOG_WARNING, 'column: %1$s', "primary_key");
+	}
+
+	public function testLog_PlaceHolderInvalid()
+	{
+		$this->expectException('Error');
+		$this->expectExceptionMessage('Unknown format specifier "\"');
+		Utils::Log(LOG_WARNING, 'column: %1\$s', "primary_key");
+	}
 }
