@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Default values for parameters. Do NOT alter this file, use params.local.xml instead -->
+<?xml-model href="../doc/schema.xsd"?>
 <parameters>
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
