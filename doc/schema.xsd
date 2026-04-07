@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="parameters">
+		<xs:complexType>
+			<xs:choice minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="itop_url" type="string"/>
+				<xs:element name="itop_login" type="string"/>
+				<xs:element name="itop_password" type="string"/>
+				<xs:element name="itop_token" type="string"/>
+				<xs:element name="itop_login_mode" type="string"/>
+
+				<xs:element name="console_log_level" type="logLevel"/>
+				<xs:element name="eventissue_log_level" type="logLevel"/>
+				<xs:element name="console_log_dateformat" type="string"/>
+				<xs:element name="syslog_log_level" type="logLevel"/>
+
+				<xs:element name="data_path" type="string"/>
+				<xs:element name="max_chunk_size" type="integer"/>
+				<xs:element name="itop_synchro_timeout" type="integer"/>
+				<xs:element name="stop_on_synchro_error" type="boolean"/>
+
+				<xs:element name="curl_options" type="hash"/>
+				<xs:element name="contact_to_notify" type="string"/>
+				<xs:element name="synchro_user" type="string"/>
+				<xs:element name="date_format" type="string"/>
+
+				<xs:element name="json_placeholders" type="hash"/>
+
+				<!-- Allow any other field (extended by data collectors) -->
+				<xs:any minOccurs="0" maxOccurs="unbounded"/>
+			</xs:choice>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="string">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="type" type="xs:string" fixed="string"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="integer">
+		<xs:simpleContent>
+			<xs:extension base="xs:integer">
+				<xs:attribute name="type" type="integerTypeOptions"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="integerTypeOptions">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="int"/>
+			<xs:enumeration value="integer"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="php-boolean">
+		<xs:union memberTypes="xs:boolean">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="yes"/>
+					<xs:enumeration value="no"/>
+					<xs:enumeration value="on"/>
+					<xs:enumeration value="off"/>
+					<xs:enumeration value="1.0"/>
+					<xs:enumeration value="0.0"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:union>
+	</xs:simpleType>
+	<xs:complexType name="boolean">
+		<xs:simpleContent>
+			<xs:extension base="php-boolean">
+				<xs:attribute name="type" type="booleanTypeOptions" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:simpleType name="booleanTypeOptions">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="bool"/>
+			<xs:enumeration value="boolean"/>
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:complexType name="hash">
+		<xs:sequence>
+			<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="type" type="xs:string" fixed="hash"/>
+	</xs:complexType>
+
+	<xs:complexType name="array">
+		<xs:sequence>
+			<xs:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="type" type="xs:string" fixed="array" use="required"/>
+	</xs:complexType>
+
+	<xs:simpleType name="logLevelContent">
+		<xs:annotation>
+			<xs:documentation>
+				-1 : none, nothing will be logged
+				 0 : System wide emergency errors only (LOG_EMERG)
+				 1 : Alert errors (LOG_ALERT)
+				 2 : Critical errors (LOG_CRIT)
+				 3 : Application level errors (LOG_ERR)
+				 4 : Warnings
+				 5 : Notice
+				 6 : Information
+				 7 : Debug traces
+			</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer">
+			<xs:minInclusive value="-1"/>
+			<xs:maxInclusive value="7"/>		
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="logLevel">
+		<xs:simpleContent>
+			<xs:extension base="logLevelContent">
+				<xs:attribute name="type" type="integerTypeOptions"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+
+	<xs:complexType name="mapping">
+		<xs:sequence>
+			<xs:element name="pattern" type="xs:string" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="type" type="xs:string" fixed="array" use="required"/>
+	</xs:complexType>
+</xs:schema>
