@@ -166,7 +166,12 @@ class Parameters
 
 			case 'int':
 			case 'integer':
-				$value = (int)$oElement;
+				$value = filter_var($oElement, FILTER_VALIDATE_INT);
+				break;
+
+			case 'bool':
+			case 'boolean':
+				$value = filter_var($oElement, FILTER_VALIDATE_BOOL);
 				break;
 
 			case 'string':
