@@ -26,7 +26,6 @@ class UtilsTest extends TestCase
 		Utils::MockLog(null);
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, null);
 	}
 
@@ -163,7 +162,6 @@ class UtilsTest extends TestCase
 			));
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, $oParametersMock);
 
 		$this->assertEquals($aExpectedCredentials, Utils::GetCredentials());
@@ -187,7 +185,6 @@ class UtilsTest extends TestCase
 			));
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, $oParametersMock);
 
 		$this->assertEquals($sExpectedLoginMode, Utils::GetLoginMode());
@@ -247,12 +244,10 @@ class UtilsTest extends TestCase
 		$oRestClient = $this->createMock(RestClient::class);
 
 		$oReflectionLastInstallDate = new \ReflectionProperty(Utils::class, 'sLastInstallDate');
-		$oReflectionLastInstallDate->setAccessible(true);
 		$oReflectionLastInstallDate->setValue(null, '0000-00-00 00:00:00');
 
 		//reset cache
 		$oReflectionModuleVersions = new \ReflectionProperty(Utils::class, 'aModuleVersions');
-		$oReflectionModuleVersions->setAccessible(true);
 		$oReflectionModuleVersions->setValue(null, []);
 
 		$oRestClient->expects($this->exactly($iExpectedCallCount))

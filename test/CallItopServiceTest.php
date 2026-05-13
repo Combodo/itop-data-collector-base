@@ -27,7 +27,6 @@ class CallItopServiceTest extends TestCase
 		Utils::MockDoPostRequestService(null);
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, null);
 	}
 
@@ -79,7 +78,6 @@ class CallItopServiceTest extends TestCase
 			));
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, $oParametersMock);
 
 		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
