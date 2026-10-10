@@ -270,7 +270,6 @@ CSV;
 	{
 		$class = new \ReflectionClass($sObjectClass);
 		$method = $class->getMethod($sMethodName);
-		$method->setAccessible(true);
 
 		return $method->invokeArgs($oObject, $aArgs);
 	}

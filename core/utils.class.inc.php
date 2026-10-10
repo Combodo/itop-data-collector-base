@@ -516,7 +516,7 @@ class Utils
 					$aResponseHeaders[$sName] = $sValue;
 				}
 			}
-			curl_close($ch);
+			unset($ch);
 		} else {
 			// cURL is not available let's try with streams and fopen...
 

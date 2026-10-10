@@ -52,7 +52,6 @@ class ParametersTest extends TestCase
 	{
 		$class = new \ReflectionClass($sClass);
 		$property = $class->getProperty($sProperty);
-		$property->setAccessible(true);
 
 		return $property;
 	}

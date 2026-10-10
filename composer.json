@@ -1,6 +1,6 @@
 {
    "require": {
-       "php": ">=8.1 <8.4",
+       "php": ">=8.1 <8.6",
        "ext-libxml": "*"
    },
    "require-dev": {

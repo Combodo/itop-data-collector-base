@@ -409,7 +409,6 @@ JSON;
 
 		$class = new \ReflectionClass("JsonCollector");
 		$method = $class->getMethod("SearchFieldValues");
-		$method->setAccessible(true);
 		return $method->invokeArgs($oOrgCollector, [$aData, $aFieldPaths]);
 	}
 

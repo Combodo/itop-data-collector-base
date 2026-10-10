@@ -27,7 +27,6 @@ class RestTest extends TestCase
 		Utils::MockDoPostRequestService(null);
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, null);
 	}
 
@@ -97,7 +96,6 @@ class RestTest extends TestCase
 			));
 
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
-		$reflection->setAccessible(true);
 		$reflection->setValue(null, $oParametersMock);
 
 		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
