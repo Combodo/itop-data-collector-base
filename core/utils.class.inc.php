@@ -147,18 +147,33 @@ class Utils
 	 * @param int $iPriority Use the LOG_* constants for priority e.g. LOG_WARNING, LOG_INFO, LOG_ERR... (see:
 	 *     www.php.net/manual/en/function.syslog.php)
 	 * @param string $sMessage The message to log
+	 * @param array $aArguments
 	 *
 	 * @return void
 	 * @throws \Exception
 	 */
-	public static function Log($iPriority, $sMessage)
+	public static function Log($iPriority, $sMessage, ...$aArguments): void
 	{
+		if (count($aArguments) > 0) {
+			$aJsonEncodedArgs = [];
+			foreach ($aArguments as $sArg) {
+				if (is_array($sArg) || is_string($sArg)) {
+					$sJson = json_encode($sArg) ?? '';
+					$aJsonEncodedArgs[] = substr($sJson, 1, -1);
+				} else {
+					$aJsonEncodedArgs[] = $sArg;
+				}
+			}
+			$sMessage = vsprintf($sMessage, $aJsonEncodedArgs);
+		}
+
 		//testing only LOG_ERR
 		if (self::$oMockedLogger) {
 			if ($iPriority <= self::$iMockLogLevel) {
 				var_dump($sMessage);
 				self::$oMockedLogger->Log($iPriority, $sMessage);
 			}
+			return;
 		}
 
 		switch ($iPriority) {
@@ -498,6 +513,10 @@ class Utils
 				throw new IOException("Problem opening URL: $sUrl"
 					.PHP_EOL."    error msg: $sErrMsg"
 					.PHP_EOL."    curl_init error code: $iErr (cf https://www.php.net/manual/en/function.curl-errno.php)");
+			}
+			if (curl_getinfo($ch, CURLINFO_HTTP_CODE) >= 400) {
+				Utils::Log(LOG_ERR, 'HTTP error '.curl_getinfo($ch, CURLINFO_HTTP_CODE)." returned from URL: $sUrl"
+					.PHP_EOL."    response: $response");
 			}
 			if (is_array($aResponseHeaders)) {
 				$aHeaders = curl_getinfo($ch);

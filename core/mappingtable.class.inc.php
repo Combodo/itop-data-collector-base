@@ -67,7 +67,7 @@ class MappingTable
 		foreach ($this->aMappingTable as $aMapping) {
 			if (preg_match($aMapping['pattern'].'iu', $sRawValue, $aMatches)) { // 'i' for case insensitive matching, 'u' for utf-8 characters
 				$value = vsprintf($aMapping['replacement'], $aMatches); // found a suitable match
-				Utils::Log(LOG_DEBUG, "MappingTable[{$this->sConfigEntryName}]: input value '$sRawValue' matches '{$aMapping['pattern']}'. Output value is '$value'");
+				Utils::Log(LOG_DEBUG, 'MappingTable[%1$s]: input value \'%2$s\' matches \'%3$s\'. Output value is %4$s', $this->sConfigEntryName, $sRawValue, $aMapping['pattern'], $value);
 				break;
 			}
 		}
