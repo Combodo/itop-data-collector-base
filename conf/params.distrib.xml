@@ -4,6 +4,14 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
+
+  <!-- Oauth2 Client's settings -->
+  <hybridauth_oauth2/>
+  <itop_oauth2_clientid/>
+  <itop_oauth2_clientsecret/>
+  <itop_redirect_uri/>
+
+
   <itop_token/>
   <itop_login_mode/>
 
