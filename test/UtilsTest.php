@@ -4,7 +4,6 @@ namespace UnitTestFiles\Test;
 
 use Exception;
 use InvalidParameterException;
-use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\TestCase;
 use RestClient;
 use Utils;
