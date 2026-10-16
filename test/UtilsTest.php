@@ -3,6 +3,7 @@
 namespace UnitTestFiles\Test;
 
 use Exception;
+use InvalidParameterException;
 use PHPUnit\Framework\Constraint\IsIdentical;
 use PHPUnit\Framework\TestCase;
 use RestClient;
@@ -353,8 +354,9 @@ class UtilsTest extends TestCase
 			'integer filter wrong value' => [
 				'value' => 'foobar',
 				'default' => 123,
-				'expected' => 123,
+				'expected' => null,
 				'iFilter' => FILTER_VALIDATE_INT,
+				'sException' => InvalidParameterException::class,
 			],
 			'boolean simple value' => [
 				'value' => 'yes',
@@ -399,14 +401,16 @@ class UtilsTest extends TestCase
 			'boolean filter wrong value' => [
 				'value' => 'foobar',
 				'default' => 'yes',
-				'expected' => true,
+				'expected' => null,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+				'sException' => InvalidParameterException::class,
 			],
 			'boolean filter wrong default value' => [
 				'value' => null,
 				'default' => 'foobar',
-				'expected' => 'foobar',
+				'expected' => null,
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
+				'sException' => InvalidParameterException::class,
 			],
 			'boolean filter empty default value' => [
 				'value' => null,
@@ -415,20 +419,27 @@ class UtilsTest extends TestCase
 				'iFilter' => FILTER_VALIDATE_BOOLEAN,
 			],
 			'array simple value' => [
-				'value' => ['foo','bar','baz'],
+				'value' => ['foo', 'bar', 'baz'],
 				'default' => '',
-				'expected' => ['foo','bar','baz'],
+				'expected' => ['foo', 'bar', 'baz'],
 			],
 			'array default value' => [
 				'value' => null,
-				'default' => ['foo','bar','baz'],
-				'expected' => ['foo','bar','baz'],
+				'default' => ['foo', 'bar', 'baz'],
+				'expected' => ['foo', 'bar', 'baz'],
 			],
 			'array filter integer value' => [
-				'value' => ['123','456'],
+				'value' => ['123', '456'],
 				'default' => '',
-				'expected' => [123,456],
+				'expected' => [123, 456],
 				'iFilter' => FILTER_VALIDATE_INT,
+			],
+			'array filter integer wrong value' => [
+				'value' => ['123', 'abc'],
+				'default' => '',
+				'expected' => null,
+				'iFilter' => FILTER_VALIDATE_INT,
+				'sException' => InvalidParameterException::class,
 			],
 			'hash filter value' => [
 				'value' => ['foo' => 'bar'],
@@ -449,8 +460,9 @@ class UtilsTest extends TestCase
 			'hash filter integer wrong value' => [
 				'value' => ['foo' => '123', 'bar' => 'baz'],
 				'default' => '',
-				'expected' => ['foo' => 123, 'bar' => null],
+				'expected' => null,
 				'iFilter' => FILTER_VALIDATE_INT,
+				'sException' => InvalidParameterException::class,
 			],
 		];
 	}
@@ -459,7 +471,7 @@ class UtilsTest extends TestCase
 	 * @dataProvider GetConfigurationValueProvider
 	 * @throws Exception
 	 */
-	public function testGetConfigurationValue($value, $default, $expected, $iFilter = FILTER_FLAG_NONE)
+	public function testGetConfigurationValue($value, $default, $expected, $iFilter = FILTER_FLAG_NONE, $sException = null)
 	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->exactly(1))
@@ -473,8 +485,11 @@ class UtilsTest extends TestCase
 		$oConfigProperty = new \ReflectionProperty(Utils::class, 'oConfig');
 		$oConfigProperty->setValue(null, $oParametersMock);
 
-		// Note: assertEquals did not seem to be type-safe
-		$this->assertThat(Utils::GetConfigurationValue('foobar', $default, $iFilter), new IsIdentical($expected));
+		if (!is_null($sException)) {
+			$this->expectException($sException);
+		}
+
+		$this->assertSame(Utils::GetConfigurationValue('foobar', $default, $iFilter), $expected);
   }
 
 	public static function LogMessageProvider()

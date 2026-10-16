@@ -314,6 +314,7 @@ class Utils
 	 *
 	 * @return mixed
 	 * @throws Exception
+	 * @throws InvalidParameterException when the value does not match the filter
 	 *
 	 * @see filter_var()
 	 */
@@ -329,7 +330,10 @@ class Utils
 		if ($iFilter) {
 			$iOptions = FILTER_NULL_ON_FAILURE | (is_array($value) ? FILTER_REQUIRE_ARRAY : 0);
 			$value = filter_var($value, $iFilter, $iOptions);
-			$value ??= filter_var($defaultValue, $iFilter, $iOptions) ?? $defaultValue;
+
+			if (is_null($value) || (is_array($value) && in_array(null, $value, true))) {
+				throw new InvalidParameterException("The configuration parameter '$sCode' has an invalid value.");
+			}
 		}
 
 		return $value;
