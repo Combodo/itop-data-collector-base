@@ -66,6 +66,98 @@ class CallItopServiceTest extends TestCase
 	 */
 	public function testCallItopViaHttp($aParameters, $aExpectedCredentials)
 	{
+		$this->GivenConfiguration($aParameters);
+
+		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
+		Utils::MockDoPostRequestService($oMockedDoPostRequestService);
+
+		$uri = 'http://itop.org';
+		$aAdditionalData = ['gabu' => 'zomeu'];
+		$aResponseHeaders = [];
+		$oMockedDoPostRequestService->expects($this->once())
+			->method('DoPostRequest')
+			->with(
+				$uri,
+				array_merge($aExpectedCredentials, $aAdditionalData),
+				'',
+				$aResponseHeaders
+			)
+		;
+
+		$oCallItopService = new CallItopService();
+		$oCallItopService->CallItopViaHttp($uri, $aAdditionalData, -1, $aResponseHeaders);
+	}
+
+	public function testCallItopViaHttpThroughOAuth2()
+	{
+		$this->GivenConfiguration(['use_pauth2_with_itop' => true]);
+		Utils::$oItopOAuth2Service = $this->createMock(\OAuth2Service::class);
+
+		Utils::$oItopOAuth2Service->expects($this->once())->method('GetOauth2AccessToken')->willReturn('TOKEN666');
+		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
+		Utils::MockDoPostRequestService($oMockedDoPostRequestService);
+
+		$uri = 'http://itop.org';
+		$aAdditionalData = ['gabu' => 'zomeu'];
+		$oMockedDoPostRequestService->expects($this->once())
+			->method('DoPostRequest')
+			->with(
+				$uri,
+				$aAdditionalData,
+				'Authorization: Bearer TOKEN666',
+				$this->callback(
+					function ($aResponseHeaders) {
+						$aResponseHeaders[CURLINFO_RESPONSE_CODE] = 200;
+						return true;
+					}
+				)
+			)
+		;
+
+		$oCallItopService = new CallItopService();
+		$aResponseHeaders = [];
+		$oCallItopService->CallItopViaHttp($uri, $aAdditionalData, -1, $aResponseHeaders);
+	}
+
+	public function testCallItopViaHttpThroughOAuth2WithExpiredToken()
+	{
+		$this->GivenConfiguration(['use_pauth2_with_itop' => true]);
+		Utils::$oItopOAuth2Service = $this->createMock(\OAuth2Service::class);
+
+		Utils::$oItopOAuth2Service->expects($this->exactly(2))->method('GetOauth2AccessToken')->willReturn('TOKEN666', 'TOKEN667');
+		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
+		Utils::MockDoPostRequestService($oMockedDoPostRequestService);
+
+		$uri = 'http://itop.org';
+		$aAdditionalData = ['gabu' => 'zomeu'];
+		$oInvocationRule = $this->exactly(2);
+		$oMockedDoPostRequestService->expects($oInvocationRule)
+			->method('DoPostRequest')
+			->with(
+				$uri,
+				$aAdditionalData,
+				$this->callback(
+					function ($sOptionalHeaders) use ($oInvocationRule) {
+						$sExpectedToken = ($oInvocationRule->getInvocationCount() > 1) ? "TOKEN667" : "TOKEN666";
+						self::assertEquals("Authorization: Bearer $sExpectedToken", $sOptionalHeaders);
+						return true;
+					}
+				),
+				[]
+			)
+			->willReturnCallback(function ($sUrl, $aData, $sOptionnalHeaders, &$aResponseHeaders, $aCurlOptions) use ($oInvocationRule) {
+				$aResponseHeaders[CURLINFO_RESPONSE_CODE] = ($oInvocationRule->getInvocationCount() > 1) ? 200 : 498;
+			});
+
+		;
+
+		$oCallItopService = new CallItopService();
+		$aResponseHeaders = [];
+		$oCallItopService->CallItopViaHttp($uri, $aAdditionalData, -1, $aResponseHeaders);
+	}
+
+	public function GivenConfiguration(array $aParameters)
+	{
 		$oParametersMock = $this->createMock(\Parameters::class);
 		$oParametersMock->expects($this->atLeast(1))
 			->method('Get')
@@ -81,19 +173,5 @@ class CallItopServiceTest extends TestCase
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
 		$reflection->setAccessible(true);
 		$reflection->setValue(null, $oParametersMock);
-
-		$oMockedDoPostRequestService = $this->createMock(DoPostRequestService::class);
-		Utils::MockDoPostRequestService($oMockedDoPostRequestService);
-
-		$uri = 'http://itop.org';
-		$aAdditionalData = ['gabu' => 'zomeu'];
-		$oMockedDoPostRequestService->expects($this->once())
-			->method('DoPostRequest')
-			->with($uri, array_merge($aExpectedCredentials, $aAdditionalData))
-		;
-
-		$oCallItopService = new CallItopService();
-		$oCallItopService->CallItopViaHttp($uri, $aAdditionalData);
 	}
-
 }

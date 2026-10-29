@@ -5,11 +5,26 @@
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
 
+  <use_pauth2_with_itop>false</use_pauth2_with_itop>
+
   <!-- Oauth2 Client's settings -->
-  <hybridauth_oauth2/>
-  <itop_oauth2_clientid/>
-  <itop_oauth2_clientsecret/>
-  <itop_redirect_uri/>
+  <hybridauth_oauth2>
+    <providers>
+      <Itop>
+        <enabled>true</enabled>
+        <url>https://localhost/iTop</url>
+        <keys>
+          <id>ID</id>
+          <secret>SECRET</secret>
+        </keys>
+        <debug>false</debug>
+        <headless>true</headless>
+        <callback>https://mycollector.org</callback>
+        <scope>REST/JSON,Synchro</scope>
+      </Itop>
+    </providers>
+  </hybridauth_oauth2>
+
 
 
   <itop_token/>

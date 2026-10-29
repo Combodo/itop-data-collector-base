@@ -29,6 +29,8 @@ class RestTest extends TestCase
 		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
 		$reflection->setAccessible(true);
 		$reflection->setValue(null, null);
+
+		Utils::$oItopOAuth2Service = null;
 	}
 
 	public function GetCredentialsProvider()
@@ -39,6 +41,7 @@ class RestTest extends TestCase
 					'itop_url' => 'URI',
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
+					'use_pauth2_with_itop' => false,
 				],
 				'aExpectedCredentials' => ['auth_user' => 'admin1', 'auth_pwd' => 'admin2'],
 				'url' => 'URI/webservices/rest.php?login_mode=form&version=1.0',
@@ -49,6 +52,7 @@ class RestTest extends TestCase
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
+					'use_pauth2_with_itop' => false,
 				],
 				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0',
@@ -60,6 +64,7 @@ class RestTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
+					'use_pauth2_with_itop' => false,
 				],
 				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=token&version=1.0',
@@ -72,6 +77,7 @@ class RestTest extends TestCase
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
+					'use_pauth2_with_itop' => false,
 				],
 				'aExpectedCredentials' => ['auth_token' => 'admin4'],
 				'url' => 'URI/webservices/rest.php?login_mode=newloginform&version=1.0',

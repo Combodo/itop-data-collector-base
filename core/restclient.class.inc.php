@@ -113,7 +113,8 @@ class RestClient
 	{
 		$aData['json_data'] = json_encode($aOperation);
 		$sLoginform = Utils::GetLoginMode();
-		$sUri = sprintf('/webservices/rest.php?login_mode=%s&version=%s',
+		$sUri = sprintf(
+			'/webservices/rest.php?login_mode=%s&version=%s',
 			$sLoginform,
 			$sVersion
 		);

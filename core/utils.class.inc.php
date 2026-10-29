@@ -34,6 +34,7 @@ class Utils
 	protected static $iMockLogLevel = LOG_ERR;
 
 	protected static $oMockedLogger;
+	public static ?OAuth2Service $oItopOAuth2Service = null;
 
 	/**
 	 * @since 1.3.0 N°6012
@@ -322,36 +323,7 @@ class Utils
 
 		$value = self::$oConfig->Get($sCode, $defaultValue);
 		$value = self::Substitute($value);
-
 		return $value;
-	}
-
-	public static function GetOauth2Config(string $sProvider, ?array $aAuthorizeUrlParameters=null) : array
-	{
-
-		//$sLowerCaseProvider = strtolower($sProvider);
-		$aConf = [
-			'providers' => [
-				$sProvider => [
-					'authorize_url_parameters' => [],
-					'enabled' => true,
-					'headless' => "true",
-					'url' => Utils::GetConfigurationValue("itop_url", ''),
-					'keys' => [
-						'id' => Utils::GetConfigurationValue('itop_oauth2_clientid', ''),
-						'secret' => Utils::GetConfigurationValue('itop_oauth2_clientsecret', ''),
-					],
-					'callback' => 'https://mycollector',
-					'scope' => "REST/JSON,Synchro"
-				]
-			]
-		];
-
-		if (!is_null($aAuthorizeUrlParameters)){
-			$aConf['providers'][$sProvider]['authorize_url_parameters'] = $aAuthorizeUrlParameters;
-		}
-
-		return $aConf;
 	}
 
 	/**
@@ -372,10 +344,18 @@ class Utils
 		];
 	}
 
-	static public function UseOauth2() : bool {
-		$sOauth2ClientId = Utils::GetConfigurationValue('itop_oauth2_clientid', '');
-		$sOauth2ClientSecret = Utils::GetConfigurationValue('itop_oauth2_clientsecret', '');
-		return (strlen($sOauth2ClientId) > 0 && strlen($sOauth2ClientSecret) > 0);
+	public static function GetItopOauth2Service(): ?OAuth2Service
+	{
+
+		$sUseOauth2Val = Utils::GetConfigurationValue('use_pauth2_with_itop', false);
+		if (true !== $sUseOauth2Val && "true" !== $sUseOauth2Val) {
+			return null;
+		}
+
+		if (is_null(self::$oItopOAuth2Service)) {
+			self::$oItopOAuth2Service = new OAuth2Service("Itop");
+		}
+		return self::$oItopOAuth2Service;
 	}
 
 	/**
@@ -388,8 +368,7 @@ class Utils
 			return $sLoginform;
 		}
 
-		$sToken = Utils::GetConfigurationValue('itop_oauth2_clientid', '');
-		if (strlen($sToken) > 0) {
+		if (! is_null(self::GetItopOauth2Service())) {
 			return 'oauth2-server';
 		}
 
