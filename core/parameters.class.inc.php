@@ -191,49 +191,56 @@ class Parameters
 		return $sRet;
 	}
 
-	public function Merge(Parameters $oTask)
+	/**
+	 * Merge the parameters of another Parameters object into this one.
+	 *
+	 * @param Parameters $oTask Parameters to merge in, e.g. loaded from params.local.xml
+	 * @uses self::ReplaceRecursive()
+	 */
+	public function Merge(Parameters $oTask): void
 	{
-		$this->aData = $this->array_merge_recursive_distinct($this->aData, $oTask->aData);
+		$this->aData = static::ReplaceRecursive($this->aData, $oTask->aData);
 	}
 
 	/**
-	 * array_merge_recursive does indeed merge arrays, but it converts values with duplicate
-	 * keys to arrays rather than overwriting the value in the first array with the duplicate
-	 * value in the second array, as array_merge does. I.e., with array_merge_recursive,
-	 * this happens (documented behavior):
+	 * Like array_replace_recursive(), but an "array" in the override replaces the base array
+	 * as a whole instead of being merged by index. Returns the merged values.
 	 *
-	 * array_merge_recursive(array('key' => 'org value'), array('key' => 'new value'));
-	 *     => array('key' => array('org value', 'new value'));
+	 * Both inputs are PHP arrays, but parameters distinguish two kinds of containers:
+	 * "array" (type="array" in XML: zero-based list, item tag names are not meaningful)
+	 * and "hash" (child tag names are the keys).
 	 *
-	 * array_merge_recursive_distinct does not change the datatypes of the values in the arrays.
-	 * Matching keys' values in the second array overwrite those in the first array, as is the
-	 * case with array_merge, i.e.:
+	 * Rules, applied per key of $aOverride:
+	 * - key missing in $aBase: the value is added.
+	 * - both values are arrays: the array from $aOverride replaces the one from $aBase as a whole.
+	 *   This allows an override to remove items from a preconfigured array, or to empty it
+	 *   with `<param type="array"/>`.
+	 * - both values are containers and at least one is a hash: they are merged recursively,
+	 *   so an override only has to contain the keys it changes. An empty array overriding
+	 *   a hash therefore leaves the hash untouched.
+	 * - any other combination (a scalar is involved, or a container against a scalar): the value
+	 *   from $aOverride replaces the one from $aBase, whatever its type.
 	 *
-	 * array_merge_recursive_distinct(array('key' => 'org value'), array('key' => 'new value'));
-	 *     => array('key' => array('new value'));
+	 * Keys that exist only in $aBase are always kept; a merge can never delete a key.
 	 *
-	 * Parameters are passed by reference, though only for performance reasons. They're not
-	 * altered by this function.
+	 * Unlike {@see array_merge_recursive()}, scalar values are never turned into arrays.
+	 * Unlike {@see array_replace_recursive()}, arrays are replaced instead of being merged by index.
 	 *
-	 * @param array $array1
-	 * @param array $array2
+	 * @param array<string, mixed> $aBase Base values (e.g. from params.distrib.xml)
+	 * @param array<string, mixed> $aOverride Overriding values (e.g. from params.local.xml)
 	 *
-	 * @return array
-	 * @author Daniel <daniel (at) danielsmedegaardbuus (dot) dk>
-	 * @author Gabriel Sobrinho <gabriel (dot) sobrinho (at) gmail (dot) com>
+	 * @return array<string, mixed> The merged values
 	 */
-	protected function array_merge_recursive_distinct(array &$array1, array &$array2)
+	protected static function ReplaceRecursive(array $aBase, array $aOverride): array
 	{
-		$merged = $array1;
-
-		foreach ($array2 as $key => &$value) {
-			if (is_array($value) && isset($merged [$key]) && is_array($merged [$key])) {
-				$merged [$key] = $this->array_merge_recursive_distinct($merged [$key], $value);
-			} else {
-				$merged [$key] = $value;
-			}
+		foreach ($aOverride as $sKey => $value) {
+			$bBothContainers = is_array($value) && isset($aBase[$sKey]) && is_array($aBase[$sKey]);
+			$bBothArrays = $bBothContainers && array_is_list($value) && array_is_list($aBase[$sKey]);
+			$aBase[$sKey] = ($bBothContainers && !$bBothArrays)
+				? static::ReplaceRecursive($aBase[$sKey], $value)
+				: $value;
 		}
 
-		return $merged;
+		return $aBase;
 	}
 }
