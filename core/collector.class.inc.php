@@ -383,6 +383,7 @@ abstract class Collector
 		}
 
 		try {
+			$sModuleFileContents = '';
 			$sModuleFile = reset($aFiles);
 
 			$this->SetProjectNameFromFileName($sModuleFile);
