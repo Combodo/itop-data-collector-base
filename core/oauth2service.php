@@ -97,7 +97,10 @@ class OAuth2Service
 			throw new \Exception(sprintf("Missing access_token in provider %s response", $this->sProvider));
 		}
 
-		file_put_contents($sOauthConfPath, json_encode($aTokenData));
+		$sTokenData = json_encode($aTokenData, JSON_THROW_ON_ERROR);
+		if (file_put_contents($sOauthConfPath, $sTokenData) !== strlen($sTokenData)) {
+			throw new \Exception(sprintf("Failed to persist OAuth2 tokens to %s", $sOauthConfPath));
+		}
 		return $aTokenData['access_token'];
 	}
 
