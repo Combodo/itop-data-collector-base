@@ -8,9 +8,7 @@ require_once(__DIR__.'/oauth2service.php');
 require_once(APPROOT.'vendor/autoload.php');
 require_once(__DIR__.'/HybridauthLoggerWrapperImpl.php');
 
-if (! defined('CURLINFO_RESPONSE_CODE')) {
-	define('CURLINFO_RESPONSE_CODE', 2097154);
-}
+define('RESPONSE_HTTP_CODE', 'Http-Code');
 
 /**
  * @since 1.3.0
@@ -47,7 +45,7 @@ class CallItopService
 			return $sResponse;
 		}
 
-		$iHttpCode = $aResponseHeaders[CURLINFO_RESPONSE_CODE] ?? 200;
+		$iHttpCode = $aResponseHeaders[RESPONSE_HTTP_CODE] ?? 200;
 		if ($iHttpCode === 498) {
 			$aResponseHeaders = [];
 			//token may have expired: try refresh and re-post

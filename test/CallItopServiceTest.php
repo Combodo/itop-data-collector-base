@@ -107,7 +107,7 @@ class CallItopServiceTest extends TestCase
 				'Authorization: Bearer TOKEN666',
 				$this->callback(
 					function ($aResponseHeaders) {
-						$aResponseHeaders[CURLINFO_RESPONSE_CODE] = 200;
+						$aResponseHeaders[RESPONSE_HTTP_CODE] = 200;
 						return true;
 					}
 				)
@@ -146,7 +146,7 @@ class CallItopServiceTest extends TestCase
 				[]
 			)
 			->willReturnCallback(function ($sUrl, $aData, $sOptionnalHeaders, &$aResponseHeaders, $aCurlOptions) use ($oInvocationRule) {
-				$aResponseHeaders[CURLINFO_RESPONSE_CODE] = ($oInvocationRule->getInvocationCount() > 1) ? 200 : 498;
+				$aResponseHeaders[RESPONSE_HTTP_CODE] = ($oInvocationRule->getInvocationCount() > 1) ? 200 : 498;
 			});
 
 		;
