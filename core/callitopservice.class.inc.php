@@ -49,7 +49,7 @@ class CallItopService
 		if ($iHttpCode === 498) {
 			$aResponseHeaders = [];
 			//token may have expired: try refresh and re-post
-			$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken());
+			$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken(null, true));
 			return Utils::DoPostRequest($sUrl, $aData, $sOptionalHeaders, $aResponseHeaders, $aCurlOptions);
 		}
 

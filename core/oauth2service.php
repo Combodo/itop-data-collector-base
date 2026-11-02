@@ -17,12 +17,12 @@ class OAuth2Service
 		$this->oMockedAdapter = $oMockedAdapter;
 	}
 
-	public function GetOauth2AccessToken(?array $aAuthorizeUrlParameters = null): string
+	public function GetOauth2AccessToken(?array $aAuthorizeUrlParameters = null, bool $bForceRefresh=false): string
 	{
 		$sOauthConfPath = $this->GetOauthCachePath();
 		if (is_null($aAuthorizeUrlParameters)) {
 			if (is_file($sOauthConfPath)) {
-				return $this->GetAccessTokenViaStoredCache($sOauthConfPath);
+				return $this->GetAccessTokenViaStoredCache($sOauthConfPath, $bForceRefresh);
 			}
 
 			throw new \Exception("Missing OAuth2 first negociation first. Please use toolkit/init_token.php");
@@ -66,7 +66,7 @@ class OAuth2Service
 		return $oAdapter;
 	}
 
-	private function GetAccessTokenViaStoredCache(string $sOauthConfPath)
+	private function GetAccessTokenViaStoredCache(string $sOauthConfPath, bool $bForceRefresh=false)
 	{
 		$sContent = file_get_contents($sOauthConfPath);
 		$aTokenData = json_decode($sContent, true);
@@ -82,7 +82,7 @@ class OAuth2Service
 		$oAdapter = $this->GetOauth2();
 		$oAdapter->setAccessToken($aTokenData);
 		$oAdapter->maintainToken();
-		if ($oAdapter->hasAccessTokenExpired() !== true) {
+		if (! $bForceRefresh && $oAdapter->hasAccessTokenExpired() !== true) {
 			return $aTokenData['access_token'];
 		}
 
