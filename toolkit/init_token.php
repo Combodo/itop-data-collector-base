@@ -49,4 +49,5 @@ HELP;
 } catch (\Exception $e) {
 	echo "Failed to negociate OAuth2 token\n";
 	echo $e->getMessage()."\n";
+	exit(1);
 }
