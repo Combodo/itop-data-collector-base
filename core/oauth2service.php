@@ -36,7 +36,7 @@ class OAuth2Service
 	public function GetConfiguration(?array $aAuthorizeUrlParameters = null): array
 	{
 		$aConfig = Utils::GetConfigurationValue('hybridauth_oauth2', null);
-		if (is_null($aConfig) || ! is_array($aConfig) | ! array_key_exists('providers', $aConfig)) {
+		if (is_null($aConfig) || ! is_array($aConfig) || ! array_key_exists('providers', $aConfig)) {
 			throw new \Exception("Invalid provider configuration".$this->sProvider);
 		}
 
