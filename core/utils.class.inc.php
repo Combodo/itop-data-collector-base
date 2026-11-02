@@ -36,6 +36,9 @@ class Utils
 	protected static $oMockedLogger;
 	public static ?OAuth2Service $oItopOAuth2Service = null;
 
+	//below variable required for reentrance protection
+	public static bool $bDisabledEventIssueNotification = false;
+
 	/**
 	 * @since 1.3.0 N°6012
 	 */
@@ -225,7 +228,7 @@ class Utils
 			closelog();
 		}
 
-		if ($iPriority <= self::$iEventIssueLogLevel) {
+		if (! self::$bDisabledEventIssueNotification && $iPriority <= self::$iEventIssueLogLevel) {
 			Utils::CreateEventIssue($sMessage);
 		}
 	}

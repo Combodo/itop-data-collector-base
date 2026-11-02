@@ -17,42 +17,52 @@ class CallItopService
 {
 	public function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1, &$aResponseHeaders = null)
 	{
-		$oOAuth2Service = Utils::GetItopOauth2Service();
-		if ($oOAuth2Service) {
-			Utils::Log(LOG_DEBUG, 'Oauth2 enabled');
-			$aData = $aAdditionalData;
-			$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken());
-		} else {
-			Utils::Log(LOG_DEBUG, 'Oauth2 disabled');
-			$aData = array_merge(
-				Utils::GetCredentials(),
-				$aAdditionalData
-			);
-			$sOptionalHeaders = '';
-		}
+		try {
+			//when event notification configured, avoid reentrance through logs
+			Utils::$bDisabledEventIssueNotification  = true;
 
-		$sUrl = Utils::GetConfigurationValue('itop_url', '').$sUri;
+			$oOAuth2Service = Utils::GetItopOauth2Service();
+			if ($oOAuth2Service) {
+				Utils::Log(LOG_DEBUG, 'Oauth2 enabled');
+				$aData = $aAdditionalData;
+				$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken());
+			} else {
+				Utils::Log(LOG_DEBUG, 'Oauth2 disabled');
+				$aData = array_merge(
+					Utils::GetCredentials(),
+					$aAdditionalData
+				);
+				$sOptionalHeaders = '';
+			}
 
-		$aCurlOptions = Utils::GetCurlOptions($iTimeOut);
+			$sUrl = Utils::GetConfigurationValue('itop_url', '').$sUri;
 
-		if (is_null($aResponseHeaders)) {
-			$aResponseHeaders = [];
-		}
+			$aCurlOptions = Utils::GetCurlOptions($iTimeOut);
 
-		$sResponse = Utils::DoPostRequest($sUrl, $aData, $sOptionalHeaders, $aResponseHeaders, $aCurlOptions);
+			if (is_null($aResponseHeaders)) {
+				$aResponseHeaders = [];
+			}
 
-		if (is_null($oOAuth2Service)) {
+			$sResponse = Utils::DoPostRequest($sUrl, $aData, $sOptionalHeaders, $aResponseHeaders, $aCurlOptions);
+
+			if (is_null($oOAuth2Service)) {
+				return $sResponse;
+			}
+
+			$iHttpCode = $aResponseHeaders[RESPONSE_HTTP_CODE] ?? 200;
+			if ($iHttpCode === 498) {
+				Utils::Log(LOG_DEBUG, 'Oauth2 renegociation needed (http code 498)');
+				$aResponseHeaders = [];
+				//token may have expired: try refresh and re-post
+				$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken(null, true));
+
+				return Utils::DoPostRequest($sUrl, $aData, $sOptionalHeaders, $aResponseHeaders, $aCurlOptions);
+			}
+
 			return $sResponse;
 		}
-
-		$iHttpCode = $aResponseHeaders[RESPONSE_HTTP_CODE] ?? 200;
-		if ($iHttpCode === 498) {
-			$aResponseHeaders = [];
-			//token may have expired: try refresh and re-post
-			$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken(null, true));
-			return Utils::DoPostRequest($sUrl, $aData, $sOptionalHeaders, $aResponseHeaders, $aCurlOptions);
+		finally {
+			Utils::$bDisabledEventIssueNotification  = false;
 		}
-
-		return $sResponse;
 	}
 }
