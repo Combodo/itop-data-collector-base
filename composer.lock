@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Combodo/hybridauth.git",
-                "reference": "75e6d54b8bf12e161711e53d71505f6482753268"
+                "reference": "4726c526bf3673aaa094587cefb2e4e32d321c90"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Combodo/hybridauth/zipball/75e6d54b8bf12e161711e53d71505f6482753268",
-                "reference": "75e6d54b8bf12e161711e53d71505f6482753268",
+                "url": "https://api.github.com/repos/Combodo/hybridauth/zipball/4726c526bf3673aaa094587cefb2e4e32d321c90",
+                "reference": "4726c526bf3673aaa094587cefb2e4e32d321c90",
                 "shasum": ""
             },
             "require": {
@@ -70,7 +70,7 @@
                 "gitter": "https://gitter.im/hybridauth/hybridauth",
                 "source": "https://github.com/Combodo/hybridauth/tree/5715-oauth2-itop"
             },
-            "time": "2026-10-16T11:03:35+00:00"
+            "time": "2026-11-03T20:29:40+00:00"
         }
     ],
     "packages-dev": [
@@ -381,11 +381,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.1",
+            "version": "2.3.5",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/6155239b488e95d26d1ebd95c6b4bb294d7f09db",
-                "reference": "6155239b488e95d26d1ebd95c6b4bb294d7f09db",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/645a1bd6bead15fc1b8474137467961d0fa30a79",
+                "reference": "645a1bd6bead15fc1b8474137467961d0fa30a79",
                 "shasum": ""
             },
             "require": {
@@ -441,7 +441,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-08T21:09:11+00:00"
+            "time": "2026-11-03T12:14:22+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
