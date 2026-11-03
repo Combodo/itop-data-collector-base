@@ -1,6 +1,13 @@
 .idea/*
-composer.lock
-vendor/*
+vendor/bin/
+vendor/doctrine/
+vendor/myclabs/
+vendor/nikic/
+vendor/phar-io/
+vendor/phpstan/
+vendor/phpunit/
+vendor/sebastian/
+vendor/theseer/
 collectors
 /conf/**
 +/conf/params.distrib.xml
@@ -10,6 +17,7 @@ data/*.txt
 .project
 .settings/*
 test/php-code-style/vendor
+test/php-code-style/composer.lock
 .php-cs-fixer.cache
 .phpunit.result.cache
 phpstan_results.xml
