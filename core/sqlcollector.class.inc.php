@@ -142,7 +142,7 @@ abstract class SQLCollector extends Collector
 				$aOptions[PDO::MYSQL_ATTR_SSL_CERT] = $sCertFile;
 				$aOptions[PDO::MYSQL_ATTR_SSL_KEY] = $sKeyFile;
 			}
-			Utils::Log(LOG_DEBUG, " options : ".json_encode($aOptions));
+			Utils::Log(LOG_DEBUG, " options: ".json_encode($aOptions));
 		}
 		$sConnectionStringFormat = Utils::GetConfigurationValue('sql_connection_string', '%1$s:dbname=%2$s;host=%3$s');
 		$sConnectionString = sprintf($sConnectionStringFormat, $sEngine, $sDatabase, $sHost);
