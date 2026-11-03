@@ -57,7 +57,7 @@ class Pinterest extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('id');
         $userProfile->description = $data->get('bio');

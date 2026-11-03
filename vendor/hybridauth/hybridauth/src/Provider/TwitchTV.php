@@ -68,7 +68,7 @@ class TwitchTV extends OAuth2
         $users = $data->filter('data')->values();
         $user = new Data\Collection($users[0]);
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $user->get('id');
         $userProfile->displayName = $user->get('display_name');

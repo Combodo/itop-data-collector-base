@@ -234,7 +234,7 @@ class Apple extends OAuth2
             throw new UnexpectedValueException('Missing token payload.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
         $userProfile->identifier = $data->get('sub');
         $userProfile->email = $data->get('email');
         $this->storeData('expires_at', $data->get('exp'));

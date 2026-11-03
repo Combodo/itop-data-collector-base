@@ -92,7 +92,7 @@ class Twitter extends OAuth1
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('id_str');
         $userProfile->displayName = $data->get('screen_name');

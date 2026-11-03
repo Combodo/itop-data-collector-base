@@ -193,7 +193,7 @@ class Facebook extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('id');
         $userProfile->displayName = $data->get('name');
@@ -285,7 +285,7 @@ class Facebook extends OAuth2
             throw new UnexpectedValueException('Invalid audience');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
         $userProfile->identifier = $data->get('sub');
         $userProfile->email = $data->get('email');
         $userProfile->firstName = $data->get('given_name');

@@ -25,7 +25,7 @@ class KeycloakTest extends \PHPUnit\Framework\TestCase
                 'email' => 'alice@example.com',
                 'given_name' => 'Alice',
                 'family_name' => 'Jenkins',
-                'email_verified' => true
+                'email_verified' => true,
             ]);
 
         $profile = new Profile();
@@ -76,7 +76,87 @@ class KeycloakTest extends \PHPUnit\Framework\TestCase
         $profile->lastName = 'Jenkins';
         $profile->email = 'alice@example.com';
         $profile->emailVerified = true;
-        $profile->data = ['organization' => 'my_org'];
+        $profile->data = ['organization' => 'my_org', 'allowed_orgs' => ["my_org" => []]];
+
+        $this->assertEquals($profile, $keycloak->getUserProfile());
+    }
+
+    public function test_getUserProfile_AllAdditionalFieldsProvided()
+    {
+        //Mock OAuth2 Api request
+        $keycloak = $this->getMockBuilder(Keycloak::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['apiRequest'])
+            ->getMock();
+        $output = [
+            'sub' => 2,
+            'preferred_username' => 'alice@example.com',
+            'email' => 'alice@example.com',
+            'given_name' => 'Alice',
+            'family_name' => 'Jenkins',
+            'email_verified' => true,
+            'organization' => ['my_org' => ['ga' => 'bu'], 'my_org2' => 'zomeu'],
+            'groups' => ['a' => 'b', 'c' => 'd'],
+        ];
+        $keycloak->expects($this->once())
+            ->method('apiRequest')
+            ->willReturn(json_decode(json_encode($output)));
+
+        $profile = new Profile();
+        $profile->identifier = 2;
+        $profile->displayName = 'alice@example.com';
+        $profile->firstName = 'Alice';
+        $profile->lastName = 'Jenkins';
+        $profile->email = 'alice@example.com';
+        $profile->emailVerified = true;
+        $profile->data = ['organization' => 'my_org',
+            'allowed_orgs' => ['my_org' => ['ga' => 'bu'], 'my_org2' => 'zomeu'],
+            'groups' => ['a' => 'b', 'c' => 'd']
+        ];
+
+        $this->assertEquals($profile, $keycloak->getUserProfile());
+    }
+
+
+    public function test_getUserProfile_AllAdditionalFieldsProvided_PassAllAnswer()
+    {
+        //Mock OAuth2 Api request
+        $keycloak = $this->getMockBuilder(Keycloak::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['apiRequest'])
+            ->getMock();
+        $keycloak->provideAllGetUserProfileResponseInData = true;
+        $output = [
+            'sub' => 2,
+            'preferred_username' => 'alice@example.com',
+            'email' => 'alice@example.com',
+            'given_name' => 'Alice',
+            'family_name' => 'Jenkins',
+            'email_verified' => true,
+            'organization' => ['my_org' => ['ga' => 'bu'], 'my_org2' => 'zomeu'],
+            'groups' => ['a' => 'b', 'c' => 'd'],
+        ];
+        $keycloak->expects($this->once())
+            ->method('apiRequest')
+            ->willReturn(json_decode(json_encode($output)));
+
+        $profile = new Profile();
+        $profile->identifier = 2;
+        $profile->displayName = 'alice@example.com';
+        $profile->firstName = 'Alice';
+        $profile->lastName = 'Jenkins';
+        $profile->email = 'alice@example.com';
+        $profile->emailVerified = true;
+        $profile->data = ['organization' => 'my_org',
+            'allowed_orgs' => ['my_org' => ['ga' => 'bu'], 'my_org2' => 'zomeu'],
+            'groups' => ['a' => 'b', 'c' => 'd'],
+            'sub' => 2,
+            'preferred_username' => 'alice@example.com',
+            'email' => 'alice@example.com',
+            'given_name' => 'Alice',
+            'family_name' => 'Jenkins',
+            'email_verified' => true,
+        ];
 
         $this->assertEquals($profile, $keycloak->getUserProfile());
     }

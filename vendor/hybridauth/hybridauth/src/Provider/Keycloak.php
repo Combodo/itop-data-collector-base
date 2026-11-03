@@ -96,7 +96,7 @@ class Keycloak extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('sub');
         $userProfile->displayName = $data->get('preferred_username');
@@ -105,12 +105,26 @@ class Keycloak extends OAuth2
         $userProfile->lastName = $data->get('family_name');
         $userProfile->emailVerified = $data->get('email_verified');
 
+        $dataAsArray = $data->toArray(true);
         // Collect organization claim if provided in the IDToken
         if ($data->exists('organization')) {
-            $kc_orgs = array_keys((array) $data->get('organization'));
+            $orgs = (array)$data->get('organization');
+            $kc_orgs = array_keys($orgs);
             $userProfile->data['organization'] = array_shift($kc_orgs); //Get the first key
+            $userProfile->data['allowed_orgs'] = $dataAsArray['organization'];
+        }
+
+        if ($data->exists('groups')) {
+            $userProfile->data['groups'] = (array)$data->get('groups');
         }
 
         return $userProfile;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function logout() {
+        return $this->apiRequest('logout', 'POST', $this->tokenRefreshParameters);
     }
 }

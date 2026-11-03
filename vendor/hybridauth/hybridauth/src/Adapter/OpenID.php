@@ -61,6 +61,14 @@ abstract class OpenID extends AbstractAdapter implements AdapterInterface
 
         $this->setCallback($this->config->get('callback'));
         $this->setApiEndpoints($this->config->get('endpoints'));
+
+        if ($this->config->exists('logout_before_disconnect')) {
+            $this->isLogoutRequiredBeforeDisconnect = $this->config->get('logout_before_disconnect');
+        }
+
+        if ($this->config->exists('provide_all_getuserprofile_output')) {
+            $this->provideAllGetUserProfileResponseInData = $this->config->get('provide_all_getuserprofile_output');
+        }
     }
 
     /**
@@ -112,6 +120,11 @@ abstract class OpenID extends AbstractAdapter implements AdapterInterface
      */
     public function disconnect()
     {
+        if ($this->isLogoutRequiredBeforeDisconnect){
+            $resp = $this->logout();
+            $this->logger->debug("logout", [$resp]);
+        }
+
         $this->storage->delete($this->providerId . '.user');
 
         return true;
@@ -196,7 +209,7 @@ abstract class OpenID extends AbstractAdapter implements AdapterInterface
     {
         $data = new Data\Collection($openidAttributes);
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $this->openIdClient->identity;
 

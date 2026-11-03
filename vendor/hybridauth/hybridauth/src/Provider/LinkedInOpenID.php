@@ -70,7 +70,7 @@ class LinkedInOpenID extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->firstName = $data->get('given_name');
         $userProfile->lastName = $data->get('family_name');

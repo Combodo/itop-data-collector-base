@@ -57,7 +57,7 @@ class AutoDesk extends OAuth2
     protected function initialize()
     {
         parent::initialize();
-        
+
         if ($this->isRefreshTokenAvailable()) {
             $this->tokenRefreshParameters += [
                 'client_id'     => $this->clientId,
@@ -78,7 +78,7 @@ class AutoDesk extends OAuth2
 
         $collection = new Data\Collection($response);
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($collection);
 
         $userProfile->identifier = $collection->get('userId');
         $userProfile->displayName

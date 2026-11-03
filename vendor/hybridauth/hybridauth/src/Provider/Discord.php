@@ -76,7 +76,7 @@ class Discord extends OAuth2
             $displayName .= "#{$discriminator}";
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('id');
         $userProfile->displayName = $displayName;

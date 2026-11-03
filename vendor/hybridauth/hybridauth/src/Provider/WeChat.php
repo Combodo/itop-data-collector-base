@@ -121,7 +121,7 @@ class WeChat extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('openid');
         $userProfile->displayName = $data->get('nickname');

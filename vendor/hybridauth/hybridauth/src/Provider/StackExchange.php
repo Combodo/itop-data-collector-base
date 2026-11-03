@@ -92,7 +92,7 @@ class StackExchange extends OAuth2
 
         $data = new Data\Collection($response->items[0]);
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = strval($data->get('user_id'));
         $userProfile->displayName = $data->get('display_name');

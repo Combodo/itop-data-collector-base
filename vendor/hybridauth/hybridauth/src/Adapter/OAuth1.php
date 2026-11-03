@@ -162,6 +162,10 @@ abstract class OAuth1 extends AbstractAdapter implements AdapterInterface
 
         $this->setCallback($this->config->get('callback'));
         $this->setApiEndpoints($this->config->get('endpoints'));
+
+        if ($this->config->exists('provide_all_getuserprofile_output')) {
+            $this->provideAllGetUserProfileResponseInData = $this->config->get('provide_all_getuserprofile_output');
+        }
     }
 
     /**

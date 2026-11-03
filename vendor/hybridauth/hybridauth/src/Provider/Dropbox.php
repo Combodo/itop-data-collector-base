@@ -55,7 +55,7 @@ class Dropbox extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('account_id');
         $userProfile->displayName = $data->filter('name')->get('display_name');

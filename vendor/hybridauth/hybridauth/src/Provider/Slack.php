@@ -55,7 +55,7 @@ class Slack extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->filter('user')->get('id');
         $userProfile->displayName = $data->filter('user')->get('name');

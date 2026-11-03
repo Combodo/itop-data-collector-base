@@ -7,6 +7,7 @@
 
 namespace Hybridauth\Adapter;
 
+use Hybridauth\Data\Collection;
 use Hybridauth\Exception\NotImplementedException;
 use Hybridauth\Exception\InvalidArgumentException;
 use Hybridauth\Exception\HttpClientFailureException;
@@ -18,6 +19,7 @@ use Hybridauth\Logger\Logger;
 use Hybridauth\HttpClient\HttpClientInterface;
 use Hybridauth\HttpClient\Curl as HttpClient;
 use Hybridauth\Data;
+use Hybridauth\User\Profile;
 
 /**
  * Class AbstractAdapter
@@ -81,6 +83,20 @@ abstract class AbstractAdapter implements AdapterInterface
      * @var bool
      */
     protected $validateApiResponseHttpCode = true;
+
+    /**
+     * Whether to call logout API before disconnecting
+     *
+     * @var bool
+     */
+    protected $isLogoutRequiredBeforeDisconnect = false;
+
+    /**
+     * Whether to pass whole answer in additional data
+     *
+     * @var bool
+     */
+    public $provideAllGetUserProfileResponseInData = false;
 
     /**
      * Used for testing purpose to specify filter_input behaviours
@@ -162,6 +178,18 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
+    public function createNewUserProfile(Collection $data)
+    {
+        $userProfile = new Profile();
+        if ($this->provideAllGetUserProfileResponseInData) {
+            $userProfile->data = array_merge($data->toArray(true), $userProfile->data);
+        }
+        return $userProfile;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getUserContacts()
     {
         throw new NotImplementedException('Provider does not support this feature.');
@@ -204,7 +232,20 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function disconnect()
     {
+        if ($this->isLogoutRequiredBeforeDisconnect){
+            $resp = $this->logout();
+            $this->logger->debug("logout", [$resp]);
+        }
+
         $this->clearStoredData();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function logout()
+    {
+        return false;
     }
 
     /**

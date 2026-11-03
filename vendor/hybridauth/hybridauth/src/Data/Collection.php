@@ -32,9 +32,24 @@ final class Collection
      *
      * @return mixed
      */
-    public function toArray()
+    public function toArray($recursivelyCast=false)
     {
-        return (array)$this->collection;
+        if (! $recursivelyCast){
+            return (array)$this->collection;
+        }
+
+        $res = [];
+
+        foreach ($this->collection as $key => $value) {
+            if (is_a($value, 'stdClass')) {
+                $data = new Collection($value);
+                $res[$key] = $data->toArray(true);
+            } else {
+                $res[$key] = $value;
+            }
+        }
+
+        return $res;
     }
 
     /**

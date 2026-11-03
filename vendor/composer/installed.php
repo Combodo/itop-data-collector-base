@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'd06bfe2af28f7176c81b3af48d9bf63009872614',
+        'reference' => '2f16a8f38b41b592210341db065bb3526151ab4e',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'd06bfe2af28f7176c81b3af48d9bf63009872614',
+            'reference' => '2f16a8f38b41b592210341db065bb3526151ab4e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'hybridauth/hybridauth' => array(
             'pretty_version' => 'dev-5715-oauth2-itop',
             'version' => 'dev-5715-oauth2-itop',
-            'reference' => '75e6d54b8bf12e161711e53d71505f6482753268',
+            'reference' => '4726c526bf3673aaa094587cefb2e4e32d321c90',
             'type' => 'library',
             'install_path' => __DIR__ . '/../hybridauth/hybridauth',
             'aliases' => array(),

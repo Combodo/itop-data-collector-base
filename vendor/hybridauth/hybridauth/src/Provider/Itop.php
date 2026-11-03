@@ -28,9 +28,16 @@ class Itop extends OAuth2
 	protected $apiDocumentation = 'https://www.itophub.io/wiki/page?id=start';
 	private string $version = "1.3";
 	protected $tokenExchangeMethod = 'POST';
-	protected string $oAuth2ServerBaseUrl;
+	protected string $auth2ServerBaseUrl;
 	protected bool $headless = false;
+	protected string $uiLogoutUrl;
 
+    /**
+     * Authorization POSTED Parameters
+     *
+     * @var array
+     */
+    protected $authorizePostedParameters = [];
 	/**
 	 * {@inheritdoc}
 	 */
@@ -56,11 +63,17 @@ class Itop extends OAuth2
 			}
 		}
 
+        if ($this->config->exists('authorize_posted_parameters')) {
+            $this->authorizePostedParameters = (array)$this->config->get('authorize_posted_parameters');
+        }
+
 		$this->apiBaseUrl = $url;
 
-		$this->oAuth2ServerBaseUrl = sprintf('%s/pages/exec.php?exec_module=authent-oauth2-server&exec_env=production&exec_page=', $url);
-		$this->authorizeUrl = $this->oAuth2ServerBaseUrl."authorize.php";
-		$this->accessTokenUrl = $this->oAuth2ServerBaseUrl.'token.php';
+		$this->auth2ServerBaseUrl = sprintf('%s/pages/exec.php?exec_module=authent-oauth2-server&exec_env=production&exec_page=', $url);
+		$this->authorizeUrl = $this->auth2ServerBaseUrl."authorize.php";
+		$this->accessTokenUrl = $this->auth2ServerBaseUrl.'token.php';
+		$this->uiLogoutUrl = $this->auth2ServerBaseUrl.'ui_logout.php';
+		$this->isLogoutRequiredBeforeDisconnect = true;
 	}
 
 	protected function getAuthorizeUrl($parameters = [])
@@ -81,12 +94,12 @@ class Itop extends OAuth2
 			'headless' => $this->headless ? 'true' : 'false',
 		];
 
-		$this->tokenExchangeParameters = [
-			'client_id' => $this->clientId,
-			'client_secret' => $this->clientSecret,
-			'grant_type' => 'authorization_code',
-			'redirect_uri' => $this->callback,
-		];
+        $this->tokenExchangeParameters = [
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'grant_type' => 'authorization_code',
+            'redirect_uri' => $this->callback,
+        ];
 
 		$refreshToken = $this->getStoredData('refresh_token');
 		if (!empty($refreshToken)) {
@@ -126,9 +139,10 @@ class Itop extends OAuth2
 			$response = $this->httpClient->request(
 				$authUrl,
 				'POST',
-				$this->AuthorizeUrlParameters,
+				$this->authorizePostedParameters,
 				$this->tokenExchangeHeaders
 			);
+
 			$this->validateApiResponse('Unable to reach authorize endpoint in headless mode');
 			$data = (new \Hybridauth\Data\Parser())->parse($response);
 
@@ -162,39 +176,57 @@ class Itop extends OAuth2
 	{
 		$response = $this->apiRequest($this->oAuth2ServerBaseUrl.'get_user.php', 'POST');
 
-		$data = new Collection($response);
+		$data = (new Collection($response))->toArray(true);
 
 		$userProfile = new Profile();
 
-		$userProfile->email = $data->get('email');
-		$userProfile->firstName = $data->get('firstName');
-		$userProfile->lastName = $data->get('lastName');
-		$userProfile->displayName = $data->get('displayName');
-		$userProfile->identifier = $data->get('identifier');
-		$userProfile->language = $data->get('language');
+		$userProfile->email = $data['email'];
+		$userProfile->firstName = $data['firstName'];
+		$userProfile->lastName = $data['lastName'];
+		$userProfile->displayName = $data['displayName'];
+		$userProfile->identifier = $data['identifier'];
+		$userProfile->language = $data['language'];
 
 		// Collect organization claim if provided in the IDToken
-		if ($data->exists('organization')) {
-			$userProfile->data['organization'] = $data->get('organization');
+		if (isset($data['organization'])) {
+			$userProfile->data['organization'] = $data['organization'];
 		}
 
-		if ($data->exists('organizationCode')) {
-			$userProfile->data['organizationCode'] = $data->get('organizationCode');
+		if (isset($data['organizationCode'])) {
+			$userProfile->data['organizationCode'] = $data['organizationCode'];
 		}
 
-		if ($data->exists('allowedOrgs')) {
-			$userProfile->data['allowedOrgs'] = $data->get('allowedOrgs');
+		if (isset($data['allowedOrgs'])) {
+			$receivedAllowedOrgs = $data['allowedOrgs'];
+			$allowedOrgs = [];
+			if (is_array($receivedAllowedOrgs)) {
+				foreach ($receivedAllowedOrgs as $receivedAllowedOrg) {
+					$orgName = trim($receivedAllowedOrg->name ?? "");
+					if (strlen($orgName) > 0) {
+						$allowedOrgs[] = $orgName;
+					}
+				}
+			}
+			$userProfile->data['allowedOrgs'] = $allowedOrgs;
 		}
 
-		if ($data->exists('login')) {
-			$userProfile->data['login'] = $data->get('login');
+		if (isset($data['login'])) {
+			$userProfile->data['login'] = $data['login'];
 		}
 
 		$groupsKey = $this->config->get('groups_key') ?? 'groups';
-		if ($data->exists($groupsKey)) {
-			$userProfile->data['groups'] = $data->get($groupsKey);
+		if (isset($data[$groupsKey])) {
+			$userProfile->data['groups'] = $data[$groupsKey];
 		}
 
 		return $userProfile;
+	}
+
+	public function logout()
+	{
+		//LoginWebPage::ResetSession();
+		header('HTTP/1.1 307 Temporary Redirect');
+		header('Location: '.$this->uiLogoutUrl);
+		exit;
 	}
 }

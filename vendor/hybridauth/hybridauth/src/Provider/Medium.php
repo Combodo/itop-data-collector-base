@@ -68,7 +68,7 @@ class Medium extends OAuth2
 
         $data = new Data\Collection($response);
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
         $data = $data->filter('data');
 
         $full_name = explode(' ', $data->get('name'));

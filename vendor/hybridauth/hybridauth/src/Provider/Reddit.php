@@ -79,7 +79,7 @@ class Reddit extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         $userProfile->identifier = $data->get('id');
         $userProfile->displayName = $data->get('name');

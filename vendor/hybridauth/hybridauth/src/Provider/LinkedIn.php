@@ -77,7 +77,7 @@ class LinkedIn extends OAuth2
             throw new UnexpectedApiResponseException('Provider API returned an unexpected response.');
         }
 
-        $userProfile = new User\Profile();
+        $userProfile = $this->createNewUserProfile($data);
 
         // Handle localized names.
         $userProfile->firstName = $data
