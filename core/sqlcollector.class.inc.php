@@ -121,24 +121,19 @@ abstract class SQLCollector extends Collector
 
 		$aOptions = [];
 		//DB Secured connection
-		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'false') =='true');
+		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'false') ==='true');
 		if ($bMySqlSsl) {
 			$sCaFile = Utils::GetConfigurationValue('sql_cafile', ''); // for MySQL server ex : __DIR__ . '/certs/ca.pem'
-			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'true') == 'true');
+			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'true') === 'true');
 			$sCertFile = Utils::GetConfigurationValue('sql_cert_file', '');  //  (mTLS)
 			$sKeyFile = Utils::GetConfigurationValue('sql_key_file', '');
 			$aOptions = [
-				// TLS
-				PDO::MYSQL_ATTR_SSL_CA => $sCaFile,
+				PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $bCheckCertif,
+				PDO::MYSQL_ATTR_SSL_CA => $sCaFile,	// TLS
 			];
 
-			// Vérification du certificat serveur (si supportée par le driver)
-			if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-				$aOptions[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = $bCheckCertif;
-			}
-
 			// mTLS optionnel
-			if ($sCertFile != '' && $sKeyFile != '') {
+			if ($sCertFile !== '' && $sKeyFile !== '') {
 				$aOptions[PDO::MYSQL_ATTR_SSL_CERT] = $sCertFile;
 				$aOptions[PDO::MYSQL_ATTR_SSL_KEY] = $sKeyFile;
 			}
