@@ -172,7 +172,7 @@ class UtilsTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'use_pauth2_with_itop' => false,
+					'use_oauth2_with_itop' => false,
 				],
 				'sExpectedLoginMode' => 'form',
 			],
@@ -181,7 +181,7 @@ class UtilsTest extends TestCase
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
-					'use_pauth2_with_itop' => false,
+					'use_oauth2_with_itop' => false,
 				],
 				'sExpectedLoginMode' => 'token',
 			],
@@ -191,7 +191,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
-					'use_pauth2_with_itop' => false,
+					'use_oauth2_with_itop' => false,
 				],
 				'sExpectedLoginMode' => 'token',
 			],
@@ -202,13 +202,13 @@ class UtilsTest extends TestCase
 					'itop_rest-token' => 'admin3',
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
-					'use_pauth2_with_itop' => false,
+					'use_oauth2_with_itop' => false,
 				],
 				'sExpectedLoginMode' => 'newloginform',
 			],
 			'oauth2' => [
 				'aParameters' => [
-					'use_pauth2_with_itop' => true,
+					'use_oauth2_with_itop' => true,
 				],
 				'sExpectedLoginMode' => 'oauth2-server',
 			],
@@ -413,7 +413,7 @@ class UtilsTest extends TestCase
 	 */
 	public function testGetItopOauth2ServiceWhenNoOauth2($val)
 	{
-		$this->GivenConfiguration(['use_pauth2_with_itop' => $val]);
+		$this->GivenConfiguration(['use_oauth2_with_itop' => $val]);
 		self::assertNull(Utils::GetItopOauth2Service());
 	}
 
@@ -430,7 +430,7 @@ class UtilsTest extends TestCase
 	 */
 	public function testGetItopOauth2ServiceWithOauth2($val)
 	{
-		$this->GivenConfiguration(['use_pauth2_with_itop' => $val]);
+		$this->GivenConfiguration(['use_oauth2_with_itop' => $val]);
 		self::assertNotNull(Utils::GetItopOauth2Service());
 	}
 

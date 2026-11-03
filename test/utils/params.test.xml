@@ -3,7 +3,7 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  <use_pauth2_with_itop>false</use_pauth2_with_itop>
+  <use_oauth2_with_itop>false</use_oauth2_with_itop>
   <hybridauth_oauth2>
     <providers>
       <Itop>
@@ -13,7 +13,7 @@
           <id>ID</id>
           <secret>SECRET</secret>
         </keys>
-        <debug>false</debug>
+        <log_level>error</log_level>
         <headless>true</headless>
         <callback>https://mycollector.org</callback>
         <scope>REST/JSON,Synchro</scope>

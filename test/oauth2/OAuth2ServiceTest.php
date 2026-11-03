@@ -29,7 +29,7 @@ class OAuth2ServiceTest extends TestCase
 					],
 					'callback' => 'https://mycollector.org',
 					'scope' => "REST/JSON,Synchro",
-					'debug' => "false",
+					'log_level' => "error",
 				],
 			],
 		];
@@ -41,7 +41,6 @@ class OAuth2ServiceTest extends TestCase
 		$aAuthorizeUrlParameters = [
 			'auth_user' => 'AUTH_USER',
 			'auth_pwd' => 'AUTH_PWD',
-			'response_type' => 'code',
 		];
 
 		$aConf = (new \OAuth2Service("Itop"))->GetConfiguration($aAuthorizeUrlParameters);
@@ -58,8 +57,14 @@ class OAuth2ServiceTest extends TestCase
 					],
 					'callback' => 'https://mycollector.org',
 					'scope' => "REST/JSON,Synchro",
-					'debug' => "false",
-					'authorize_url_parameters' => $aAuthorizeUrlParameters,
+					'log_level' => "error",
+					'authorize_posted_parameters' => [
+						'auth_user' => 'AUTH_USER',
+						'auth_pwd' => 'AUTH_PWD',
+					],
+					'authorize_url_parameters' => [
+						'login_mode' => 'form',
+					],
 				],
 			],
 		];
@@ -89,39 +94,10 @@ class OAuth2ServiceTest extends TestCase
 		$oMockedOauth2->expects(self::once())->method('getAccessToken')
 			->willReturn($aTokenData);
 
-		$aAuthorizeUrlParameters = [
-			'auth_user' => "LOGIN",
-			'auth_pwd' => "PWD",
-			'response_type' => 'code',
-		];
+		$sLogin = "LOGIN";
+		$sPwd = "PWD";
 
-		self::assertEquals('ACCESSTOKEN123', $oOAuth2Service->GetOauth2AccessToken($aAuthorizeUrlParameters));
-		self::assertEquals(json_encode($aTokenData), file_get_contents($sPath));
-	}
-
-	public function testGetAccessTokenInitSuccessfull()
-	{
-		$oMockedOauth2 = $this->createMock(OAuth2::class);
-		$oOAuth2Service = new \OAuth2Service("Itop", $oMockedOauth2);
-
-		$sPath = $oOAuth2Service->GetOauthCachePath();
-		if (is_file($sPath)) {
-			unlink($sPath);
-		};
-
-		$oMockedOauth2->expects(self::once())->method('authenticate');
-
-		$aTokenData = $this->GivenOAuth2TokenTokenData();
-		$oMockedOauth2->expects(self::once())->method('getAccessToken')
-			->willReturn($aTokenData);
-
-		$aAuthorizeUrlParameters = [
-			'auth_user' => "LOGIN",
-			'auth_pwd' => "PWD",
-			'response_type' => 'code',
-		];
-
-		self::assertEquals('ACCESSTOKEN123', $oOAuth2Service->GetOauth2AccessToken($aAuthorizeUrlParameters));
+		self::assertEquals('ACCESSTOKEN123', $oOAuth2Service->InitAndGetOauth2AccessToken($sLogin, $sPwd));
 		self::assertEquals(json_encode($aTokenData), file_get_contents($sPath));
 	}
 
@@ -188,6 +164,33 @@ class OAuth2ServiceTest extends TestCase
 		$oMockedOauth2->expects(self::once())->method('refreshAccessToken');
 
 		self::assertEquals("ACCESSTOKEN123456", $oOAuth2Service->GetOauth2AccessToken());
+		self::assertEquals(json_encode($aNewTokenData), file_get_contents($sPath));
+	}
+
+	public function testGetAccessTokenForceRenewalEvenWithUnexpiredToken()
+	{
+		$oMockedOauth2 = $this->createMock(OAuth2::class);
+		$oOAuth2Service = new \OAuth2Service("Itop", $oMockedOauth2);
+
+		$sPath = $oOAuth2Service->GetOauthCachePath();
+		$aTokenData = $this->GivenOAuth2TokenTokenData();
+		file_put_contents($sPath, json_encode($aTokenData));
+
+		$oMockedOauth2->expects(self::never())->method('authenticate');
+		$oMockedOauth2->expects(self::once())->method('setAccessToken')
+			->with($aTokenData);
+		$oMockedOauth2->expects(self::once())->method('maintainToken');
+
+		$oMockedOauth2->expects(self::never())->method('hasAccessTokenExpired');
+
+		$aNewTokenData = $this->GivenOAuth2TokenTokenData();
+		$aNewTokenData['access_token'] = 'ACCESSTOKEN123456';
+		$oMockedOauth2->expects(self::once())->method('getAccessToken')
+			->willReturn($aNewTokenData);
+
+		$oMockedOauth2->expects(self::once())->method('refreshAccessToken');
+
+		self::assertEquals("ACCESSTOKEN123456", $oOAuth2Service->GetOauth2AccessToken(true));
 		self::assertEquals(json_encode($aNewTokenData), file_get_contents($sPath));
 	}
 

@@ -5,8 +5,7 @@ use Hybridauth\Hybridauth;
 use Hybridauth\Storage\StorageImpl;
 
 require_once(__DIR__.'/oauth2service.php');
-require_once(APPROOT.'vendor/autoload.php');
-require_once(__DIR__.'/HybridauthLoggerWrapperImpl.php');
+require_once(APPROOT.'/vendor/autoload.php');
 
 define('RESPONSE_HTTP_CODE', 'Http-Code');
 
@@ -23,11 +22,9 @@ class CallItopService
 
 			$oOAuth2Service = Utils::GetItopOauth2Service();
 			if ($oOAuth2Service) {
-				Utils::Log(LOG_DEBUG, 'Oauth2 enabled');
 				$aData = $aAdditionalData;
 				$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken());
 			} else {
-				Utils::Log(LOG_DEBUG, 'Oauth2 disabled');
 				$aData = array_merge(
 					Utils::GetCredentials(),
 					$aAdditionalData
@@ -54,14 +51,13 @@ class CallItopService
 				Utils::Log(LOG_DEBUG, 'Oauth2 renegociation needed (http code 498)');
 				$aResponseHeaders = [];
 				//token may have expired: try refresh and re-post
-				$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken(null, true));
+				$sOptionalHeaders = sprintf('Authorization: Bearer %s', $oOAuth2Service->GetOauth2AccessToken(true));
 
 				return Utils::DoPostRequest($sUrl, $aData, $sOptionalHeaders, $aResponseHeaders, $aCurlOptions);
 			}
 
 			return $sResponse;
-		}
-		finally {
+		} finally {
 			Utils::$bDisabledEventIssueNotification  = false;
 		}
 	}

@@ -350,7 +350,7 @@ class Utils
 	public static function GetItopOauth2Service(): ?OAuth2Service
 	{
 
-		$sUseOauth2Val = Utils::GetConfigurationValue('use_pauth2_with_itop', false);
+		$sUseOauth2Val = Utils::GetConfigurationValue('use_oauth2_with_itop', false);
 		if (true !== $sUseOauth2Val && "true" !== $sUseOauth2Val) {
 			return null;
 		}

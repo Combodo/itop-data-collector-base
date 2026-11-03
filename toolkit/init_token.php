@@ -39,13 +39,8 @@ HELP;
 
 	$sLogin = Utils::ReadParameter('itop_login', null) ?? Utils::GetConfigurationValue('itop_login', '');
 	$sPassword = Utils::ReadParameter('itop_password', null) ?? Utils::GetConfigurationValue('itop_password', '');
-	$aAuthorizeUrlParameters = [
-		'auth_user' => $sLogin,
-		'auth_pwd' => $sPassword,
-		'response_type' => 'code',
-	];
 
-	var_dump($oAuth2Service->GetOauth2AccessToken($aAuthorizeUrlParameters));
+	var_dump($oAuth2Service->InitAndGetOauth2AccessToken($sLogin, $sPassword));
 } catch (\Exception $e) {
 	echo "Failed to negociate OAuth2 token\n";
 	echo $e->getMessage()."\n";

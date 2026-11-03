@@ -90,7 +90,7 @@ class CallItopServiceTest extends TestCase
 
 	public function testCallItopViaHttpThroughOAuth2()
 	{
-		$this->GivenConfiguration(['use_pauth2_with_itop' => true]);
+		$this->GivenConfiguration(['use_oauth2_with_itop' => true]);
 		Utils::$oItopOAuth2Service = $this->createMock(\OAuth2Service::class);
 
 		Utils::$oItopOAuth2Service->expects($this->once())->method('GetOauth2AccessToken')->willReturn('TOKEN666');
@@ -121,7 +121,7 @@ class CallItopServiceTest extends TestCase
 
 	public function testCallItopViaHttpThroughOAuth2WithExpiredToken()
 	{
-		$this->GivenConfiguration(['use_pauth2_with_itop' => true]);
+		$this->GivenConfiguration(['use_oauth2_with_itop' => true]);
 		Utils::$oItopOAuth2Service = $this->createMock(\OAuth2Service::class);
 
 		Utils::$oItopOAuth2Service->expects($this->exactly(2))->method('GetOauth2AccessToken')->willReturn('TOKEN666', 'TOKEN667');
