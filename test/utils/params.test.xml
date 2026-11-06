@@ -3,7 +3,7 @@
   <itop_url>https://localhost/iTop</itop_url>
   <itop_login>admin</itop_login>
   <itop_password>admin</itop_password>
-  <use_oauth2_with_itop>false</use_oauth2_with_itop>
+  <use_oauth2_with_itop>no</use_oauth2_with_itop>
   <hybridauth_oauth2>
     <providers>
       <Itop>

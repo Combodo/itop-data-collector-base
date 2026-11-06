@@ -172,7 +172,7 @@ class UtilsTest extends TestCase
 				'aParameters' => [
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
-					'use_oauth2_with_itop' => false,
+					'use_oauth2_with_itop' => 'no',
 				],
 				'sExpectedLoginMode' => 'form',
 			],
@@ -181,7 +181,7 @@ class UtilsTest extends TestCase
 					'itop_login' => 'admin1',
 					'itop_password' => 'admin2',
 					'itop_token' => 'admin4',
-					'use_oauth2_with_itop' => false,
+					'use_oauth2_with_itop' => 'no',
 				],
 				'sExpectedLoginMode' => 'token',
 			],
@@ -191,7 +191,7 @@ class UtilsTest extends TestCase
 					'itop_password' => 'admin2',
 					'itop_rest_token' => 'admin3',
 					'itop_token' => 'admin4',
-					'use_oauth2_with_itop' => false,
+					'use_oauth2_with_itop' => 'no',
 				],
 				'sExpectedLoginMode' => 'token',
 			],
@@ -202,13 +202,13 @@ class UtilsTest extends TestCase
 					'itop_rest-token' => 'admin3',
 					'itop_token' => 'admin4',
 					'itop_login_mode' => 'newloginform',
-					'use_oauth2_with_itop' => false,
+					'use_oauth2_with_itop' => 'no',
 				],
 				'sExpectedLoginMode' => 'newloginform',
 			],
 			'oauth2' => [
 				'aParameters' => [
-					'use_oauth2_with_itop' => true,
+					'use_oauth2_with_itop' => 'yes',
 				],
 				'sExpectedLoginMode' => 'oauth2-server',
 			],
@@ -404,6 +404,7 @@ class UtilsTest extends TestCase
 		return [
 			"false (bool)" => [false],
 			"false (string)" => ["false"],
+			"no (string)" => ["no"],
 			"dumb value" => ["any"],
 		];
 	}
@@ -417,20 +418,9 @@ class UtilsTest extends TestCase
 		self::assertNull(Utils::GetItopOauth2Service());
 	}
 
-	public static function Oauth2Provider()
+	public function testGetItopOauth2ServiceWithOauth2()
 	{
-		return [
-			"true (bool)" => [true],
-			"true (string)" => ["true"],
-		];
-	}
-
-	/**
-	 * @dataProvider Oauth2Provider
-	 */
-	public function testGetItopOauth2ServiceWithOauth2($val)
-	{
-		$this->GivenConfiguration(['use_oauth2_with_itop' => $val]);
+		$this->GivenConfiguration(['use_oauth2_with_itop' => 'yes']);
 		self::assertNotNull(Utils::GetItopOauth2Service());
 	}
 
