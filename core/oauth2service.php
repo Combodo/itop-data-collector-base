@@ -125,11 +125,61 @@ class OAuth2Service
 			throw new \Exception(sprintf("Missing access_token in provider %s response", $this->sProvider));
 		}
 
-		$sTokenData = json_encode($aTokenData, JSON_THROW_ON_ERROR);
-		if (file_put_contents($sOauthConfPath, $sTokenData) !== strlen($sTokenData)) {
-			throw new \Exception(sprintf("Failed to persist OAuth2 tokens to %s", $sOauthConfPath));
+		try {
+			$sTokenData = json_encode($aTokenData, JSON_THROW_ON_ERROR);
+			$this->SecureWriteContent($sOauthConfPath, $sTokenData);
+		} catch (\Exception $e) {
+			throw new \Exception(sprintf("Failed to persist OAuth2 tokens in %s : %s", $sOauthConfPath, $e->getMessage()));
 		}
+
 		return $aTokenData['access_token'];
+	}
+
+	private function SecureWriteContent(string $sOauthConfPath, string $sContent): void
+	{
+		$sDir = dirname($sOauthConfPath);
+		if (!is_dir($sDir) && !mkdir($sDir, 0700, true)) {
+			throw new RuntimeException("Cannot create token cache directory ($sDir)");
+		}
+
+		if (!chmod($sDir, 0700)) {
+			throw new RuntimeException("Cannot set directory permissions to 0700 ($sDir)");
+		}
+
+		$sTmp = $sOauthConfPath.'.tmp';
+		$iPreviousRights = umask(0077);
+		try {
+			$h = fopen($sTmp, 'wb');
+			if ($h === false) {
+				throw new RuntimeException("Cannot open temp token cache file ($sTmp)");
+			}
+
+			if (!chmod($sTmp, 0600)) {
+				fclose($h);
+				throw new RuntimeException("Cannot set file permissions to 0600 ($sTmp)");
+			}
+
+			if (fwrite($h, $sContent) === false) {
+				fclose($h);
+				throw new RuntimeException("Cannot write token cache: ($sTmp)");
+			}
+
+			fflush($h);
+			fclose($h);
+
+			if (!rename($sTmp, $sOauthConfPath)) {
+				throw new RuntimeException("Cannot atomically replace token cache");
+			}
+
+			if (!chmod($sOauthConfPath, 0600)) {
+				throw new RuntimeException("Cannot enforce 0600 on token cache");
+			}
+		} finally {
+			if (is_file($sTmp)) {
+				unlink($sTmp);
+			}
+			umask($iPreviousRights);
+		}
 	}
 
 	public function GetOauthCachePath(): string
