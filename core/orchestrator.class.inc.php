@@ -127,10 +127,14 @@ class Orchestrator
 		//Sort the collectors based on their order
 		uasort(self::$aCollectors, ["Orchestrator", "CompareCollectors"]);
 
+		// Hooks of the extensions must be known before the collectors are initialized.
+		CollectorHooks::LoadHookFiles();
+
 		foreach (self::$aCollectors as $aCollectorData) {
 			/** @var Collector $oClass */
 			$oClass = new $aCollectorData['class']();
-			$oClass->Init();
+			$aNoArgs = [];
+			$oClass->Dispatch('Init', $aNoArgs);
 			$aResults[] = $oClass;
 			//$aResults[] = new $aCollectorData['class']();
 		}
@@ -213,7 +217,8 @@ class Orchestrator
 		/** @var \Collector $oCollector */
 		foreach ($aCollectors as $oCollector) {
 			Utils::SetCollector($oCollector, "InitSynchroDataSource");
-			$bResult = $oCollector->InitSynchroDataSource($aPlaceholders);
+			$aArgs = [$aPlaceholders];
+			$bResult = $oCollector->Dispatch('InitSynchroDataSource', $aArgs);
 			if (!$bResult) {
 				break;
 			}
@@ -238,7 +243,8 @@ class Orchestrator
 		/** @var \Collector $oCollector */
 		foreach ($aCollectors as $oCollector) {
 			Utils::SetCollector($oCollector, "Collect");
-			$bResult = $oCollector->Collect($iMaxChunkSize, $bCollectOnly);
+			$aArgs = [$iMaxChunkSize, $bCollectOnly];
+			$bResult = $oCollector->Dispatch('Collect', $aArgs);
 			if (!$bResult) {
 				break;
 			}
@@ -266,7 +272,8 @@ class Orchestrator
 		/** @var \Collector $oCollector */
 		foreach ($aCollectors as $oCollector) {
 			Utils::SetCollector($oCollector, "Synchronize");
-			$bResult = $oCollector->Synchronize();
+			$aNoArgs = [];
+			$bResult = $oCollector->Dispatch('Synchronize', $aNoArgs);
 			if (!$bResult) {
 				if ($bStopOnError) {
 					break;

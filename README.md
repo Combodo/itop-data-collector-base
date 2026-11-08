@@ -17,6 +17,41 @@ Release packages can be found on the [iTop Hub Store](https://store.itophub.io/e
 When downloading directly from GitHub (by cloning or downloading as zip) you will get potentially unstable code, and you will miss
  additional modules.  
 
+## Hooks
+
+Extensions can run code before and/or after the methods of any collector, without modifying or subclassing it.
+
+Every `*.php` file in `collectors/extensions/hooks/` is included (in alphabetical order) when the collection plan is built.
+A file is active when it is present and inactive when it is not. It returns an array of hook definitions:
+
+```php
+<?php
+
+return [
+	[
+		'target' => 'iTopPersonCollector', // Collector class, parent class or '*' (all collectors).
+		'method' => 'Fetch',               // One of Collector::HOOKABLE_METHODS.
+		'when' => 'after',                 // 'before' or 'after'.
+		'priority' => 10,                  // Optional, lower runs first (default 0).
+		'callback' => static function(Collector $oCollector, array $aArgs, mixed &$mResult): void {
+			if(is_array($mResult)) {
+				$mResult['email'] = strtolower($mResult['email']);
+			}
+		},
+	],
+];
+```
+
+- A `before` callback has the signature `fn(Collector $oCollector, array &$aArgs): mixed`. The arguments of the method can be altered through `$aArgs`.
+  Returning `CollectorHooks::Skip($mResult)` skips the remaining `before` hooks and the method itself; `$mResult` is used as the result of the method.
+- An `after` callback has the signature `fn(Collector $oCollector, array $aArgs, mixed &$mResult): void`. The result of the method can be altered through `$mResult`.
+- Hooks also run when a derived collector overrides the method without calling `parent::`.
+- A file which does not return an array is included, but registers no hooks (e.g. a file with a helper class).
+- Hooks can also be registered from code with `Collector::AddHook($sTarget, $sMethod, $sWhen, $cCallback, $iPriority)`.
+
+Hookable methods: `Init`, `Collect`, `Prepare`, `Fetch`, `Cleanup`, `AddHeader`, `AddRow`, `Synchronize`, `InitSynchroDataSource`,
+`DoProcessBeforeSynchro`, `InitProcessBeforeSynchro` and `ProcessLineBeforeSynchro`.
+
 ## Phpstan validation
 
 run below command to validate your collector-base clone

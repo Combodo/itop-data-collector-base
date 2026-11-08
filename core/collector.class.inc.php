@@ -16,6 +16,7 @@
 //   along with this application. If not, see <http://www.gnu.org/licenses/>
 
 require_once(APPROOT.'core/callitopservice.class.inc.php');
+require_once(APPROOT.'core/collectorhooks.class.inc.php');
 
 define('NULL_VALUE', '<NULL>');
 
@@ -42,6 +43,27 @@ abstract class Collector
 	 */
 	public const TABLENAME_PATTERN = '/^[A-Za-z0-9_]*$/';
 
+	/**
+	 * Methods to which extensions can attach "before" and "after" hooks.
+	 *
+	 * @see Collector::AddHook()
+	 * @var string[] HOOKABLE_METHODS
+	 */
+	public const HOOKABLE_METHODS = [
+		'Init',
+		'Collect',
+		'Prepare',
+		'Fetch',
+		'Cleanup',
+		'AddHeader',
+		'AddRow',
+		'Synchronize',
+		'InitSynchroDataSource',
+		'DoProcessBeforeSynchro',
+		'InitProcessBeforeSynchro',
+		'ProcessLineBeforeSynchro',
+	];
+
 	protected $sProjectName;
 	protected $sSynchroDataSourceDefinitionFile;
 	protected $sVersion;
@@ -59,6 +81,12 @@ abstract class Collector
 
 	/** @var \CallItopService  $oCallItopService */
 	protected static $oCallItopService;
+
+	/** @var array<string, array{before: callable[], after: callable[]}|null> Hooks applying to this instance, per method. */
+	private array $aHookCache = [];
+
+	/** @var int Version of the hook registry the cache was built from. */
+	private int $iHookCacheVersion = -1;
 
 	/**
 	 * Construction
@@ -83,6 +111,95 @@ abstract class Collector
 	public static function SetCallItopService(CallItopService $oCurrentCallItopService)
 	{
 		static::$oCallItopService = $oCurrentCallItopService;
+	}
+
+	/**
+	 * Attach a hook to a method of one or more collectors.
+	 *
+	 * "Before" hook: fn(Collector $oCollector, array &$aArgs): mixed
+	 *  The arguments of the method can be altered. Return CollectorHooks::Skip($mResult) to skip the method.
+	 * "After" hook: fn(Collector $oCollector, array $aArgs, mixed &$mResult): void
+	 *  The result of the method can be altered.
+	 *
+	 * @param string $sTarget Collector class (or parent class) the hook applies to, '*' for all collectors.
+	 * @param string $sMethod One of Collector::HOOKABLE_METHODS.
+	 * @param string $sWhen CollectorHooks::WHEN_BEFORE or CollectorHooks::WHEN_AFTER.
+	 * @param callable $cCallback The hook.
+	 * @param int $iPriority Hooks with a lower value run first.
+	 *
+	 * @return void
+	 * @throws \InvalidArgumentException
+	 * @see CollectorHooks
+	 */
+	public static function AddHook(string $sTarget, string $sMethod, string $sWhen, callable $cCallback, int $iPriority = 0): void {
+		CollectorHooks::Add($sTarget, $sMethod, $sWhen, $cCallback, $iPriority);
+	}
+
+	/**
+	 * Hooks applying to a method of this collector.
+	 *
+	 * @param string $sMethod
+	 *
+	 * @return array{before: callable[], after: callable[]}|null Null when there are none.
+	 */
+	public function GetHooks(string $sMethod): ?array {
+		if($this->iHookCacheVersion !== CollectorHooks::GetVersion()) {
+			$this->aHookCache = [];
+			$this->iHookCacheVersion = CollectorHooks::GetVersion();
+		}
+		if(!array_key_exists($sMethod, $this->aHookCache)) {
+			$this->aHookCache[$sMethod] = CollectorHooks::Resolve($this, $sMethod);
+		}
+
+		return $this->aHookCache[$sMethod];
+	}
+
+	/**
+	 * Cheap check, meant to be done once before a loop to keep the loop free of overhead when there are no hooks.
+	 *
+	 * @param string $sMethod
+	 *
+	 * @return bool
+	 */
+	public function HasHooks(string $sMethod): bool {
+		return $this->GetHooks($sMethod) !== null;
+	}
+
+	/**
+	 * Call a method of this collector, surrounded by the hooks registered for it.
+	 * The call is made on the most derived class, so hooks run whether or not an override calls parent::.
+	 *
+	 * @param string $sMethod One of Collector::HOOKABLE_METHODS.
+	 * @param array $aArgs Arguments of the method. Updated with the changes made by the hooks.
+	 *
+	 * @return mixed Result of the method (or the one supplied by a hook).
+	 */
+	public function Dispatch(string $sMethod, array &$aArgs = []) {
+		$aHooks = $this->GetHooks($sMethod);
+		if($aHooks === null) {
+			return $this->$sMethod(...$aArgs);
+		}
+
+		$bSkipped = false;
+		$mResult = null;
+		foreach($aHooks['before'] as $cHook) {
+			$mHookResult = $cHook($this, $aArgs);
+			if($mHookResult instanceof CollectorHookSkip) {
+				$bSkipped = true;
+				$mResult = $mHookResult->mResult;
+				break;
+			}
+		}
+
+		if(!$bSkipped) {
+			$mResult = $this->$sMethod(...$aArgs);
+		}
+
+		foreach($aHooks['after'] as $cHook) {
+			$cHook($this, $aArgs, $mResult);
+		}
+
+		return $mResult;
 	}
 
 	/**
@@ -309,7 +426,9 @@ abstract class Collector
 
 	protected function DoProcessBeforeSynchro()
 	{
-		$this->InitProcessBeforeSynchro();
+		$aNoArgs = [];
+		$this->Dispatch('InitProcessBeforeSynchro', $aNoArgs);
+		$bHookProcessLine = $this->HasHooks('ProcessLineBeforeSynchro');
 
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'.raw-*.csv'));
 		foreach ($aFiles as $sDataFile) {
@@ -336,7 +455,14 @@ abstract class Collector
 					while (($aData = fgetcsv($hCSV, 10000, $this->sSeparator, escape: '\\')) !== false) {
 						//process
 						try {
-							$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
+							if($bHookProcessLine) {
+								$aLineArgs = [$aData, $iLineIndex];
+								$this->Dispatch('ProcessLineBeforeSynchro', $aLineArgs);
+								$aData = $aLineArgs[0];
+							}
+							else {
+								$this->ProcessLineBeforeSynchro($aData, $iLineIndex);
+							}
 							// Write the CSV data
 							fputcsv($hOutputCSV, $aData, $this->sSeparator, escape: '\\');
 						} catch (IgnoredRowException $e) {
@@ -547,11 +673,27 @@ abstract class Collector
 	{
 		Utils::Log(LOG_INFO, get_class($this)." beginning of data collection...");
 		try {
-			$bResult = $this->Prepare();
+			$aNoArgs = [];
+			$bResult = $this->Dispatch('Prepare', $aNoArgs);
 			if ($bResult) {
+				// The hooks are looked up once, to keep the per-row loop free of overhead when there are none.
+				$bHookFetch = $this->HasHooks('Fetch');
+				$bHookAddHeader = $this->HasHooks('AddHeader');
+				$bHookAddRow = $this->HasHooks('AddRow');
+
 				$idx = 0;
 				$aHeaders = null;
-				while ($aRow = $this->Fetch()) {
+				while(true) {
+					if($bHookFetch) {
+						$aRow = $this->Dispatch('Fetch', $aNoArgs);
+					}
+					else {
+						$aRow = $this->Fetch();
+					}
+					if(!$aRow) {
+						break;
+					}
+
 					if ($aHeaders == null) {
 						// Check that the row names are consistent with the definition of the task
 						$aHeaders = array_keys($aRow);
@@ -559,14 +701,26 @@ abstract class Collector
 
 					if (($idx == 0) || (($iMaxChunkSize > 0) && (($idx % $iMaxChunkSize) == 0))) {
 						$this->NextCSVFile();
-						$this->AddHeader($aHeaders);
+						if($bHookAddHeader) {
+							$aHeaderArgs = [$aHeaders];
+							$this->Dispatch('AddHeader', $aHeaderArgs);
+						}
+						else {
+							$this->AddHeader($aHeaders);
+						}
 					}
 
-					$this->AddRow($aRow);
+					if($bHookAddRow) {
+						$aRowArgs = [$aRow];
+						$this->Dispatch('AddRow', $aRowArgs);
+					}
+					else {
+						$this->AddRow($aRow);
+					}
 
 					$idx++;
 				}
-				$this->Cleanup();
+				$this->Dispatch('Cleanup', $aNoArgs);
 				Utils::Log(LOG_INFO, get_class($this)." end of data collection.");
 			} else {
 				Utils::Log(LOG_ERR, get_class($this)."::Prepare() returned false");
@@ -687,7 +841,8 @@ abstract class Collector
 		// in iTop, for example for some Typology with several cascading levels that
 		// the data synchronization can not handle directly
 		if ($this->MustProcessBeforeSynchro()) {
-			$this->DoProcessBeforeSynchro();
+			$aNoArgs = [];
+			$this->Dispatch('DoProcessBeforeSynchro', $aNoArgs);
 		}
 
 		$aFiles = glob(Utils::GetDataFilePath(get_class($this).'-*.csv'));

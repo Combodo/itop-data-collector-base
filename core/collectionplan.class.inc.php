@@ -38,6 +38,9 @@ abstract class CollectionPlan
 	public function Init(): void
 	{
 		Utils::Log(LOG_INFO, "---------- Build collection plan ----------");
+
+		// Hooks of the extensions must be known before the collectors are initialized.
+		CollectorHooks::LoadHookFiles();
 	}
 
 	/**
@@ -137,7 +140,8 @@ abstract class CollectionPlan
 			/** @var Collector $oCollector */
 			// Instantiate collector
 			$oCollector = new $sCollectorName();
-			$oCollector->Init();
+			$aNoArgs = [];
+			$oCollector->Dispatch('Init', $aNoArgs);
 			if ($oCollector->CheckToLaunch($aOrchestratedCollectors)) {
 				Utils::Log(LOG_INFO, $sCollectorName.' will be launched !');
 				Orchestrator::AddCollector($iIndex++, $sCollectorName);
