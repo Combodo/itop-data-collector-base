@@ -392,24 +392,38 @@ class Utils
 		return self::$aConfigFiles;
 	}
 
+	/**
+	 * Substitutes placeholders in a configuration value.
+	 * - `$code$` is replaced by the (substituted) value of another configuration parameter.
+	 * - `$env:NAME$` is replaced by the value of the environment variable NAME.
+	 *
+	 * @param mixed $value
+	 *
+	 * @return mixed
+	 * @throws Exception When a referenced environment variable is not set.
+	 */
 	protected static function Substitute($value)
 	{
-		if (is_array($value)) {
-			// Recursiverly process each entry
-			foreach ($value as $key => $val) {
+		if(is_array($value)) {
+			// - Recursively process each entry.
+			foreach($value as $key => $val) {
 				$value[$key] = self::Substitute($val);
 			}
-		} elseif (is_string($value)) {
-			preg_match_all('/\$([A-Za-z0-9-_]+)\$/', $value, $aMatches);
-			$aReplacements = [];
-			if (count($aMatches) > 0) {
-				foreach ($aMatches[1] as $sSubCode) {
-					$aReplacements['$'.$sSubCode.'$'] = self::GetConfigurationValue($sSubCode, '#ERROR_UNDEFINED_PLACEHOLDER_'.$sSubCode.'#');
+		}
+		elseif(is_string($value) && str_contains($value, '$')) {
+			// - Single pass: replaced values are never substituted again.
+			$value = preg_replace_callback('/\$(env:)?([A-Za-z0-9-_]+)\$/', static function(array $aMatch): string {
+				if($aMatch[1] === '') {
+					return (string)self::GetConfigurationValue($aMatch[2], '#ERROR_UNDEFINED_PLACEHOLDER_'.$aMatch[2].'#');
 				}
-				$value = str_replace(array_keys($aReplacements), $aReplacements, $value);
-			}
-		} else {
-			// Do nothing, return as-is
+				$sEnvValue = getenv($aMatch[2]);
+				if($sEnvValue === false) {
+					$sMessage = "Environment variable '{$aMatch[2]}' referenced by placeholder '{$aMatch[0]}' is not set.";
+					self::Log(LOG_ERR, $sMessage);
+					throw new Exception($sMessage);
+				}
+				return $sEnvValue;
+			}, $value);
 		}
 
 		return $value;

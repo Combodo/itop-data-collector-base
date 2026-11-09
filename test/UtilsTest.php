@@ -169,6 +169,49 @@ class UtilsTest extends TestCase
 		$this->assertEquals($aExpectedCredentials, Utils::GetCredentials());
 	}
 
+	private function SetConfigParameters(array $aParameters): void
+	{
+		$oParametersMock = $this->createMock(\Parameters::class);
+		$oParametersMock->method('Get')->willReturnCallback(
+			static fn($sKey, $mDefault) => array_key_exists($sKey, $aParameters) ? $aParameters[$sKey] : $mDefault
+		);
+		$oReflection = new \ReflectionProperty(Utils::class, 'oConfig');
+		$oReflection->setAccessible(true);
+		$oReflection->setValue(null, $oParametersMock);
+	}
+
+	public function testEnvPlaceholderIsSubstituted()
+	{
+		putenv('JB_TEST_SECRET=s3cr$t');
+		putenv('JB_TEST_EMPTY=');
+		$this->SetConfigParameters([
+			'itop_password' => '$env:JB_TEST_SECRET$',
+			'combined' => 'pre-$env:JB_TEST_SECRET$-$other$-post',
+			'other' => 'x',
+			'empty' => '$env:JB_TEST_EMPTY$',
+			'nested' => ['a' => '$env:JB_TEST_SECRET$'],
+		]);
+		try {
+			$this->assertSame('s3cr$t', Utils::GetConfigurationValue('itop_password'));
+			$this->assertSame('pre-s3cr$t-x-post', Utils::GetConfigurationValue('combined'));
+			$this->assertSame('', Utils::GetConfigurationValue('empty'));
+			$this->assertSame(['a' => 's3cr$t'], Utils::GetConfigurationValue('nested'));
+		}
+		finally {
+			putenv('JB_TEST_SECRET');
+			putenv('JB_TEST_EMPTY');
+		}
+	}
+
+	public function testEnvPlaceholderUnsetThrows()
+	{
+		putenv('JB_TEST_UNSET');
+		$this->SetConfigParameters(['itop_password' => '$env:JB_TEST_UNSET$']);
+		$this->expectException(\Exception::class);
+		$this->expectExceptionMessage('JB_TEST_UNSET');
+		Utils::GetConfigurationValue('itop_password');
+	}
+
 	/**
 	 * @dataProvider GetLoginModeProvider
 	 */
