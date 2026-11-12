@@ -119,7 +119,7 @@ abstract class SQLCollector extends Collector
 		$sLogin = Utils::GetConfigurationValue('sql_login', 'root');
 		$sPassword = Utils::GetConfigurationValue('sql_password', '');
 
-		$aOptions = [];
+		$aOptions = null;
 		//DB Secured connection
 		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'no') === 'yes');
 		if ($bMySqlSsl) {
