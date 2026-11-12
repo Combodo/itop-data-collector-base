@@ -121,7 +121,7 @@ abstract class SQLCollector extends Collector
 
 		$aOptions = [];
 		//DB Secured connection
-		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'false') ==='true');
+		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'no') === 'yes');
 		if ($bMySqlSsl) {
 			$sCaFile = Utils::GetConfigurationValue('sql_cafile', ''); // for MySQL server ex : __DIR__ . '/certs/ca.pem'
 			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'true') === 'true');
