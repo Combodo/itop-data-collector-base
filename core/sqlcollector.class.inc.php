@@ -124,7 +124,7 @@ abstract class SQLCollector extends Collector
 		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'no') === 'yes');
 		if ($bMySqlSsl) {
 			$sCaFile = Utils::GetConfigurationValue('sql_cafile', ''); // for MySQL server ex : __DIR__ . '/certs/ca.pem'
-			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'true') === 'true');
+			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'yes') === 'yes');
 			$sCertFile = Utils::GetConfigurationValue('sql_cert_file', '');  //  (mTLS)
 			$sKeyFile = Utils::GetConfigurationValue('sql_key_file', '');
 			$aOptions = [
