@@ -993,8 +993,10 @@ abstract class Collector
 					break;
 
 				case 'attribute_list':
-					foreach ($value as $sKey => $aDef) {
+					foreach ($value as $aDef) {
 						$sAttCode = $aDef['attcode'];
+						// Ignore read-only fields
+						unset($aDef['import_columns']);
 						$aDef2 = $this->FindAttr($sAttCode, $aDS2['attribute_list']);
 						if ($aDef2 === false) {
 							if ($this->AttributeIsOptional($sAttCode)) {
@@ -1008,13 +1010,12 @@ abstract class Collector
 
 								return false;
 							}
-
 						} else {
 							if (($aDef != $aDef2) && (!$this->AttributeIsOptional($sAttCode))) {
 								// Definitions are different
 								Utils::Log(
 									LOG_DEBUG,
-									'Comparison: The definitions of the attribute \'%1$s\' are different. Data sources differ:\nExpected values:%2$s------------\nCurrent values in iTop:%3$s\n',
+									"Comparison: The definitions of the attribute '%s' are different. Data sources differ:\nExpected values:%s------------\nCurrent values in iTop:%s\n",
 									$sAttCode,
 									print_r($aDef, true),
 									print_r($aDef2, true)
