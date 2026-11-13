@@ -118,14 +118,14 @@ abstract class SQLCollector extends Collector
 		$sDatabase = Utils::GetConfigurationValue('sql_database', '');
 		$sLogin = Utils::GetConfigurationValue('sql_login', 'root');
 		$sPassword = Utils::GetConfigurationValue('sql_password', '');
-
+		$aOptions = $this->GetPDOOptions();
 		$sConnectionStringFormat = Utils::GetConfigurationValue('sql_connection_string', '%1$s:dbname=%2$s;host=%3$s');
 		$sConnectionString = sprintf($sConnectionStringFormat, $sEngine, $sDatabase, $sHost);
 
 		Utils::Log(LOG_DEBUG, "[".get_class($this)."] Connection string: '$sConnectionString'");
 
 		try {
-			$this->oDB = new PDO($sConnectionString, $sLogin, $sPassword);
+			$this->oDB = new PDO($sConnectionString, $sLogin, $sPassword, $aOptions);
 		} catch (PDOException $e) {
 			Utils::Log(LOG_ERR, "[".get_class($this)."] Database connection failed: ".$e->getMessage());
 			$this->oDB = null;
@@ -134,6 +134,35 @@ abstract class SQLCollector extends Collector
 		}
 
 		return true;
+	}
+
+	/**
+	 * Compute PDO options from collector configuration.
+	 *
+	 * @return array|null
+	 */
+	protected function GetPDOOptions()
+	{
+		$aOptions = null;
+		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'no') === 'yes');
+		if ($bMySqlSsl) {
+			$sCaFile = Utils::GetConfigurationValue('sql_cafile', '');
+			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'yes') === 'yes');
+			$sCertFile = Utils::GetConfigurationValue('sql_cert_file', '');
+			$sKeyFile = Utils::GetConfigurationValue('sql_key_file', '');
+			$aOptions = [
+				PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $bCheckCertif,
+				PDO::MYSQL_ATTR_SSL_CA => $sCaFile,
+			];
+
+			if (($sCertFile !== '') && ($sKeyFile !== '')) {
+				$aOptions[PDO::MYSQL_ATTR_SSL_CERT] = $sCertFile;
+				$aOptions[PDO::MYSQL_ATTR_SSL_KEY] = $sKeyFile;
+			}
+			Utils::Log(LOG_DEBUG, " options: ".json_encode($aOptions));
+		}
+
+		return $aOptions;
 	}
 
 	/**
