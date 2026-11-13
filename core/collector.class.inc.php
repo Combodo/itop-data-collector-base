@@ -993,8 +993,10 @@ abstract class Collector
 					break;
 
 				case 'attribute_list':
-					foreach ($value as $sKey => $aDef) {
+					foreach ($value as $aDef) {
 						$sAttCode = $aDef['attcode'];
+						// Ignore read-only fields
+						unset($aDef['import_columns']);
 						$aDef2 = $this->FindAttr($sAttCode, $aDS2['attribute_list']);
 						if ($aDef2 === false) {
 							if ($this->AttributeIsOptional($sAttCode)) {
