@@ -118,27 +118,7 @@ abstract class SQLCollector extends Collector
 		$sDatabase = Utils::GetConfigurationValue('sql_database', '');
 		$sLogin = Utils::GetConfigurationValue('sql_login', 'root');
 		$sPassword = Utils::GetConfigurationValue('sql_password', '');
-
-		$aOptions = null;
-		//DB Secured connection
-		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'no') === 'yes');
-		if ($bMySqlSsl) {
-			$sCaFile = Utils::GetConfigurationValue('sql_cafile', ''); // for MySQL server ex : __DIR__ . '/certs/ca.pem'
-			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'yes') === 'yes');
-			$sCertFile = Utils::GetConfigurationValue('sql_cert_file', '');  //  (mTLS)
-			$sKeyFile = Utils::GetConfigurationValue('sql_key_file', '');
-			$aOptions = [
-				PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $bCheckCertif,
-				PDO::MYSQL_ATTR_SSL_CA => $sCaFile,	// TLS
-			];
-
-			// mTLS optionnel
-			if ($sCertFile !== '' && $sKeyFile !== '') {
-				$aOptions[PDO::MYSQL_ATTR_SSL_CERT] = $sCertFile;
-				$aOptions[PDO::MYSQL_ATTR_SSL_KEY] = $sKeyFile;
-			}
-			Utils::Log(LOG_DEBUG, " options: ".json_encode($aOptions));
-		}
+		$aOptions = $this->GetPDOOptions();
 		$sConnectionStringFormat = Utils::GetConfigurationValue('sql_connection_string', '%1$s:dbname=%2$s;host=%3$s');
 		$sConnectionString = sprintf($sConnectionStringFormat, $sEngine, $sDatabase, $sHost);
 
@@ -154,6 +134,35 @@ abstract class SQLCollector extends Collector
 		}
 
 		return true;
+	}
+
+	/**
+	 * Compute PDO options from collector configuration.
+	 *
+	 * @return array|null
+	 */
+	protected function GetPDOOptions()
+	{
+		$aOptions = null;
+		$bMySqlSsl = (Utils::GetConfigurationValue('sql_ssl', 'no') === 'yes');
+		if ($bMySqlSsl) {
+			$sCaFile = Utils::GetConfigurationValue('sql_cafile', '');
+			$bCheckCertif = (Utils::GetConfigurationValue('sql_check_server_certification', 'yes') === 'yes');
+			$sCertFile = Utils::GetConfigurationValue('sql_cert_file', '');
+			$sKeyFile = Utils::GetConfigurationValue('sql_key_file', '');
+			$aOptions = [
+				PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => $bCheckCertif,
+				PDO::MYSQL_ATTR_SSL_CA => $sCaFile,
+			];
+
+			if (($sCertFile !== '') && ($sKeyFile !== '')) {
+				$aOptions[PDO::MYSQL_ATTR_SSL_CERT] = $sCertFile;
+				$aOptions[PDO::MYSQL_ATTR_SSL_KEY] = $sKeyFile;
+			}
+			Utils::Log(LOG_DEBUG, " options: ".json_encode($aOptions));
+		}
+
+		return $aOptions;
 	}
 
 	/**
