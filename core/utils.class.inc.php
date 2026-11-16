@@ -778,6 +778,40 @@ class Utils
 		}
 		return static::$aModuleVersions[$sModuleId];
 	}
+
+	/**
+	 * Autoloader for collector classes.
+	 *
+	 * Looks for "<class>.class.inc.php" in the following directories, in order,
+	 * and includes the first match:
+	 *   1. collectors/extensions/src/
+	 *   2. collectors/src/
+	 *   3. core/
+	 *
+	 * If no file is found, nothing happens, so any other registered autoloader
+	 * still gets a chance to load the class.
+	 *
+	 * @param string $sClass Name of the class to load
+	 */
+	public static function LoadClass(string $sClass): void
+	{
+		$aDirectories = [
+			'collectors/extensions/src/',
+			'collectors/src/',
+			'core/',
+		];
+		$aClassNames = array_unique([$sClass, strtolower($sClass)]);
+
+		foreach ($aDirectories as $sDirectory) {
+			foreach ($aClassNames as $sClassName) {
+				$sFileName = sprintf('%s%s%s.class.inc.php', APPROOT, $sDirectory, str_replace('\\', DIRECTORY_SEPARATOR, $sClassName));
+				if (file_exists($sFileName)) {
+					include $sFileName;
+					return;
+				}
+			}
+		}
+	}
 }
 
 class UtilsLogger

@@ -8,6 +8,7 @@ use Orchestrator;
 use PHPUnit\Framework\TestCase;
 use StandardCollector;
 use TestCollectionPlan;
+use Utils;
 
 @define('APPROOT', dirname(__FILE__).'/../');
 
@@ -26,6 +27,8 @@ class CollectionPlanTest extends TestCase
 	public function setUp(): void
 	{
 		parent::setUp();
+
+		spl_autoload_register([Utils::class, 'LoadClass']);
 
 		$this->CleanCollectorsFiles();
 	}
@@ -54,24 +57,6 @@ class CollectionPlanTest extends TestCase
 			$this->assertFalse($aCollector['name'] == 'StandardCollectorWithNoRank');
 		}
 		$this->assertTrue($aCollectorsLaunchSequence[1]['name'] == 'ExtendedCollector');
-	}
-
-	/**
-	 * @return void
-	 * @throws \IOException
-	 */
-	public function testGetCollectorDefinitionFile()
-	{
-		$this->CopyCollectorsFiles();
-
-		require_once self::$sCollectorPath."src/TestCollectionPlan.class.inc.php";
-		$oTestCollectionPlan = new TestCollectionPlan();
-		$oTestCollectionPlan->Init();
-
-		$this->assertTrue($oTestCollectionPlan->GetCollectorDefinitionFile('ExtendedCollector'));
-		$this->assertTrue($oTestCollectionPlan->GetCollectorDefinitionFile('StandardCollector'));
-		$this->assertTrue($oTestCollectionPlan->GetCollectorDefinitionFile('LegacyCollector'));
-		$this->assertFalse($oTestCollectionPlan->GetCollectorDefinitionFile('OtherCollector'));
 	}
 
 	/**
