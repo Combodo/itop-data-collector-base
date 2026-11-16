@@ -83,8 +83,10 @@ try {
 
 	if (file_exists(APPROOT.'collectors/main.php')) {
 		require_once(APPROOT.'collectors/main.php');
-	} else {
-		Utils::Log(LOG_ERR, "The file '".APPROOT."collectors/main.php' is missing (or unreadable).");
+	}
+
+	if ($sCollectionPlanClass = Utils::GetConfigurationValue('collection_plan')) {
+		Orchestrator::UseCollectionPlan($sCollectionPlanClass);
 	}
 
 	if (!Orchestrator::CheckRequirements()) {
