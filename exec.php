@@ -77,6 +77,7 @@ $bSynchroOnly = (Utils::ReadBooleanParameter('synchro_only', false) == true);
 $bDumpConfigOnly = (Utils::ReadBooleanParameter('dump_config_only', false) == true);
 
 try {
+	spl_autoload_register([Utils::class, 'LoadClass']);
 	Utils::InitConsoleLogLevel();
 	Utils::$iEventIssueLogLevel = Utils::ReadParameter('eventissue_log_level', Utils::GetConfigurationValue('eventissue_log_level', LOG_NONE));//On windows LOG_NOTICE=LOG_INFO=LOG_DEBUG=6
 	$iMaxChunkSize = Utils::ReadParameter('max_chunk_size', Utils::GetConfigurationValue('max_chunk_size', 1000));

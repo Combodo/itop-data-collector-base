@@ -80,28 +80,6 @@ abstract class CollectionPlan
 	}
 
 	/**
-	 * Look for the collector definition file in the different possible collector directories
-	 *
-	 * @param $sCollector
-	 *
-	 * @return bool
-	 */
-	public function GetCollectorDefinitionFile($sCollector): bool
-	{
-		if (file_exists(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php')) {
-			require_once(APPROOT.'collectors/extensions/src/'.$sCollector.'.class.inc.php');
-		} elseif (file_exists(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php')) {
-			require_once(APPROOT.'collectors/src/'.$sCollector.'.class.inc.php');
-		} elseif (file_exists(APPROOT.'collectors/'.$sCollector.'.class.inc.php')) {
-			require_once(APPROOT.'collectors/'.$sCollector.'.class.inc.php');
-		} else {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 *  Add the collectors to be launched to the orchestrator
 	 *
 	 * @return bool
@@ -129,7 +107,7 @@ abstract class CollectionPlan
 			}
 
 			// Read collector php definition file
-			if (!$this->GetCollectorDefinitionFile($sCollectorName)) {
+			if (!class_exists($sCollectorName)) {
 				Utils::Log(LOG_INFO, "> No file definition file has been found for ".$sCollectorName." It will not be launched.");
 				continue;
 			}
