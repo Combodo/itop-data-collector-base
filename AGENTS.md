@@ -173,15 +173,17 @@ test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.
 - PHPStan: level 1 with `phpstan-baseline.neon`. Introduce no new error; never grow the baseline to hide one.
 - PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps on PHP 8.1.
 
-### ⚠ The test suite is destructive on the working copy
+### The tests protect your local files
 
-- It copies fixtures into `collectors/`, then **deletes every file in `collectors/`** (and its `src/`, `json/`,
-  `extensions/` sub-folders).
-- `CollectorTest` **deletes `conf/params.local.xml`**.
-- It writes into `data/`.
+The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/params.local.xml`. So
+`test/Support/bootstrap.php` (the PHPUnit bootstrap) moves `conf/params.local.xml` and the content of `collectors/`
+to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`WorkingCopyGuard`).
 
-Never run the suite in a checkout where `collectors/` holds a real collector (or is a symlink to one), or where
-`conf/params.local.xml` matters. Use a clean checkout, or move those files aside first.
+- If a run is killed (`kill -9`, or Ctrl-C without the pcntl extension), the next run restores the files first. If
+  `collectors/` still holds that run's leftovers, it stops and asks you to empty `collectors/` yourself: it never
+  deletes files it did not create.
+- Two runs in the same working copy are refused: the second one stops immediately.
+- Files the tests write into `data/` are not protected: they are generated files.
 
 ### Writing tests
 

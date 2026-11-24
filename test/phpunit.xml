@@ -1,4 +1,4 @@
-<phpunit bootstrap="../vendor/autoload.php" backupGlobals="false" verbose="true">
+<phpunit bootstrap="Support/bootstrap.php" backupGlobals="false" verbose="true">
   <testsuites>
     <testsuite name="testsU">
       <directory suffix="Test.php">.</directory>

@@ -14,3 +14,4 @@ test/php-code-style/vendor
 .phpunit.result.cache
 phpstan_results.xml
 
+test/.stash/
