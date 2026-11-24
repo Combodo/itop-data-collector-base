@@ -325,6 +325,11 @@ abstract class BaseTestCase extends TestCase
 
 	private function EmptyCollectorsDir(): void
 	{
+		// The developer's conf/params.local.xml is stashed (WorkingCopyGuard): one found here was written by a test
+		if (file_exists(CONF_DIR.'params.local.xml')) {
+			unlink(CONF_DIR.'params.local.xml');
+		}
+
 		$sCollectorsDir = APPROOT.'collectors';
 		if (is_dir($sCollectorsDir) && !is_link($sCollectorsDir)) {
 			self::DeleteTree($sCollectorsDir, false);
