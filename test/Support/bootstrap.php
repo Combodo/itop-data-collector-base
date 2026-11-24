@@ -5,6 +5,7 @@
  *
  * - Loads the framework the way exec.php does.
  * - Protects the developer's conf/params.local.xml and collectors/ (see WorkingCopyGuard).
+ * - Records the initial global state, restored around each test by BaseTestCase (see GlobalState).
  *
  * It is safe to require it several times. Test files extending BaseTestCase get it through that class, so they also
  * work when PHPUnit runs without the "bootstrap" setting of test/phpunit.xml.
@@ -33,5 +34,7 @@ require_once APPROOT.'core/jsoncollector.class.inc.php';
 require_once APPROOT.'core/polyfill.inc.php';
 
 require_once __DIR__.'/WorkingCopyGuard.php';
+require_once __DIR__.'/GlobalState.php';
 
 \UnitTestFiles\Test\Support\WorkingCopyGuard::Protect();
+\UnitTestFiles\Test\Support\GlobalState::Capture();

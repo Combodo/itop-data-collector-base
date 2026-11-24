@@ -187,6 +187,15 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
 
 ### Writing tests
 
+- New tests extend `UnitTestFiles\Test\Support\BaseTestCase` (`require_once __DIR__.'/Support/BaseTestCase.php';`).
+  Around each test it restores the global state (every static property of the `core/` classes, and `$argv`),
+  empties `collectors/`, records logs in `$this->oLogger` (`HasMessage()`, `GetMessages()`) instead of printing them,
+  and loads the configuration with `data_path` in a private temporary directory. Helpers:
+  - `LoadConfiguration(['key' => value])`: reload the configuration files, then override top-level values. Call it
+    again after installing collector files.
+  - `InstallCollectorFiles($sFixtureDir, $sSubDir)`, `WriteCollectorFile($sPath, $sContent)`: populate `collectors/`.
+  - `SetCliArguments(['--collect_only'])`: what `Utils::ReadParameter()` and friends read.
+  - `InvokeNonPublicMethod()`, `GetNonPublicProperty()`, `SetNonPublicProperty()`.
 - **No network, no real iTop, no real third-party system.** Every external call has a seam:
   - all HTTP (REST, synchro pages, `jsonurl`): `Utils::MockDoPostRequestService($mock)` with a mock of
     `DoPostRequestService`; reset it with `null`;
@@ -199,11 +208,9 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
   - `Utils::Exec()` (the `command` option) has no seam: use harmless commands in tests.
 - Collect scenarios use fixture folders (`test/single_csv/<case>/`, `test/single_json/<case>/`) holding a
   `params.distrib.xml`, the input file and `expected_generated.csv`, compared with `data/<Class>-1.csv`.
-- One test class per core class, in `test/<Class>Test.php`, namespace `UnitTestFiles\Test`. Each file starts with
-  `@define('APPROOT', dirname(__FILE__, 2).'/');` and requires the core files it needs.
-- All tests share one process, so **reset global static state** in `tearDown()`: `Utils::$oConfig` (reflection, set to
-  null), `Utils::MockLog(null)`, `Utils::MockDoPostRequestService(null)`, `Orchestrator::$aCollectors`,
-  `Collector::$oCallItopService`, `LookupTable::$oRestClient`, the `CollectionPlan` singleton.
+- Test classes live in `test/<Subject>Test.php`, namespace `UnitTestFiles\Test`.
+- Older tests extend PHPUnit's `TestCase` directly and reset the state themselves; `CollectorSynchroTest` adds a
+  `--config_file` to `$argv` that persists until a `BaseTestCase` test restores it. Prefer `BaseTestCase` for new tests.
 - Files must use LF line endings: a CRLF working copy makes heredoc-based expectations fail.
 - Without `pdo_sqlite`, one SQL test is skipped: this is expected. The mocked logger prints `string(...)` dumps:
   expected noise.
