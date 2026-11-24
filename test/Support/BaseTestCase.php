@@ -12,6 +12,8 @@ use Utils;
 require_once __DIR__.'/bootstrap.php';
 require_once __DIR__.'/GlobalState.php';
 require_once __DIR__.'/RecordingLogger.php';
+require_once __DIR__.'/FakeHttpServer.php';
+require_once __DIR__.'/FakeItop.php';
 
 GlobalState::Capture();
 
@@ -23,14 +25,28 @@ GlobalState::Capture();
  * - empties collectors/ (the developer's files are stashed, see WorkingCopyGuard);
  * - records the logs in $this->oLogger instead of printing them;
  * - loads the configuration with data_path set to a private temporary directory.
+ *
+ * StartFakeItop() points the configuration to an in-memory iTop (see FakeItop): no test reaches the network.
  */
 abstract class BaseTestCase extends TestCase
 {
 	/** @var \UnitTestFiles\Test\Support\RecordingLogger Every message logged through Utils::Log() during the test */
 	protected $oLogger;
 
+	/** @var \UnitTestFiles\Test\Support\FakeItop|null Set by StartFakeItop() */
+	protected $oFakeItop = null;
+
 	/** @var string|null */
 	private $sTempDir = null;
+
+	/** @var \UnitTestFiles\Test\Support\FakeHttpServer|null */
+	private $oFakeHttpServer = null;
+
+	/** @var \Parameters|null */
+	private $oConfig = null;
+
+	/** @var array<string, mixed> Configuration values applied on top of the files at each LoadConfiguration() */
+	private $aConfigOverrides = [];
 
 	protected function setUp(): void
 	{
@@ -51,14 +67,66 @@ abstract class BaseTestCase extends TestCase
 
 	protected function tearDown(): void
 	{
-		GlobalState::Restore();
-		$this->EmptyCollectorsDir();
-		if ($this->sTempDir !== null) {
-			self::DeleteTree($this->sTempDir);
-			$this->sTempDir = null;
+		try {
+			if ($this->oFakeItop !== null) {
+				$this->assertSame([], $this->oFakeItop->GetUnsupportedRequests(), 'The fake iTop received requests it does not emulate: extend FakeItop.');
+			}
+		} finally {
+			GlobalState::Restore();
+			$this->EmptyCollectorsDir();
+			if ($this->sTempDir !== null) {
+				self::DeleteTree($this->sTempDir);
+				$this->sTempDir = null;
+			}
+			parent::tearDown();
+		}
+	}
+
+	/**
+	 * Point the configuration to a new in-memory iTop, and route every HTTP request of the framework to it.
+	 *
+	 * @return \UnitTestFiles\Test\Support\FakeItop Also available as $this->oFakeItop
+	 */
+	protected function StartFakeItop(): FakeItop
+	{
+		$this->oFakeItop = new FakeItop();
+		$this->oFakeItop->InstallOn($this->GetFakeHttpServer());
+		$this->SetConfigurationOverrides([
+			'itop_url' => FakeItop::URL,
+			'itop_login' => FakeItop::LOGIN,
+			'itop_password' => FakeItop::PASSWORD,
+			'itop_token' => '',
+			'itop_login_mode' => '',
+		]);
+
+		return $this->oFakeItop;
+	}
+
+	/**
+	 * @return \UnitTestFiles\Test\Support\FakeHttpServer Receives every HTTP request of the framework; add routes
+	 *     to it to fake third-party APIs
+	 */
+	protected function GetFakeHttpServer(): FakeHttpServer
+	{
+		if ($this->oFakeHttpServer === null) {
+			$this->oFakeHttpServer = new FakeHttpServer();
+			Utils::MockDoPostRequestService($this->oFakeHttpServer);
 		}
 
-		parent::tearDown();
+		return $this->oFakeHttpServer;
+	}
+
+	/**
+	 * Set configuration values now, and keep them when the configuration is reloaded during the test.
+	 *
+	 * @param array<string, mixed> $aValues
+	 */
+	protected function SetConfigurationOverrides(array $aValues): void
+	{
+		$this->aConfigOverrides = array_merge($this->aConfigOverrides, $aValues);
+		foreach ($aValues as $sCode => $value) {
+			$this->oConfig->Set($sCode, $value);
+		}
 	}
 
 	/**
@@ -66,7 +134,8 @@ abstract class BaseTestCase extends TestCase
 	 * collectors/params.distrib.xml, then collectors/extensions/params.distrib.xml, then --config_file or
 	 * conf/params.local.xml (which the tests never see). Call it again after installing collector files.
 	 *
-	 * @param array<string, mixed> $aValues Top-level values to set on top of the files
+	 * @param array<string, mixed> $aValues Top-level values to set on top of the files (and of the values given to
+	 *     SetConfigurationOverrides())
 	 *
 	 * @return \Parameters The configuration now used by Utils::GetConfigurationValue()
 	 */
@@ -74,13 +143,13 @@ abstract class BaseTestCase extends TestCase
 	{
 		// Utils::LoadConfig() appends to the list of loaded files: start from an empty list, as exec.php does
 		$this->SetNonPublicProperty(Utils::class, 'aConfigFiles', []);
-		$oConfig = Utils::LoadConfig();
-		$oConfig->Set('data_path', $this->GetDataDir());
-		foreach ($aValues as $sCode => $value) {
-			$oConfig->Set($sCode, $value);
+		$this->oConfig = Utils::LoadConfig();
+		$this->oConfig->Set('data_path', $this->GetDataDir());
+		foreach (array_merge($this->aConfigOverrides, $aValues) as $sCode => $value) {
+			$this->oConfig->Set($sCode, $value);
 		}
 
-		return $oConfig;
+		return $this->oConfig;
 	}
 
 	/**

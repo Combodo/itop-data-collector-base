@@ -196,7 +196,20 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
   - `InstallCollectorFiles($sFixtureDir, $sSubDir)`, `WriteCollectorFile($sPath, $sContent)`: populate `collectors/`.
   - `SetCliArguments(['--collect_only'])`: what `Utils::ReadParameter()` and friends read.
   - `InvokeNonPublicMethod()`, `GetNonPublicProperty()`, `SetNonPublicProperty()`.
-- **No network, no real iTop, no real third-party system.** Every external call has a seam:
+- **No network, no real iTop, no real third-party system** in the unit suite. To exercise the dialog with iTop, call
+  `$this->StartFakeItop()`: it points the configuration to `FakeItop`, an in-memory iTop 3.2 that answers
+  `rest.php` (get/create/update/delete, minimal OQL), `synchro_import.php` (replica table) and `synchro_exec.php`
+  (reconciliation, create/update, `<NULL>` handling, error counters), with the formats and messages of the iTop 3.2
+  sources. Then assert on the outcome: `$this->oFakeItop->GetObjects('Organization', ['name' => 'x'])`,
+  `GetSynchroDataSource($sName)`, `GetReplicas($iSourceId)`, `GetRestOperations('core/update')`,
+  `GetRequests('synchro_exec')`. Declare the scope class of a data source with `DefineClass()` or
+  `DefineClassFromSynchroDataSource($sJsonFile)` (Organization and Person exist by default). A request the fake does
+  not emulate fails the test: extend the fake, and the contract scenarios if it is a new iTop behaviour.
+- Third-party HTTP APIs (e.g. `jsonurl`): `$this->GetFakeHttpServer()->Route($sUrlPrefix, function ($sUrl, $aData) {
+  return $sBody; })`. Every request is recorded (`GetRequests()`); an unrouted URL throws like an unreachable host.
+- `test/Support/ItopContractTestCase.php` holds scenarios of the dialog with iTop. They run against the fake
+  (`FakeItopContractTest`) and against a real iTop (integration suite). A fake that passes them stays faithful.
+- Lower-level seams, used by older tests:
   - all HTTP (REST, synchro pages, `jsonurl`): `Utils::MockDoPostRequestService($mock)` with a mock of
     `DoPostRequestService`; reset it with `null`;
   - synchro pages only: `Collector::SetCallItopService($mock)` with a mock of `CallItopService`;
@@ -212,8 +225,8 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
 - Older tests extend PHPUnit's `TestCase` directly and reset the state themselves; `CollectorSynchroTest` adds a
   `--config_file` to `$argv` that persists until a `BaseTestCase` test restores it. Prefer `BaseTestCase` for new tests.
 - Files must use LF line endings: a CRLF working copy makes heredoc-based expectations fail.
-- Without `pdo_sqlite`, one SQL test is skipped: this is expected. The mocked logger prints `string(...)` dumps:
-  expected noise.
+- Without `pdo_sqlite` or `pdo_mysql`, some SQL tests are skipped: this is expected. In older tests, the mocked
+  logger prints `string(...)` dumps: expected noise.
 
 ## 9. Conventions
 
@@ -242,6 +255,14 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
 - `SQLCollector` and `JsonCollector` implement `AttributeIsOptional()` through `<class>_ignored_attributes`;
   `CSVCollector` relies on `ignored_columns` and `defaults` instead.
 - `CheckColumns()` only validates the first fetched row.
+- A `Collector` instance can run `Collect()` only once: `Cleanup()` closes the CSV file without resetting
+  `$iFileIndex`, so a second call fails in `NextCSVFile()`. `exec.php` uses each instance once.
+- An SDS definition whose `attribute_list` entries hold a `friendlyname` (as files exported from iTop do) is found
+  different at every run, hence updated: `RestClient::GetFullSynchroDataSource()` removes `friendlyname` from the
+  iTop side only. Derived from the iTop 3.2 sources and frozen by
+  `ItopContractTestCase::testDefinitionWithAttributeFriendlynamesIsUpdatedAtEveryRun`.
+- `ParseSynchroExecOutput()` uses a greedy regular expression per line: when several `Objects ... errors: N`
+  counters share one line, only the last one is read. iTop 3.2 prints one counter per line.
 - PHPStan reports one pre-existing error in `collector.class.inc.php` (`$sModuleFileContents` might be undefined).
 
 ## 11. Further reading
