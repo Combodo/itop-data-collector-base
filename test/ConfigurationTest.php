@@ -225,6 +225,16 @@ class ConfigurationTest extends BaseTestCase
 		$this->assertSame(APPROOT.'/data/file.csv', Utils::GetDataFilePath('file.csv'));
 	}
 
+	public function testAnEmptyCurlOptionsElementCrashesTheHttpCalls(): void
+	{
+		// Known quirk: <curl_options/> gives '' (not an empty hash), which replaces the default options
+		$this->SetConfigurationOverrides(['curl_options' => '']);
+
+		$this->expectException(\TypeError::class);
+
+		Utils::GetCurlOptions();
+	}
+
 	/////////////////////////////////////////////////////////////////////////
 	// Command line
 
