@@ -1,0 +1,244 @@
+# AGENTS.md — iTop Data Collector Base
+
+Guidance for AI coding agents (and humans) working on this repository.
+Read it entirely before changing code, and update it when you change a behaviour it describes.
+
+## 1. What this repository is
+
+`itop-data-collector-base` is a small PHP CLI framework for building **data collectors** for
+[iTop](https://github.com/Combodo/iTop). A collector extracts data from a third-party system, writes it as CSV and
+loads it into iTop through iTop's **Synchro Data Source** (SDS) mechanism (`synchro/synchro_import.php` +
+`synchro/synchro_exec.php`), using the iTop REST API (`webservices/rest.php`) to create/update the SDS definitions.
+
+This repository contains **only the framework**. Concrete collectors (LDAP, vSphere, Proxmox, MS Graph, OCS-NG…)
+live in separate repositories and are dropped into `collectors/` at runtime (see §3).
+
+- Plain PHP, no runtime Composer dependency: `vendor/` holds dev tools only (PHPUnit 9, PHPStan 2).
+- Supported PHP: `>=8.1 <8.4` (`composer.json`; CI runs PHP 8.1). Extensions: `simplexml` and `dom` (checked at
+  startup), `curl` strongly recommended, `pdo_*` for SQL collectors.
+
+## 2. Golden rule: do not break downstream collectors
+
+About 25 Combodo collectors, plus customer extensions, subclass these classes. **None of them is tested by this
+repository's CI.** Every `public` **and** `protected` member of the `core/` classes is de facto public API.
+
+Measured in Combodo's collectors:
+- Overridden methods (number of collectors): `Fetch` 19, `Prepare` 18, `Init` 9, `Synchronize` 9,
+  `AttributeIsOptional` 8, `MustProcessBeforeSynchro` / `InitProcessBeforeSynchro` / `ProcessLineBeforeSynchro` 7,
+  `CheckToLaunch` 6, `AddHeader` 5, `Collect` 4, `AddRow` / `GetCharset` / `GetSynchroDataSourceDefinition` /
+  `Connect` 1.
+- Protected properties accessed directly: `$aFields`, `$aCSVHeaders`, `$sSeparator`, `$aCSVFile`, `$iFileIndex`,
+  `$aSkippedAttributes`, `$aNullifiedAttributes`, `$aCollectorConfig`, `$idx` / `$iIdx`, `$aJson`, `$aJsonKey`,
+  `$oDB`, `$oStatement`, `$aCsvFieldsPerLine`.
+- Static API: `Utils::Log` (~360 calls), `Utils::GetConfigurationValue` (~265), `Orchestrator::AddCollector` (~85),
+  `Utils::GetDataFilePath`, `Utils::CheckModuleInstallation`, `Utils::GetModuleVersion`, `Utils::ReadParameter`,
+  `Utils::ReadBooleanParameter`, `Utils::CheckParameters`, `Utils::DoPostRequest`, `Utils::GetConfigFiles`,
+  `Orchestrator::UseCollectionPlan`, `Orchestrator::AddRequirement`, `<Plan>::GetPlan()`.
+- Helpers instantiated directly: `new LookupTable` (~45), `new MappingTable` (~35), `new RestClient` (~30, `Get` and
+  `Update`).
+
+Therefore:
+- Never rename or remove an existing public/protected method or property, and never change its signature,
+  visibility, return type or meaning. New parameters go at the end, are optional, and default to the old behaviour.
+- Never change configuration key names (including the exact-case-then-lowercase lookup), file lookup paths and
+  their order, or the CSV format sent to iTop.
+- To replace something, deprecate it: keep the old member and delegate to the new one, log a notice, and add
+  `@deprecated x.y.z N°ticket`. See `Collector::ParseSynchroOutput()`.
+- Tag new public/protected API with `@since x.y.z N°ticket`.
+- When behaviour must change, make it opt-in through configuration, with the current behaviour as the default.
+- Odd-looking behaviour is often relied upon (§10). Do not "clean it up" as a side effect of an unrelated change.
+
+## 3. Runtime layout
+
+`APPROOT` = directory of `exec.php` (the repository root). Every include is built from `APPROOT`.
+
+```
+exec.php                    entry point (CLI only)
+core/                       framework classes (§5)
+conf/params.distrib.xml     framework defaults; do not edit for local needs
+conf/params.local.xml       local overrides and credentials (git-ignored)
+collectors/                 the concrete collector to run (git-ignored, NOT part of this repo)
+  main.php                  mandatory: registers the collectors
+  module.<name>.php         optional: project name and version ($version$)
+  params.distrib.xml        collector defaults
+  src/  json/               modern layout: classes / SDS definitions
+  extensions/{src,json,params.distrib.xml}   customer overrides, looked up first
+data/                       generated CSV files (`data_path`, supports %APPROOT%)
+toolkit/                    dump_tasks.php (export an SDS as JSON), testconnection.php (REST check)
+test/                       PHPUnit tests and fixtures
+```
+
+Lookup order:
+- Collector class `<Class>.class.inc.php` (collection plans only): `collectors/extensions/src/`, then
+  `collectors/src/`, then `collectors/`.
+- SDS definition `<Class>.json`: `collectors/extensions/json/`, then `collectors/json/`, then `collectors/`.
+- Configuration, later files override earlier ones (recursive merge): `conf/params.distrib.xml`, then
+  `collectors/params.distrib.xml`, then `collectors/extensions/params.distrib.xml`, then either
+  `--config_file=<path>` **or else** `conf/params.local.xml`.
+
+## 4. Execution flow (`exec.php`)
+
+1. Parse CLI options: `--configure_only`, `--collect_only`, `--synchro_only`, `--dump_config_only` (print the merged
+   configuration and exit), `--console_log_level=`, `--eventissue_log_level=`, `--max_chunk_size=`, `--config_file=`,
+   `--help`. An unknown option prints the usage and exits with 1.
+2. Require `collectors/main.php`, which registers collectors with either:
+   - `Orchestrator::AddCollector($rank, $class)` (legacy), or
+   - `Orchestrator::UseCollectionPlan($planClass)` (since 1.3.0). The plan reads `collectors_launch_sequence`, keeps
+     the `enable=yes` entries sorted by `rank`, requires their class files, instantiates and `Init()`s each one,
+     and registers those whose `CheckToLaunch()` returns true.
+3. `Orchestrator::CheckRequirements()` checks the PHP and extension minimum versions declared with `AddRequirement()`.
+4. `ListCollectors()` instantiates the collectors in rank order and calls `Init()`. `Init()` reads the SDS JSON into
+   `$aFields` (`attcode` → class, update, reconcile, columns) and the collector's configuration section.
+5. **Configure** (`InitSynchroDataSources`, skipped by `--collect_only`): resolves `$contact_to_notify$` and
+   `$synchro_user$` through REST, adds `json_placeholders`. Then each `InitSynchroDataSource()` validates its
+   definition and creates, or compares (`DataSourcesAreEquivalent`) and updates, the SDS and its attributes in iTop.
+6. **Collect** (skipped by `--configure_only` and `--synchro_only`): `Collect()` calls `Prepare()`, then `Fetch()`
+   until it returns a falsy value. Rows go to `data/<Class>-<n>.csv`, or to `data/<Class>.raw-<n>.csv` when
+   `MustProcessBeforeSynchro()` is true. A new file starts every `max_chunk_size` rows.
+7. **Synchronize** (skipped by `--configure_only` and `--collect_only`): optional `DoProcessBeforeSynchro()` turns
+   raw files into final CSV through `ProcessLineBeforeSynchro()`; throwing `IgnoredRowException` drops the row. Each
+   CSV is then POSTed to `synchro_import.php` (`synchronize=0`), and `synchro_exec.php` runs the synchronization.
+8. Configure and Collect stop at the first collector that returns false. Synchronize stops only if
+   `stop_on_synchro_error=yes`. Exit code: 0 on success, 1 otherwise.
+
+## 5. Map of `core/`
+
+| File | Responsibility |
+|---|---|
+| `collector.class.inc.php` | `Collector` (abstract): SDS JSON loading, CSV writing, SDS create/update/compare, upload and synchro, parsing of iTop's output. Also `IgnoredRowException`, `InvalidConfigException`, `NULL_VALUE` (`<NULL>`). |
+| `sqlcollector.class.inc.php` | `SQLCollector` (PDO; `<class>_query`; `sql_*` settings incl. TLS) and `MySQLCollector` (adds `SET NAMES 'utf8'`). |
+| `csvcollector.class.inc.php` | `CSVCollector`: CSV file source (`csv_file`, `separator`, `encoding`, `has_header`, `fields`, `defaults`, `ignored_columns`, `command`). |
+| `jsoncollector.class.inc.php` | `JsonCollector`: JSON from `jsonfile`, or `jsonurl` + `jsonpost`; `path` (supports `*`); `fields` (paths with `/`, `*`, numeric indexes); `defaults`; `command`. |
+| `orchestrator.class.inc.php` | Collector registry, requirements, runs the three phases. |
+| `collectionplan.class.inc.php` | `CollectionPlan` (abstract, since 1.3.0): launch sequence, class file discovery, `GetPlan()` singleton. |
+| `utils.class.inc.php` | `Utils` (static): configuration, CLI parameters, logging (console, syslog, iTop `EventIssue`), HTTP POST (curl or streams), `Exec`, curl options, iTop module detection. Also `UtilsLogger` (mock target). |
+| `parameters.class.inc.php` | XML configuration parsing, merging and dumping. |
+| `restclient.class.inc.php` | iTop REST client: `core/get`, `core/create`, `core/update`, `core/get_related`, `list_operations`, `core/check_credentials`. |
+| `callitopservice.class.inc.php` | HTTP POST to iTop pages (`synchro_*.php`) with credentials. |
+| `lookuptable.class.inc.php` | `LookupTable`: OQL query → map from key fields to an id (or another attribute); used in `ProcessLineBeforeSynchro()`. |
+| `mappingtable.class.inc.php` | `MappingTable`: ordered `/regex/replacement` list read from configuration; first match wins; case-insensitive. |
+| `dopostrequestservice.class.inc.php` | Test seam for every HTTP call (see §8). |
+| `ioexception.class.inc.php`, `polyfill.inc.php` | `IOException`; `array_is_list()` polyfill. |
+
+## 6. Configuration semantics
+
+- XML to PHP: a leaf is a string. An element with children is a hash (tag → value; duplicate tags are rejected).
+  `type="array"` makes a list (child tag names are ignored but must all be the same). `type="int"` or
+  `type="integer"` makes an int.
+- `$name$` inside any configuration value is replaced by the value of key `name`, recursively. An unknown key gives
+  `#ERROR_UNDEFINED_PLACEHOLDER_name#`.
+- Per-collector settings live in a section named after the class, looked up with the exact case first, then
+  lowercase (`<MyCollector>` or `<mycollector>`). Legacy flat keys also exist: `<class>_query`,
+  `<class>_ignored_attributes`, `<class>_nullified_attributes`.
+- SDS JSON placeholders are replaced as plain strings before `json_decode`: `$version$`, `$synchro_user$` (user id),
+  `$contact_to_notify$` (contact id), and every key of `json_placeholders` (e.g. `$prefix$`, `$full_load_interval$`).
+- Credentials: `itop_token` gives `auth_token` and login mode `token`. Otherwise `itop_login` / `itop_password` give
+  `auth_user` / `auth_pwd` and login mode `form`. `itop_login_mode` overrides the login mode.
+- The configuration is a lazily loaded static singleton (`Utils::$oConfig`), read once per process.
+
+## 7. Data contract with iTop
+
+- CSV sent to iTop: separator `;`, qualifier `"`, escape `\`, header line first. A `primary_key` column is mandatory;
+  the other columns are SDS attcodes, or their `import_columns` for multi-column attributes (since 1.5.0). Unknown
+  columns are dropped, with a warning unless the attribute is optional.
+- Empty string resets the field in iTop. `<NULL>` leaves it untouched; it is written when a value is `null` and the
+  attribute is nullified (`nullified_attributes`).
+- `synchro_import.php` receives `separator`, `data_source_id`, `synchronize=0`, `no_stop_on_import_error=1`, `output`
+  (`details` only when the console log level is exactly 7, otherwise `retcode`), `csvdata`, `charset`
+  (`GetCharset()`), `date_format`.
+- `synchro_exec.php` receives `data_sources` and, optionally, `max_chunk_size`. Errors are detected by parsing the
+  returned HTML: `Objects ... errors: N`, `<p>ERROR: ...`, or a login form (bad credentials).
+- REST: POST to `<itop_url>/webservices/rest.php?login_mode=…&version=…` with a `json_data` field. `RestClient` uses
+  version 1.0 by default. `code != 0` means error. Old iTop versions return no `key`, so the id is parsed from the
+  `Class::id` object key: keep that fallback.
+
+## 8. Development workflow
+
+### Setup
+
+```bash
+composer install                                  # dev tools only
+(cd test/php-code-style && composer install)      # PHP-CS-Fixer
+```
+
+### Quality gates: all three must pass before a change is done
+
+```bash
+php vendor/bin/phpunit --configuration test/phpunit.xml
+php vendor/bin/phpstan analyse
+test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php
+```
+
+- PHPUnit: about 140 tests, under one second. Add or update tests for every behaviour change or bug fix.
+- PHPStan: level 1 with `phpstan-baseline.neon`. Introduce no new error; never grow the baseline to hide one.
+- PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps on PHP 8.1.
+
+### ⚠ The test suite is destructive on the working copy
+
+- It copies fixtures into `collectors/`, then **deletes every file in `collectors/`** (and its `src/`, `json/`,
+  `extensions/` sub-folders).
+- `CollectorTest` **deletes `conf/params.local.xml`**.
+- It writes into `data/`.
+
+Never run the suite in a checkout where `collectors/` holds a real collector (or is a symlink to one), or where
+`conf/params.local.xml` matters. Use a clean checkout, or move those files aside first.
+
+### Writing tests
+
+- **No network, no real iTop, no real third-party system.** Every external call has a seam:
+  - all HTTP (REST, synchro pages, `jsonurl`): `Utils::MockDoPostRequestService($mock)` with a mock of
+    `DoPostRequestService`; reset it with `null`;
+  - synchro pages only: `Collector::SetCallItopService($mock)` with a mock of `CallItopService`;
+  - REST in lookups: `LookupTable::SetRestClient($mock)`; module checks: pass a `RestClient` mock to
+    `Utils::CheckModuleInstallation()` / `Utils::GetModuleVersion()`;
+  - configuration: inject a `Parameters` mock into `Utils::$oConfig` by reflection (see `UtilsTest`), or copy a
+    fixture `params.distrib.xml` into `collectors/`;
+  - logs: `Utils::MockLog($this->createMock(UtilsLogger::class), LOG_LEVEL)`, then assert on `Log()` calls.
+  - `Utils::Exec()` (the `command` option) has no seam: use harmless commands in tests.
+- Collect scenarios use fixture folders (`test/single_csv/<case>/`, `test/single_json/<case>/`) holding a
+  `params.distrib.xml`, the input file and `expected_generated.csv`, compared with `data/<Class>-1.csv`.
+- One test class per core class, in `test/<Class>Test.php`, namespace `UnitTestFiles\Test`. Each file starts with
+  `@define('APPROOT', dirname(__FILE__, 2).'/');` and requires the core files it needs.
+- All tests share one process, so **reset global static state** in `tearDown()`: `Utils::$oConfig` (reflection, set to
+  null), `Utils::MockLog(null)`, `Utils::MockDoPostRequestService(null)`, `Orchestrator::$aCollectors`,
+  `Collector::$oCallItopService`, `LookupTable::$oRestClient`, the `CollectionPlan` singleton.
+- Files must use LF line endings: a CRLF working copy makes heredoc-based expectations fail.
+- Without `pdo_sqlite`, one SQL test is skipped: this is expected. The mocked logger prints `string(...)` dumps:
+  expected noise.
+
+## 9. Conventions
+
+- Code style: PSR-12 with **tabs**, short array syntax, trailing commas in multi-line arrays. Hungarian prefixes
+  (`$sName`, `$iCount`, `$bFlag`, `$aList`, `$oObject`, `$hHandle`), PascalCase method names, no namespaces in
+  `core/`, one main class per `*.class.inc.php`.
+- `Utils::Log($iLevel, $sFormat, ...$aArgs)`: with arguments, the message goes through `vsprintf`. String and array
+  arguments are JSON-encoded and their outer quotes or brackets stripped. Prefer positional placeholders (`%1$s`).
+- Keep Combodo copyright headers unchanged.
+- Commits: `N°<ticket> - <imperative summary>` or a gitmoji code prefix (`:bug:`, `:white_check_mark:`…), first line
+  72 characters at most. Development happens on `master`; releases are git tags (e.g. `1.5.1`).
+
+## 10. Known quirks (be aware; do not change silently)
+
+- On Windows `LOG_DEBUG == LOG_INFO == 6`. Detailed synchro output is enabled only when the console level is
+  literally `7`.
+- `Orchestrator` declares PHP 7.0 as its minimum, but the code needs PHP 8 (named arguments, e.g. `escape:`).
+- `Orchestrator::Synchronize()` calls `Collector::Synchronize()` without a chunk size, so `max_chunk_size` is never
+  forwarded to `synchro_exec.php`.
+- `Orchestrator::Collect()` passes a second argument (`$bCollectOnly`) that `Collector::Collect()` ignores.
+- `CSVCollector::Prepare()` wraps its fallback to `APPROOT.<csv_file>` in try/catch, but `fopen()` does not throw:
+  relative CSV paths are not resolved against `APPROOT`. `JsonCollector`'s equivalent fallback does work.
+- `Collector::GetVersionFromModuleFile()` `eval()`s the first `collectors/module.*.php` file.
+- `DataSourcesAreEquivalent()` ignores differences in `database_table_name`, and only logs attributes that exist in
+  iTop but not in the JSON.
+- `SQLCollector` and `JsonCollector` implement `AttributeIsOptional()` through `<class>_ignored_attributes`;
+  `CSVCollector` relies on `ignored_columns` and `defaults` instead.
+- `CheckColumns()` only validates the first fetched row.
+- PHPStan reports one pre-existing error in `collector.class.inc.php` (`$sModuleFileContents` might be undefined).
+
+## 11. Further reading
+
+- The tests in `test/` are the executable specification. Read the tests of the class you are changing first.
+- Collector base: https://www.itophub.io/wiki/page?id=extensions%3Aitop-data-collector-base
+- Data synchronization: https://www.itophub.io/wiki/page?id=latest:advancedtopics:data_synchro_overview
+- `synchro_import.php`: https://www.itophub.io/wiki/page?id=latest:advancedtopics:synchro_import
+- `synchro_exec.php`: https://www.itophub.io/wiki/page?id=latest:advancedtopics:synchro_exec
