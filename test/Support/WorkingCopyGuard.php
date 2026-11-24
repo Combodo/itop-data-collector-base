@@ -12,13 +12,17 @@ use RuntimeException;
  * content of `collectors/` (or the `collectors` symlink itself) to `test/.stash/`, and puts them back when the PHP
  * process ends, even after a fatal error or Ctrl-C (Ctrl-C needs the pcntl extension).
  *
+ * During the run, a `conf/params.local.xml` can only have been written by a test (the developer's one is stashed, or
+ * there is none): it is deleted at the end, so that exec.php never reads a configuration left by the tests.
+ *
  * If a run is killed before it can restore them, the next run restores them first. It never deletes a file it did
  * not create: when in doubt, it stops and explains what to check.
  */
 final class WorkingCopyGuard
 {
 	/** @var string[] Paths, relative to APPROOT, that the tests must neither read nor alter */
-	private const PROTECTED_PATHS = ['conf/params.local.xml', 'collectors'];
+	private const PROTECTED_PATHS = [self::LOCAL_CONFIG, 'collectors'];
+	private const LOCAL_CONFIG = 'conf/params.local.xml';
 	private const STASH_DIR = 'test/.stash';
 	private const OWNER_FILE = 'owner.pid';
 
@@ -83,6 +87,9 @@ final class WorkingCopyGuard
 
 		try {
 			self::EmptyCollectorsDir();
+			if (file_exists(APPROOT.self::LOCAL_CONFIG)) {
+				unlink(APPROOT.self::LOCAL_CONFIG); // Written by a test
+			}
 			self::RestoreStash();
 		} catch (RuntimeException $e) {
 			fwrite(STDERR, PHP_EOL.'WARNING: '.$e->getMessage().PHP_EOL);
@@ -115,6 +122,12 @@ final class WorkingCopyGuard
 			throw new RuntimeException("Another test run (PID $iOwnerPid) is using this working copy. Wait for it to end, then retry.");
 		}
 
+		if (file_exists(APPROOT.self::LOCAL_CONFIG)) {
+			throw new RuntimeException(
+				"A previous test run was interrupted, and '".APPROOT.self::LOCAL_CONFIG."' exists: it was most probably written by "
+				."a test (your own one, if any, is in '$sStashDir'). Check it, delete it, then run the tests again."
+			);
+		}
 		$sCollectorsDir = APPROOT.'collectors';
 		if (file_exists($sStashDir.'/collectors') && is_dir($sCollectorsDir) && !is_link($sCollectorsDir) && !self::IsEmptyDir($sCollectorsDir)) {
 			throw new RuntimeException(

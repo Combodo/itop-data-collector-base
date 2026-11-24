@@ -212,9 +212,11 @@ The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/par
 `test/Support/bootstrap.php` (the PHPUnit bootstrap) moves `conf/params.local.xml` and the content of `collectors/`
 to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`WorkingCopyGuard`).
 
+- A `conf/params.local.xml` written by a test (`ConfigurationTest` does) is deleted at the end of the run, even after
+  a fatal error: exec.php never reads a configuration left by the tests.
 - If a run is killed (`kill -9`, or Ctrl-C without the pcntl extension), the next run restores the files first. If
-  `collectors/` still holds that run's leftovers, it stops and asks you to empty `collectors/` yourself: it never
-  deletes files it did not create.
+  `collectors/` or `conf/params.local.xml` still hold that run's leftovers, it stops and asks you to delete them
+  yourself: it never deletes files it did not create.
 - Two runs in the same working copy are refused: the second one stops immediately.
 - Files the tests write into `data/` are not protected: they are generated files.
 
