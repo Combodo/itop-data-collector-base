@@ -472,7 +472,7 @@ class FakeItop
 				$aResult = ['objects' => null, 'code' => 0, 'message' => 'Deleted: '.count($aIds)];
 				foreach ($aIds as $iId) {
 					$sObjClass = $this->aObjects[$iId]['class'];
-					$aResult['objects']["$sObjClass::$iId"] = ['code' => 0, 'message' => 'Deleted', 'class' => $sObjClass, 'key' => $iId, 'fields' => []];
+					$aResult['objects']["$sObjClass::$iId"] = ['code' => 0, 'message' => 'Deleted', 'class' => $sObjClass, 'key' => (string)$iId, 'fields' => []];
 					$this->DeleteObject($iId);
 				}
 
@@ -507,7 +507,8 @@ class FakeItop
 		if ($sOutputFields !== '*' && $sOutputFields !== '*+') {
 			$aFields = array_intersect_key($aFields, array_flip(array_map('trim', explode(',', $sOutputFields))));
 		}
-		$aResult['objects']["$sClass::$iId"] = ['code' => 0, 'message' => $sMessage, 'class' => $sClass, 'key' => $iId, 'fields' => $aFields];
+		// DBObject::GetKey() is a string, both for loaded and for new objects
+		$aResult['objects']["$sClass::$iId"] = ['code' => 0, 'message' => $sMessage, 'class' => $sClass, 'key' => (string)$iId, 'fields' => $aFields];
 	}
 
 	/**
