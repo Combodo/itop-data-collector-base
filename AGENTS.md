@@ -169,9 +169,42 @@ php vendor/bin/phpstan analyse
 test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php
 ```
 
-- PHPUnit: about 140 tests, under one second. Add or update tests for every behaviour change or bug fix.
+- PHPUnit: the unit suite (about 240 tests, 2 seconds, no network). Add or update tests for every behaviour change
+  or bug fix.
 - PHPStan: level 1 with `phpstan-baseline.neon`. Introduce no new error; never grow the baseline to hide one.
 - PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps on PHP 8.1.
+
+### Two levels of tests
+
+| | Level 1: unit suite | Level 2: integration suite |
+|---|---|---|
+| Configuration | `test/phpunit.xml` | `test/phpunit-ci-with-itop.xml` (`--testsuite integration` for level 2 only) |
+| iTop | `FakeItop`, in memory, or served over HTTP by `php -S` (`FakeItopServer`) | a real iTop, from environment variables |
+| Runs | at every change, in Jenkins at every commit | in the nightly CI (iTop 3.2 at `http://localhost`), or on demand |
+| Files | `test/*Test.php` | `test/integration/*Test.php` |
+
+The scenarios that involve iTop are written once and run at both levels:
+- `test/Support/ItopContractTestCase.php`: the dialog with iTop through the framework's classes (REST, data source
+  creation and update, upload, synchronization, `<NULL>`). Level 1: `FakeItopContractTest`. Level 2:
+  `RealItopContractTest`.
+- `test/Support/ExecTestCase.php`: `exec.php` run in its own process with a CSV collector, with every CLI option.
+  Level 1: `FakeItopExecTest`. Level 2: `RealItopExecTest`.
+
+When a scenario passes on the real iTop and fails on the fake, the fake is wrong: fix `FakeItop`. Never weaken a
+scenario to suit the fake. When iTop's behaviour matters for a change, add a scenario to these classes rather than a
+fake-only test.
+
+Running level 2 needs an iTop that tests may write into (never a production one). They create data sources and
+organizations whose name holds a unique run id, and delete them afterwards:
+
+```bash
+ITOP_TEST_URL=http://localhost/itop ITOP_TEST_LOGIN=admin ITOP_TEST_PASSWORD=admin \
+  php vendor/bin/phpunit --configuration test/phpunit-ci-with-itop.xml --testsuite integration
+```
+
+The account needs the "Administrator" and "REST Services User" profiles. `ITOP_TEST_TOKEN` can replace the login and
+password, and `ITOP_TEST_SSL_VERIFY=0` accepts a self-signed certificate. Without `ITOP_TEST_URL` and credentials, the
+level 2 tests are skipped and send nothing. `test/ci_description.ini` describes the repository for the CI factory.
 
 ### The tests protect your local files
 
@@ -221,7 +254,10 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
   - `Utils::Exec()` (the `command` option) has no seam: use harmless commands in tests.
 - Collect scenarios use fixture folders (`test/single_csv/<case>/`, `test/single_json/<case>/`) holding a
   `params.distrib.xml`, the input file and `expected_generated.csv`, compared with `data/<Class>-1.csv`.
-- Test classes live in `test/<Subject>Test.php`, namespace `UnitTestFiles\Test`.
+- `ScriptableCollector` (and its sub-classes `One`, `Two`, `Three`) is a collector whose behaviour a test scripts
+  (rows, optional attributes, reprocessing, return values) and which records the calls it receives.
+- Test classes live in `test/<Subject>Test.php`, namespace `UnitTestFiles\Test`; helpers in `test/Support/`.
+- A test that changes or "fixes" a known quirk (§10) must say so: these tests assert today's behaviour on purpose.
 - Older tests extend PHPUnit's `TestCase` directly and reset the state themselves; `CollectorSynchroTest` adds a
   `--config_file` to `$argv` that persists until a `BaseTestCase` test restores it. Prefer `BaseTestCase` for new tests.
 - Files must use LF line endings: a CRLF working copy makes heredoc-based expectations fail.
@@ -260,14 +296,34 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
 - An SDS definition whose `attribute_list` entries hold a `friendlyname` (as files exported from iTop do) is found
   different at every run, hence updated: `RestClient::GetFullSynchroDataSource()` removes `friendlyname` from the
   iTop side only. Derived from the iTop 3.2 sources and frozen by
-  `ItopContractTestCase::testDefinitionWithAttributeFriendlynamesIsUpdatedAtEveryRun`.
+  `ItopContractTestCase::testDefinitionWithAttributeFriendlynamesIsUpdatedAtEveryRun`, which the integration suite
+  checks on a real iTop.
 - `ParseSynchroExecOutput()` uses a greedy regular expression per line: when several `Objects ... errors: N`
   counters share one line, only the last one is read. iTop 3.2 prints one counter per line.
+- With the default `stop_on_synchro_error=no`, a failed synchronization does not change the exit code (0).
+- `exec.php` succeeds (exit code 0) when `collectors/main.php` is missing: it only logs an error.
+- `exec.php` calls `RestClient::GetNewestKnownVersion()` to build a debug message, even when debug is off: with wrong
+  credentials, the run fails with "Unable to detect an iTop API".
+- A `synchro_user` unknown to iTop raises a PHP warning (`foreach` on a null `objects`) instead of an error message;
+  `$synchro_user$` becomes 0. An unknown `contact_to_notify` gives a proper warning.
+- An empty `<curl_options/>` in a configuration file gives `''` instead of an empty hash: every HTTP call then fails
+  with a `TypeError`.
+- `Parameters::Merge()` merges lists by index: a shorter list in `params.local.xml` does not replace a longer one.
+- `Utils::LoadConfig()` appends to the list of loaded files without resetting it.
+- `--console_log_level=7` is stored as the string `"7"`; `Collector::Synchronize()` compares it as a string.
+- A trailing slash in `itop_url` gives a double slash in the URLs (`.../itop//webservices/rest.php`).
+- `HeaderIsAllowed()` keeps a column named after an attribute even when the attribute declares `import_columns`.
+- `ProcessLineBeforeSynchro()` also receives the header line, as line 0.
+- `MappingTable` replacements go through `vsprintf()` with the `preg_match()` matches: `%1$s` is the whole match,
+  `%2$s` the first group. The replacement cannot contain the delimiter.
+- `LookupTable` writes the found id into the line as an int.
 - PHPStan reports one pre-existing error in `collector.class.inc.php` (`$sModuleFileContents` might be undefined).
 
 ## 11. Further reading
 
 - The tests in `test/` are the executable specification. Read the tests of the class you are changing first.
+- iTop's side of the contract: `webservices/rest.php`, `core/restservices.class.inc.php`, `synchro/synchro_import.php`,
+  `synchro/synchro_exec.php` and `synchro/synchrodatasource.class.inc.php` in the iTop sources. `FakeItop` cites them.
 - Collector base: https://www.itophub.io/wiki/page?id=extensions%3Aitop-data-collector-base
 - Data synchronization: https://www.itophub.io/wiki/page?id=latest:advancedtopics:data_synchro_overview
 - `synchro_import.php`: https://www.itophub.io/wiki/page?id=latest:advancedtopics:synchro_import
