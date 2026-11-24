@@ -212,6 +212,66 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
+	 * Write collectors/json/<Collector>.json, the SDS definition read by Collector::Init() and
+	 * Collector::InitSynchroDataSource(). By default: a data source on Organization named "<Collector> test source",
+	 * reconciled on name, also updating code.
+	 *
+	 * @param string $sCollectorClass
+	 * @param array<string, mixed> $aChanges Top-level values replacing the defaults ('attribute_list' replaces the list)
+	 *
+	 * @return string The path of the file
+	 */
+	protected function WriteSynchroDataSourceDefinition(string $sCollectorClass, array $aChanges = []): string
+	{
+		$aDefinition = array_merge([
+			'name' => "$sCollectorClass test source",
+			'description' => '',
+			'status' => 'production',
+			'user_id' => '$synchro_user$',
+			'notify_contact_id' => '$contact_to_notify$',
+			'scope_class' => 'Organization',
+			'database_table_name' => '',
+			'scope_restriction' => '',
+			'full_load_periodicity' => '0',
+			'reconciliation_policy' => 'use_attributes',
+			'action_on_zero' => 'create',
+			'action_on_one' => 'update',
+			'action_on_multiple' => 'error',
+			'delete_policy' => 'ignore',
+			'delete_policy_update' => '',
+			'delete_policy_retention' => '0',
+			'attribute_list' => [
+				self::SynchroAttribute('name', true),
+				self::SynchroAttribute('code'),
+			],
+			'user_delete_policy' => 'nobody',
+			'url_icon' => '',
+			'url_application' => '',
+		], $aChanges);
+
+		return $this->WriteCollectorFile("json/$sCollectorClass.json", json_encode($aDefinition, JSON_PRETTY_PRINT));
+	}
+
+	/**
+	 * @param string $sAttCode
+	 * @param bool $bReconcile
+	 * @param bool $bUpdate
+	 * @param array<string, string> $aExtra e.g. ['finalclass' => 'SynchroAttExtKey', 'reconciliation_attcode' => 'name']
+	 *
+	 * @return array<string, string> An entry of the attribute_list of an SDS definition
+	 */
+	protected static function SynchroAttribute(string $sAttCode, bool $bReconcile = false, bool $bUpdate = true, array $aExtra = []): array
+	{
+		return array_merge([
+			'attcode' => $sAttCode,
+			'update' => $bUpdate ? '1' : '0',
+			'reconcile' => $bReconcile ? '1' : '0',
+			'update_policy' => 'master_locked',
+			'finalclass' => 'SynchroAttribute',
+		], $aExtra);
+	}
+
+	/**
 	 * Simulate the command line read by Utils::ReadParameter(), Utils::ReadBooleanParameter() and
 	 * Utils::CheckParameters(). Restored after the test.
 	 *
