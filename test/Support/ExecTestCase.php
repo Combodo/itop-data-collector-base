@@ -19,8 +19,8 @@ abstract class ExecTestCase extends BaseTestCase
 	/** @var string Unique per test, so that runs on a shared iTop do not collide */
 	protected $sRunId;
 
-	/** @var array{url: string, login: string, password: string, token: string, curl_options: array<string, string>} */
-	protected $aItop;
+	/** @var array{url: string, login: string, password: string, token: string, curl_options: array<string, string>}|null Null when ConnectToItop() skipped the test */
+	protected $aItop = null;
 
 	/**
 	 * Start or reach the iTop under test, or skip the test.
@@ -51,6 +51,9 @@ abstract class ExecTestCase extends BaseTestCase
 	protected function tearDown(): void
 	{
 		try {
+			if ($this->aItop === null) {
+				return;
+			}
 			$this->CallRest(['operation' => 'core/delete', 'class' => 'Organization', 'key' => "SELECT Organization WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
 			$this->CallRest(['operation' => 'core/delete', 'class' => 'SynchroDataSource', 'key' => "SELECT SynchroDataSource WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
 		} finally {

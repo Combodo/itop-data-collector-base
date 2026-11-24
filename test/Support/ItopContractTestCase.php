@@ -25,6 +25,9 @@ abstract class ItopContractTestCase extends BaseTestCase
 	/** @var string Unique per test, so that runs on a shared iTop do not collide */
 	protected $sRunId;
 
+	/** @var bool False when ConnectToItop() skipped the test: then nothing is sent to iTop */
+	private $bConnected = false;
+
 	/**
 	 * Point the configuration to the iTop under test, or skip the test.
 	 */
@@ -36,11 +39,15 @@ abstract class ItopContractTestCase extends BaseTestCase
 		$this->sRunId = date('YmdHis').'-'.bin2hex(random_bytes(3));
 		ContractTestCollector::$aRows = [];
 		$this->ConnectToItop();
+		$this->bConnected = true;
 	}
 
 	protected function tearDown(): void
 	{
 		try {
+			if (!$this->bConnected) {
+				return;
+			}
 			// Delete what the test created, while the configuration still points to the iTop under test
 			$this->CallRest(['operation' => 'core/delete', 'class' => 'Organization', 'key' => "SELECT Organization WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
 			$this->CallRest(['operation' => 'core/delete', 'class' => 'SynchroDataSource', 'key' => "SELECT SynchroDataSource WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);

@@ -15,8 +15,8 @@ require_once __DIR__.'/Support/FakeItopServer.php';
  */
 class FakeItopExecTest extends ExecTestCase
 {
-	/** @var \UnitTestFiles\Test\Support\FakeItopServer */
-	private $oServer;
+	/** @var \UnitTestFiles\Test\Support\FakeItopServer|null */
+	private $oServer = null;
 
 	protected function ConnectToItop(): array
 	{
@@ -31,7 +31,9 @@ class FakeItopExecTest extends ExecTestCase
 		try {
 			parent::tearDown();
 		} finally {
-			$this->oServer->Stop();
+			if ($this->oServer !== null) {
+				$this->oServer->Stop();
+			}
 		}
 	}
 
