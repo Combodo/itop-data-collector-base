@@ -2,6 +2,7 @@
   <testsuites>
     <testsuite name="testsU">
       <directory suffix="Test.php">.</directory>
+      <exclude>php-code-style</exclude>
     </testsuite>
   </testsuites>
 </phpunit>
