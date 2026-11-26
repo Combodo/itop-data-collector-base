@@ -9,7 +9,7 @@ parameters:
         - vendor
 
     excludePaths:
-        - test/php-code-style
+        - tests/php-code-style
 
     paths:
         - core

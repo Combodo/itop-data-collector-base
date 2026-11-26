@@ -9,7 +9,7 @@ data/*.txt
 .buildpath
 .project
 .settings/*
-test/php-code-style/vendor
+tests/php-code-style/vendor
 .php-cs-fixer.cache
 .phpunit.result.cache
 phpstan_results.xml

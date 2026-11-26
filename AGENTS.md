@@ -159,7 +159,7 @@ Lookup order:
 
 ```bash
 composer install                                  # dev tools only
-(cd test/php-code-style && composer install)      # PHP-CS-Fixer
+(cd tests/php-code-style && composer install)      # PHP-CS-Fixer
 ```
 
 ### Quality gates: all three must pass before a change is done
@@ -167,7 +167,7 @@ composer install                                  # dev tools only
 ```bash
 php vendor/bin/phpunit --configuration test/phpunit.xml
 php vendor/bin/phpstan analyse
-test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.php-cs-fixer.dist.php
+tests/php-code-style/vendor/bin/php-cs-fixer check --config tests/php-code-style/.php-cs-fixer.dist.php
 ```
 
 - PHPUnit: the unit suite (about 240 tests, 2 seconds, no network). Add or update tests for every behaviour change

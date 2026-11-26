@@ -20,7 +20,7 @@ pipeline {
       steps {
         script {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-              sh 'bash test/php-code-style/validate.sh'
+              sh 'bash tests/php-code-style/validate.sh'
             }
           }
       }
