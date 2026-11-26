@@ -1,5 +1,24 @@
-<!-- Unit tests, then integration tests against a real iTop (see integration-tests/RealItop.php).
-     Used by the nightly CI, where iTop is served at http://localhost; the credentials come from its environment. -->
+<!--
+  Unit tests, then integration tests against a real iTop (see integration-tests/RealItop.php).
+  Used by the nightly CI: phpunit_xml in tests/ci_description.ini.
+
+  Environment variables the CI job must export for the integration tests:
+  - ITOP_TEST_LOGIN and ITOP_TEST_PASSWORD, or ITOP_TEST_TOKEN: the iTop account. On purpose, they are not stored here.
+  - ITOP_TEST_URL: root URL of iTop, only when it is not http://localhost (default value below, which an exported
+    variable overrides: force="false").
+  - ITOP_TEST_SSL_VERIFY=0: only to accept a self-signed certificate.
+  Without credentials, the integration tests are skipped, not failed: check that the CI report shows them as run.
+
+  The account needs two profiles:
+  - "Administrator": the tests create and delete data sources and organizations;
+  - "REST Services User": in iTop 3.2, secure_rest_services is true by default, and then the REST API refuses every
+    account without this profile, administrators included ("This user is not authorized to use the web services").
+    The admin account of a fresh installation does not have it: add the profile to the account, or set
+    secure_rest_services to false in the configuration of the iTop of the CI.
+
+  The tests write into this iTop: they create objects whose name holds a unique run id, delete them afterwards, and
+  fail when the cleanup fails. Never point them to a production iTop.
+-->
 <phpunit bootstrap="bootstrap.php" backupGlobals="false" verbose="true">
   <php>
     <env name="ITOP_TEST_URL" value="http://localhost" force="false"/>
