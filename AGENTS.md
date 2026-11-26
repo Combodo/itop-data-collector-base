@@ -20,7 +20,7 @@ live in separate repositories and are dropped into `collectors/` at runtime (see
 
 ## 2. Golden rule: do not break downstream collectors
 
-About 25 Combodo collectors, plus customer extensions, subclass these classes. **None of them is tested by this
+About 25 Combodo collectors, plus third-party collectors, subclass these classes. **None of them is tested by this
 repository's CI.** Every `public` **and** `protected` member of the `core/` classes is de facto public API.
 
 Measured in Combodo's collectors:
@@ -72,7 +72,7 @@ test/                       PHPUnit tests and fixtures
 Lookup order:
 - Collector class `<Class>.class.inc.php` (collection plans only): `collectors/extensions/src/`, then
   `collectors/src/`, then `collectors/`.
-- SDS definition `<Class>.json`: `collectors/extensions/json/`, then `collectors/json/`, then `collectors/`.
+- SDS (Synchro Data Source) definition `<Class>.json`: `collectors/extensions/json/`, then `collectors/json/`, then `collectors/`.
 - Configuration, later files override earlier ones (recursive merge): `conf/params.distrib.xml`, then
   `collectors/params.distrib.xml`, then `collectors/extensions/params.distrib.xml`, then either
   `--config_file=<path>` **or else** `conf/params.local.xml`.
@@ -174,6 +174,19 @@ test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.
   or bug fix.
 - PHPStan: level 1 with `phpstan-baseline.neon`. Introduce no new error; never grow the baseline to hide one.
 - PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps.
+
+### Code coverage
+
+```bash
+XDEBUG_MODE=coverage php vendor/bin/phpunit --configuration test/phpunit.xml --coverage-text
+```
+
+- Needs Xdebug (the variable enables its coverage mode) or PCOV. `--coverage-html <dir>` writes a browsable report,
+  `--coverage-clover <file>` a report for the CI.
+- The scope is `core/` and `exec.php`, set in the `<coverage>` section of `test/phpunit.xml`, whose comments explain
+  the choices. Never set `processUncoveredFiles` to true there: it would include `exec.php` and run a collector.
+- `exec.php` shows 0%: the end-to-end tests run it in a child PHP process, which coverage does not follow.
+- Coverage is not a quality gate: no threshold is enforced.
 
 ### Two levels of tests
 
