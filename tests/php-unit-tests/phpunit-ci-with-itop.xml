@@ -3,7 +3,9 @@
   Used by the nightly CI: phpunit_xml in tests/ci_description.ini.
 
   Environment variables the CI job must export for the integration tests:
-  - ITOP_TEST_LOGIN and ITOP_TEST_PASSWORD, or ITOP_TEST_TOKEN: the iTop account. On purpose, they are not stored here.
+  - ITOP_TEST_LOGIN, and ITOP_TEST_PASSWORD or ITOP_TEST_TOKEN: the iTop account. On purpose, they are not stored here.
+    The login is needed even with a token: the tests look the account up by its login, as the collectors do to
+    resolve $synchro_user$.
   - ITOP_TEST_URL: root URL of iTop, only when it is not http://localhost (default value below, which an exported
     variable overrides: force="false").
   - ITOP_TEST_SSL_VERIFY=0: only to accept a self-signed certificate.

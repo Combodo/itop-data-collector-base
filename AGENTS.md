@@ -137,7 +137,8 @@ Lookup order:
 - SDS JSON placeholders are replaced as plain strings before `json_decode`: `$version$`, `$synchro_user$` (user id),
   `$contact_to_notify$` (contact id), and every key of `json_placeholders` (e.g. `$prefix$`, `$full_load_interval$`).
 - Credentials: `itop_token` gives `auth_token` and login mode `token`. Otherwise `itop_login` / `itop_password` give
-  `auth_user` / `auth_pwd` and login mode `form`. `itop_login_mode` overrides the login mode.
+  `auth_user` / `auth_pwd` and login mode `form`. `itop_login_mode` overrides the login mode. Even with a token,
+  `$synchro_user$` is looked up by `synchro_user`, else `itop_login`: with neither, it stays 0.
 - The configuration is a lazily loaded static singleton (`Utils::$oConfig`), read once per process.
 
 ## 7. Data contract with iTop
@@ -221,9 +222,10 @@ ITOP_TEST_URL=http://localhost/itop ITOP_TEST_LOGIN=admin ITOP_TEST_PASSWORD=adm
   php vendor/bin/phpunit --configuration tests/php-unit-tests/phpunit-ci-with-itop.xml --testsuite integration
 ```
 
-The account needs the "Administrator" and "REST Services User" profiles. `ITOP_TEST_TOKEN` can replace the login and
-password, and `ITOP_TEST_SSL_VERIFY=0` accepts a self-signed certificate. Without `ITOP_TEST_URL` and credentials, the
-level 2 tests are skipped and send nothing. `tests/ci_description.ini` describes the repository for the CI factory.
+The account needs the "Administrator" and "REST Services User" profiles. `ITOP_TEST_TOKEN` can replace the password,
+not the login: the tests look the account up by its login, as the framework does to resolve `$synchro_user$`.
+`ITOP_TEST_SSL_VERIFY=0` accepts a self-signed certificate. Without `ITOP_TEST_URL` and credentials, the level 2 tests
+are skipped and send nothing. `tests/ci_description.ini` describes the repository for the CI factory.
 
 ### The tests protect your local files
 

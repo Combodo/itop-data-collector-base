@@ -5,8 +5,9 @@ namespace UnitTestFiles\Test\Integration;
 /**
  * Connection to the real iTop used by the integration tests, read from environment variables:
  * - ITOP_TEST_URL: root URL of iTop, e.g. http://localhost (mandatory, the tests are skipped without it);
- * - ITOP_TEST_LOGIN and ITOP_TEST_PASSWORD, or ITOP_TEST_TOKEN: an account with the "Administrator" and
- *   "REST Services User" profiles (it creates and deletes data sources and organizations);
+ * - ITOP_TEST_LOGIN, and ITOP_TEST_PASSWORD or ITOP_TEST_TOKEN: an account with the "Administrator" and
+ *   "REST Services User" profiles (it creates and deletes data sources and organizations). The login is needed even
+ *   with a token: the tests look the account up by its login, as Orchestrator does to resolve $synchro_user$;
  * - ITOP_TEST_SSL_VERIFY: '0' to accept a self-signed certificate.
  *
  * WARNING: the tests write into this iTop. They only create data sources and organizations whose name holds a
@@ -27,8 +28,8 @@ final class RealItop
 		if ($sUrl === '') {
 			return 'Set ITOP_TEST_URL (and the credentials) to run the integration tests against a real iTop.';
 		}
-		if ($sToken === '' && ($sLogin === '' || $sPassword === '')) {
-			return "ITOP_TEST_URL is set to $sUrl, but neither ITOP_TEST_TOKEN nor ITOP_TEST_LOGIN and ITOP_TEST_PASSWORD are.";
+		if ($sLogin === '' || ($sPassword === '' && $sToken === '')) {
+			return "ITOP_TEST_URL is set to $sUrl, but the credentials are incomplete: set ITOP_TEST_LOGIN, and ITOP_TEST_PASSWORD or ITOP_TEST_TOKEN.";
 		}
 
 		$aCurlOptions = [];
