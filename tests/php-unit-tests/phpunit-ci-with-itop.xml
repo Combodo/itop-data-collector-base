@@ -1,0 +1,15 @@
+<!-- Unit tests, then integration tests against a real iTop (see integration-tests/RealItop.php).
+     Used by the nightly CI, where iTop is served at http://localhost; the credentials come from its environment. -->
+<phpunit bootstrap="bootstrap.php" backupGlobals="false" verbose="true">
+  <php>
+    <env name="ITOP_TEST_URL" value="http://localhost" force="false"/>
+  </php>
+  <testsuites>
+    <testsuite name="testsU">
+      <directory suffix="Test.php">unitary-tests</directory>
+    </testsuite>
+    <testsuite name="integration">
+      <directory suffix="Test.php">integration-tests</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>

@@ -66,7 +66,10 @@ collectors/                 the concrete collector to run (git-ignored, NOT part
   extensions/{src,json,params.distrib.xml}   customer overrides, looked up first
 data/                       generated CSV files (`data_path`, supports %APPROOT%)
 toolkit/                    dump_tasks.php (export an SDS as JSON), testconnection.php (REST check)
-test/                       PHPUnit tests and fixtures
+tests/                      same layout as iTop's tests/ folder
+  ci_description.ini        how the CI factory tests this repository
+  php-code-style/           PHP-CS-Fixer (own composer.json)
+  php-unit-tests/           PHPUnit configurations, tests, fixtures and test tooling (§8)
 ```
 
 Lookup order:
@@ -165,7 +168,7 @@ composer install                                  # dev tools only
 ### Quality gates: all three must pass before a change is done
 
 ```bash
-php vendor/bin/phpunit --configuration test/phpunit.xml
+php vendor/bin/phpunit --configuration tests/php-unit-tests/phpunit.xml
 php vendor/bin/phpstan analyse
 tests/php-code-style/vendor/bin/php-cs-fixer check --config tests/php-code-style/.php-cs-fixer.dist.php
 ```
@@ -178,12 +181,12 @@ tests/php-code-style/vendor/bin/php-cs-fixer check --config tests/php-code-style
 ### Code coverage
 
 ```bash
-XDEBUG_MODE=coverage php vendor/bin/phpunit --configuration test/phpunit.xml --coverage-text
+XDEBUG_MODE=coverage php vendor/bin/phpunit --configuration tests/php-unit-tests/phpunit.xml --coverage-text
 ```
 
 - Needs Xdebug (the variable enables its coverage mode) or PCOV. `--coverage-html <dir>` writes a browsable report,
   `--coverage-clover <file>` a report for the CI.
-- The scope is `core/` and `exec.php`, set in the `<coverage>` section of `test/phpunit.xml`, whose comments explain
+- The scope is `core/` and `exec.php`, set in the `<coverage>` section of `tests/php-unit-tests/phpunit.xml`, whose comments explain
   the choices. Never set `processUncoveredFiles` to true there: it would include `exec.php` and run a collector.
 - `exec.php` shows 0%: the end-to-end tests run it in a child PHP process, which coverage does not follow.
 - Coverage is not a quality gate: no threshold is enforced.
@@ -192,16 +195,16 @@ XDEBUG_MODE=coverage php vendor/bin/phpunit --configuration test/phpunit.xml --c
 
 | | Level 1: unit suite | Level 2: integration suite |
 |---|---|---|
-| Configuration | `test/phpunit.xml` | `test/phpunit-ci-with-itop.xml` (`--testsuite integration` for level 2 only) |
+| Configuration | `phpunit.xml` | `phpunit-ci-with-itop.xml` (`--testsuite integration` for level 2 only) |
 | iTop | `FakeItop`, in memory, or served over HTTP by `php -S` (`FakeItopServer`) | a real iTop, from environment variables |
 | Runs | at every change, in Jenkins at every commit | in the nightly CI (iTop 3.2 at `http://localhost`), or on demand |
-| Files | `test/*Test.php` | `test/integration/*Test.php` |
+| Files | `unitary-tests/**/*Test.php` | `integration-tests/*Test.php` |
 
-The scenarios that involve iTop are written once and run at both levels:
-- `test/Support/ItopContractTestCase.php`: the dialog with iTop through the framework's classes (REST, data source
+Paths are relative to `tests/php-unit-tests/`. The scenarios that involve iTop are written once and run at both levels:
+- `src/BaseTestCase/ItopContractTestCase.php`: the dialog with iTop through the framework's classes (REST, data source
   creation and update, upload, synchronization, `<NULL>`). Level 1: `FakeItopContractTest`. Level 2:
   `RealItopContractTest`.
-- `test/Support/ExecTestCase.php`: `exec.php` run in its own process with a CSV collector, with every CLI option.
+- `src/BaseTestCase/ExecTestCase.php`: `exec.php` run in its own process with a CSV collector, with every CLI option.
   Level 1: `FakeItopExecTest`. Level 2: `RealItopExecTest`.
 
 When a scenario passes on the real iTop and fails on the fake, the fake is wrong: fix `FakeItop`. Never weaken a
@@ -213,18 +216,18 @@ organizations whose name holds a unique run id, and delete them afterwards:
 
 ```bash
 ITOP_TEST_URL=http://localhost/itop ITOP_TEST_LOGIN=admin ITOP_TEST_PASSWORD=admin \
-  php vendor/bin/phpunit --configuration test/phpunit-ci-with-itop.xml --testsuite integration
+  php vendor/bin/phpunit --configuration tests/php-unit-tests/phpunit-ci-with-itop.xml --testsuite integration
 ```
 
 The account needs the "Administrator" and "REST Services User" profiles. `ITOP_TEST_TOKEN` can replace the login and
 password, and `ITOP_TEST_SSL_VERIFY=0` accepts a self-signed certificate. Without `ITOP_TEST_URL` and credentials, the
-level 2 tests are skipped and send nothing. `test/ci_description.ini` describes the repository for the CI factory.
+level 2 tests are skipped and send nothing. `tests/ci_description.ini` describes the repository for the CI factory.
 
 ### The tests protect your local files
 
 The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/params.local.xml`. So
-`test/Support/bootstrap.php` (the PHPUnit bootstrap) moves `conf/params.local.xml` and the content of `collectors/`
-to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`WorkingCopyGuard`).
+`tests/php-unit-tests/bootstrap.php` (the PHPUnit bootstrap) moves `conf/params.local.xml` and the content of
+`collectors/` to `tests/php-unit-tests/.stash/` before the first test, and puts them back when PHPUnit ends (`WorkingCopyGuard`).
 
 - A `conf/params.local.xml` written by a test (`ConfigurationTest` does) is deleted at the end of the run, even after
   a fatal error: exec.php never reads a configuration left by the tests.
@@ -236,7 +239,15 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
 
 ### Writing tests
 
-- New tests extend `UnitTestFiles\Test\Support\BaseTestCase` (`require_once __DIR__.'/Support/BaseTestCase.php';`).
+- Layout of `tests/php-unit-tests/`, the same as in iTop:
+  - `unitary-tests/` mirrors the sources: `core/` holds the tests of the `core/` classes, with their fixture folders
+    next to them; `FakeItopExecTest.php` tests `exec.php`; `tests/php-unit-tests/` tests the test tooling itself.
+  - `integration-tests/`: the level 2 tests, against a real iTop.
+  - `src/BaseTestCase/`: the abstract test cases. `src/Service/`: the working copy guard, the global state, the
+    recording logger and the fakes. `src/Collector/`: the collectors the tests run.
+  - `bootstrap.php` is the PHPUnit bootstrap; `bootstrap.inc.php` is a legacy file that nothing uses.
+- New tests extend `UnitTestFiles\Test\Support\BaseTestCase`
+  (`require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';` from `unitary-tests/core/`).
   Around each test it restores the global state (every static property of the `core/` classes, and `$argv`),
   empties `collectors/`, records logs in `$this->oLogger` (`HasMessage()`, `GetMessages()`) instead of printing them,
   and loads the configuration with `data_path` in a private temporary directory. Helpers:
@@ -256,7 +267,7 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
   not emulate fails the test: extend the fake, and the contract scenarios if it is a new iTop behaviour.
 - Third-party HTTP APIs (e.g. `jsonurl`): `$this->GetFakeHttpServer()->Route($sUrlPrefix, function ($sUrl, $aData) {
   return $sBody; })`. Every request is recorded (`GetRequests()`); an unrouted URL throws like an unreachable host.
-- `test/Support/ItopContractTestCase.php` holds scenarios of the dialog with iTop. They run against the fake
+- `src/BaseTestCase/ItopContractTestCase.php` holds scenarios of the dialog with iTop. They run against the fake
   (`FakeItopContractTest`) and against a real iTop (integration suite). A fake that passes them stays faithful.
 - Lower-level seams, used by older tests:
   - all HTTP (REST, synchro pages, `jsonurl`): `Utils::MockDoPostRequestService($mock)` with a mock of
@@ -268,11 +279,13 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
     fixture `params.distrib.xml` into `collectors/`;
   - logs: `Utils::MockLog($this->createMock(UtilsLogger::class), LOG_LEVEL)`, then assert on `Log()` calls.
   - `Utils::Exec()` (the `command` option) has no seam: use harmless commands in tests.
-- Collect scenarios use fixture folders (`test/single_csv/<case>/`, `test/single_json/<case>/`) holding a
-  `params.distrib.xml`, the input file and `expected_generated.csv`, compared with `data/<Class>-1.csv`.
+- Collect scenarios use fixture folders (`unitary-tests/core/single_csv/<case>/`,
+  `unitary-tests/core/single_json/<case>/`) holding a `params.distrib.xml`, the input file and
+  `expected_generated.csv`, compared with `data/<Class>-1.csv`.
 - `ScriptableCollector` (and its sub-classes `One`, `Two`, `Three`) is a collector whose behaviour a test scripts
   (rows, optional attributes, reprocessing, return values) and which records the calls it receives.
-- Test classes live in `test/<Subject>Test.php`, namespace `UnitTestFiles\Test`; helpers in `test/Support/`.
+- Test classes live in `unitary-tests/<source path>/<Subject>Test.php`, namespace `UnitTestFiles\Test`; helpers in
+  `src/`, namespace `UnitTestFiles\Test\Support`.
 - A test that changes or "fixes" a known quirk (§10) must say so: these tests assert today's behaviour on purpose.
 - Older tests extend PHPUnit's `TestCase` directly and reset the state themselves; `CollectorSynchroTest` adds a
   `--config_file` to `$argv` that persists until a `BaseTestCase` test restores it. Prefer `BaseTestCase` for new tests.
@@ -337,7 +350,7 @@ to `test/.stash/` before the first test, and puts them back when PHPUnit ends (`
 
 ## 11. Further reading
 
-- The tests in `test/` are the executable specification. Read the tests of the class you are changing first.
+- The tests in `tests/php-unit-tests/` are the executable specification. Read the tests of the class you are changing first.
 - iTop's side of the contract: `webservices/rest.php`, `core/restservices.class.inc.php`, `synchro/synchro_import.php`,
   `synchro/synchro_exec.php` and `synchro/synchrodatasource.class.inc.php` in the iTop sources. `FakeItop` cites them.
 - Collector base: https://www.itophub.io/wiki/page?id=extensions%3Aitop-data-collector-base
