@@ -1009,7 +1009,9 @@ class FakeItop
 			$aAttributes[$aAttr['attcode']] = $aAttr;
 		}
 
-		foreach ($this->aReplicas[$iSourceId] ?? [] as $sPrimaryKey => &$aReplica) {
+		// Iterate on the property itself: with "?? []", the loop would update a temporary copy of the replicas
+		$this->aReplicas[$iSourceId] = $this->aReplicas[$iSourceId] ?? [];
+		foreach ($this->aReplicas[$iSourceId] as $sPrimaryKey => &$aReplica) {
 			if (!$aReplica['seen']) {
 				continue;
 			}
