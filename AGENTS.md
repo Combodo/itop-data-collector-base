@@ -2,6 +2,7 @@
 
 Guidance for AI coding agents (and humans) working on this repository.
 Read it entirely before changing code, and update it when you change a behaviour it describes.
+When asked to review code, also follow `REVIEW.md`.
 
 ## 1. What this repository is
 
