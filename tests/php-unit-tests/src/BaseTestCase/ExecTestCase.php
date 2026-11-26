@@ -54,8 +54,12 @@ abstract class ExecTestCase extends BaseTestCase
 			if ($this->aItop === null) {
 				return;
 			}
-			$this->CallRest(['operation' => 'core/delete', 'class' => 'Organization', 'key' => "SELECT Organization WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
-			$this->CallRest(['operation' => 'core/delete', 'class' => 'SynchroDataSource', 'key' => "SELECT SynchroDataSource WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
+			// The data sources first: iTop refuses to delete the objects a data source created while it exists
+			// (see ItopContractTestCase::testObjectCreatedByADataSourceCannotBeDeletedWhileTheDataSourceExists).
+			foreach (['SynchroDataSource', 'Organization'] as $sClass) {
+				$aResult = $this->CallRest(['operation' => 'core/delete', 'class' => $sClass, 'key' => "SELECT $sClass WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
+				$this->assertEquals(0, $aResult['code'], "Test cleanup of the {$sClass} objects in iTop: ".($aResult['message'] ?? ''));
+			}
 		} finally {
 			parent::tearDown();
 		}

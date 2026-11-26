@@ -212,7 +212,9 @@ scenario to suit the fake. When iTop's behaviour matters for a change, add a sce
 fake-only test.
 
 Running level 2 needs an iTop that tests may write into (never a production one). They create data sources and
-organizations whose name holds a unique run id, and delete them afterwards:
+organizations whose name holds a unique run id, and delete them afterwards: the data sources first, because iTop
+refuses to delete an object that a data source created while the data source exists. A test whose cleanup fails
+fails too, so that nothing is left behind unnoticed.
 
 ```bash
 ITOP_TEST_URL=http://localhost/itop ITOP_TEST_LOGIN=admin ITOP_TEST_PASSWORD=admin \

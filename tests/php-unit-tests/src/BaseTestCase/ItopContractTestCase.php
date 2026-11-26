@@ -28,6 +28,9 @@ abstract class ItopContractTestCase extends BaseTestCase
 	/** @var bool False when ConnectToItop() skipped the test: then nothing is sent to iTop */
 	private $bConnected = false;
 
+	/** @var array<string, mixed> How to reach the iTop under test, restored before the cleanup */
+	private $aConnection = [];
+
 	/**
 	 * Point the configuration to the iTop under test, or skip the test.
 	 */
@@ -40,6 +43,9 @@ abstract class ItopContractTestCase extends BaseTestCase
 		ContractTestCollector::$aRows = [];
 		$this->ConnectToItop();
 		$this->bConnected = true;
+		foreach (['itop_url', 'itop_login', 'itop_password', 'itop_token', 'itop_login_mode'] as $sCode) {
+			$this->aConnection[$sCode] = Utils::GetConfigurationValue($sCode, '');
+		}
 	}
 
 	protected function tearDown(): void
@@ -48,9 +54,15 @@ abstract class ItopContractTestCase extends BaseTestCase
 			if (!$this->bConnected) {
 				return;
 			}
-			// Delete what the test created, while the configuration still points to the iTop under test
-			$this->CallRest(['operation' => 'core/delete', 'class' => 'Organization', 'key' => "SELECT Organization WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
-			$this->CallRest(['operation' => 'core/delete', 'class' => 'SynchroDataSource', 'key' => "SELECT SynchroDataSource WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
+			// Delete what the test created, while the configuration still points to the iTop under test. The data
+			// sources first: iTop refuses to delete the objects a data source created while it exists
+			// (see testObjectCreatedByADataSourceCannotBeDeletedWhileTheDataSourceExists). With the original credentials:
+			// a test may have changed them (testWrongCredentialsAreRejected).
+			$this->SetConfigurationOverrides($this->aConnection);
+			foreach (['SynchroDataSource', 'Organization'] as $sClass) {
+				$aResult = $this->CallRest(['operation' => 'core/delete', 'class' => $sClass, 'key' => "SELECT $sClass WHERE name LIKE '%{$this->sRunId}%'", 'comment' => 'Test cleanup']);
+				$this->assertEquals(0, $aResult['code'], "Test cleanup of the {$sClass} objects in iTop: ".($aResult['message'] ?? ''));
+			}
 		} finally {
 			parent::tearDown();
 		}
@@ -187,6 +199,25 @@ abstract class ItopContractTestCase extends BaseTestCase
 
 		$this->assertFalse($oCollector->Synchronize(), 'No object matches and action_on_zero is "error"');
 		$this->assertTrue($this->oLogger->HasMessage(LOG_ERR, "/Synchronization of data source '.*' answered: Objects .* errors: [1-9]/"));
+	}
+
+	public function testObjectCreatedByADataSourceCannotBeDeletedWhileTheDataSourceExists(): void
+	{
+		$sName = "Contract org {$this->sRunId}";
+		// The data source declares user_delete_policy "nobody", the default value in iTop
+		$this->RunCollector([['primary_key' => 'org-1', 'name' => $sName, 'code' => 'C1']]);
+
+		$aResult = $this->CallRest(['operation' => 'core/delete', 'class' => 'Organization', 'key' => ['name' => $sName], 'comment' => 'Contract test']);
+		$this->assertEquals(100, $aResult['code'], 'Refused, even for an administrator');
+		$this->assertStringContainsString('cannot delete the object</b> because it is owned by the external data source '.$this->GetDataSourceName(), $aResult['message']);
+		$this->GetOrganizationFromItop($sName);
+
+		// Hence tearDown() deletes the data sources first
+		$aResult = $this->CallRest(['operation' => 'core/delete', 'class' => 'SynchroDataSource', 'key' => ['name' => $this->GetDataSourceName()], 'comment' => 'Contract test']);
+		$this->assertEquals(0, $aResult['code'], $aResult['message']);
+		$aResult = $this->CallRest(['operation' => 'core/delete', 'class' => 'Organization', 'key' => ['name' => $sName], 'comment' => 'Contract test']);
+		$this->assertEquals(0, $aResult['code'], $aResult['message']);
+		$this->assertSame('Deleted: 1', $aResult['message']);
 	}
 
 	/////////////////////////////////////////////////////////////////////////

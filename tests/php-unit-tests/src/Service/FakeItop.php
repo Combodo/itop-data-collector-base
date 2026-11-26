@@ -6,7 +6,8 @@ use Exception;
 
 /**
  * In-memory iTop for the tests. It answers the HTTP requests the framework sends to iTop the way iTop 3.2 does:
- * - webservices/rest.php: list_operations, core/check_credentials, core/get, core/create, core/update, core/delete;
+ * - webservices/rest.php: list_operations, core/check_credentials, core/get, core/create, core/update, core/delete
+ *   (refused for an object a data source created, as long as the data source exists);
  * - synchro/synchro_import.php: loads the CSV into the replica table of the data source;
  * - synchro/synchro_exec.php: reconciles the replicas with the objects, then creates or updates them.
  *
@@ -102,7 +103,7 @@ class FakeItop
 	/** @var int */
 	private $iNextId = 1;
 
-	/** @var array<int, array<string, array{values: array<string, ?string>, seen: bool, dest_id: int}>> SDS id => primary_key => replica */
+	/** @var array<int, array<string, array{values: array<string, ?string>, seen: bool, dest_id: int, dest_creator: bool}>> SDS id => primary_key => replica */
 	private $aReplicas = [];
 
 	/** @var array<int, array{page: string, url: string, data: array, operation: ?array}> */
@@ -291,7 +292,7 @@ class FakeItop
 	}
 
 	/**
-	 * @return array<string, array{values: array<string, ?string>, seen: bool, dest_id: int}> primary_key => replica
+	 * @return array<string, array{values: array<string, ?string>, seen: bool, dest_id: int, dest_creator: bool}> primary_key => replica
 	 */
 	public function GetReplicas(int $iSourceId): array
 	{
@@ -471,8 +472,10 @@ class FakeItop
 				$aIds = $this->FindIds($sClass, $this->GetMandatoryParam($aOperation, 'key'));
 				$aResult = ['objects' => null, 'code' => 0, 'message' => 'Deleted: '.count($aIds)];
 				foreach ($aIds as $iId) {
+					// Like DBObject::DBDelete(): the objects before a refused one stay deleted
+					$this->CheckUserCanDelete($iId);
 					$sObjClass = $this->aObjects[$iId]['class'];
-					$aResult['objects']["$sObjClass::$iId"] = ['code' => 0, 'message' => 'Deleted', 'class' => $sObjClass, 'key' => (string)$iId, 'fields' => []];
+					$aResult['objects']["$sObjClass::$iId"] = ['code' => 0, 'message' => '', 'class' => $sObjClass, 'key' => (string)$iId, 'fields' => []];
 					$this->DeleteObject($iId);
 				}
 
@@ -762,6 +765,30 @@ class FakeItop
 		$this->aObjects[$iId]['fields'] = array_merge($this->aObjects[$iId]['fields'], $aFields);
 	}
 
+	/**
+	 * An object created by a data source cannot be deleted while the data source exists, unless its
+	 * user_delete_policy is "everybody" ("administrators" also refuses: the REST account of the fake is not an
+	 * administrator). As DBObject::DoCheckToDelete() and DBObject::DBDelete() in iTop 3.2.
+	 *
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
+	 */
+	private function CheckUserCanDelete(int $iId): void
+	{
+		foreach ($this->aReplicas as $iSourceId => $aSourceReplicas) {
+			foreach ($aSourceReplicas as $aReplica) {
+				if ($aReplica['dest_id'] !== $iId || !$aReplica['dest_creator'] || !isset($this->aObjects[$iSourceId])) {
+					continue;
+				}
+				$aSource = $this->aObjects[$iSourceId]['fields'];
+				if (($aSource['user_delete_policy'] ?? '') === 'everybody') {
+					continue;
+				}
+				$sClass = $this->aObjects[$iId]['class'];
+				throw new FakeItopException("Found issue(s): target_class = $sClass, target_id = $iId, issues = You <b>cannot delete the object</b> because it is owned by the external data source {$aSource['name']}", 100);
+			}
+		}
+	}
+
 	private function DeleteObject(int $iId): void
 	{
 		if ($this->aObjects[$iId]['class'] === 'SynchroDataSource') {
@@ -860,7 +887,7 @@ class FakeItop
 				$this->aReplicas[$iSourceId][$sPrimaryKey]['seen'] = true;
 				$iUpdated++;
 			} else {
-				$this->aReplicas[$iSourceId][$sPrimaryKey] = ['values' => $aValues, 'seen' => true, 'dest_id' => 0];
+				$this->aReplicas[$iSourceId][$sPrimaryKey] = ['values' => $aValues, 'seen' => true, 'dest_id' => 0, 'dest_creator' => false];
 				$iCreated++;
 			}
 		}
@@ -1056,6 +1083,7 @@ class FakeItop
 				}
 				try {
 					$aReplica['dest_id'] = $this->CreateObject($sClass, $aFields);
+					$aReplica['dest_creator'] = true; // status_dest_creator in iTop
 					$aStats['created']++;
 					$aStats['created_warnings'] += $iWarnings;
 				} catch (FakeItopException $e) {
