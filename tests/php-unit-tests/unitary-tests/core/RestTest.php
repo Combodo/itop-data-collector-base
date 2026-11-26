@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use DoPostRequestService;
 use PHPUnit\Framework\TestCase;

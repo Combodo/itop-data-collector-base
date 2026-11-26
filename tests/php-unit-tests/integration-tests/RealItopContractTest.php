@@ -2,7 +2,7 @@
 
 namespace UnitTestFiles\Test\Integration;
 
-use UnitTestFiles\Test\Support\ItopContractTestCase;
+use UnitTestFiles\Test\ItopContractTestCase;
 
 require_once dirname(__DIR__).'/src/BaseTestCase/ItopContractTestCase.php';
 require_once __DIR__.'/RealItop.php';

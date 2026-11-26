@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use Exception;
 use Orchestrator;
@@ -9,7 +9,7 @@ use ScriptableCollectorOne;
 use ScriptableCollectorThree;
 use ScriptableCollectorTwo;
 use stdClass;
-use UnitTestFiles\Test\Support\BaseTestCase;
+use UnitTestFiles\Test\BaseTestCase;
 
 require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';
 require_once dirname(__DIR__, 2).'/src/Collector/ScriptableCollector.php';

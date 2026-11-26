@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test\Support;
+namespace UnitTestFiles\Test\Service;
 
 use Exception;
 
@@ -415,7 +415,7 @@ class FakeItop
 	}
 
 	/**
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function ExecRestOperation(array $aOperation, string $sVersion): array
 	{
@@ -489,7 +489,7 @@ class FakeItop
 
 	/**
 	 * @return mixed
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function GetMandatoryParam(array $aOperation, string $sParam)
 	{
@@ -538,7 +538,7 @@ class FakeItop
 	 * @param mixed $key An id, a hash of criteria or an OQL query
 	 *
 	 * @return int[]
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function FindIds(string $sClass, $key): array
 	{
@@ -567,7 +567,7 @@ class FakeItop
 	 *
 	 * @param mixed $key
 	 *
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function FindSingleId(string $sClass, $key): int
 	{
@@ -599,7 +599,7 @@ class FakeItop
 	 * `<attcode> LIKE <value>` and `<attcode> IN (<value>, ...)`, values being quoted strings or numbers.
 	 *
 	 * @return int[]
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function RunOql(string $sOql): array
 	{
@@ -659,7 +659,7 @@ class FakeItop
 
 	/**
 	 * @return array Never returns
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function Unsupported(string $sMessage): array
 	{
@@ -668,7 +668,7 @@ class FakeItop
 	}
 
 	/**
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function CreateObject(string $sClass, array $aFields): int
 	{
@@ -686,7 +686,7 @@ class FakeItop
 	/**
 	 * Like iTop: fill the defaults, then create one SynchroAttribute per attribute of the scope class.
 	 *
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function CreateSynchroDataSource(array $aFields): int
 	{
@@ -745,7 +745,7 @@ class FakeItop
 	}
 
 	/**
-	 * @throws \UnitTestFiles\Test\Support\FakeItopException
+	 * @throws \UnitTestFiles\Test\Service\FakeItopException
 	 */
 	private function UpdateObject(int $iId, array $aFields): void
 	{

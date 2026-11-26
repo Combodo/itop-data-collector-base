@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use IOException;
 use iTopPersonCsvCollector;

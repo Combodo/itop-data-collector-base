@@ -1,12 +1,17 @@
 <?php
 
-namespace UnitTestFiles\Test\Support;
+namespace UnitTestFiles\Test;
 
 use Parameters;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
 use ReflectionProperty;
 use RuntimeException;
+use UnitTestFiles\Test\Service\FakeHttpServer;
+use UnitTestFiles\Test\Service\FakeItop;
+use UnitTestFiles\Test\Service\GlobalState;
+use UnitTestFiles\Test\Service\RecordingLogger;
+use UnitTestFiles\Test\Service\WorkingCopyGuard;
 use Utils;
 
 require_once dirname(__DIR__, 2).'/bootstrap.php';
@@ -30,16 +35,16 @@ GlobalState::Capture();
  */
 abstract class BaseTestCase extends TestCase
 {
-	/** @var \UnitTestFiles\Test\Support\RecordingLogger Every message logged through Utils::Log() during the test */
+	/** @var \UnitTestFiles\Test\Service\RecordingLogger Every message logged through Utils::Log() during the test */
 	protected $oLogger;
 
-	/** @var \UnitTestFiles\Test\Support\FakeItop|null Set by StartFakeItop() */
+	/** @var \UnitTestFiles\Test\Service\FakeItop|null Set by StartFakeItop() */
 	protected $oFakeItop = null;
 
 	/** @var string|null */
 	private $sTempDir = null;
 
-	/** @var \UnitTestFiles\Test\Support\FakeHttpServer|null */
+	/** @var \UnitTestFiles\Test\Service\FakeHttpServer|null */
 	private $oFakeHttpServer = null;
 
 	/** @var \Parameters|null */
@@ -85,7 +90,7 @@ abstract class BaseTestCase extends TestCase
 	/**
 	 * Point the configuration to a new in-memory iTop, and route every HTTP request of the framework to it.
 	 *
-	 * @return \UnitTestFiles\Test\Support\FakeItop Also available as $this->oFakeItop
+	 * @return \UnitTestFiles\Test\Service\FakeItop Also available as $this->oFakeItop
 	 */
 	protected function StartFakeItop(): FakeItop
 	{
@@ -103,7 +108,7 @@ abstract class BaseTestCase extends TestCase
 	}
 
 	/**
-	 * @return \UnitTestFiles\Test\Support\FakeHttpServer Receives every HTTP request of the framework; add routes
+	 * @return \UnitTestFiles\Test\Service\FakeHttpServer Receives every HTTP request of the framework; add routes
 	 *     to it to fake third-party APIs
 	 */
 	protected function GetFakeHttpServer(): FakeHttpServer

@@ -1,9 +1,9 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use MappingTable;
-use UnitTestFiles\Test\Support\BaseTestCase;
+use UnitTestFiles\Test\BaseTestCase;
 
 require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';
 

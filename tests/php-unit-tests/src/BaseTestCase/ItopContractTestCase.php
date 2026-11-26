@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test\Support;
+namespace UnitTestFiles\Test;
 
 use ContractTestCollector;
 use RestClient;

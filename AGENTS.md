@@ -246,7 +246,13 @@ The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/par
   - `src/BaseTestCase/`: the abstract test cases. `src/Service/`: the working copy guard, the global state, the
     recording logger and the fakes. `src/Collector/`: the collectors the tests run.
   - `bootstrap.php` is the PHPUnit bootstrap; `bootstrap.inc.php` is a legacy file that nothing uses.
-- New tests extend `UnitTestFiles\Test\Support\BaseTestCase`
+- Namespaces follow the folders, as in iTop (where `src/BaseTestCase/` is the root namespace): `UnitTestFiles\Test`
+  for `src/BaseTestCase/`, `unitary-tests/` and `unitary-tests/tests/php-unit-tests/`; `UnitTestFiles\Test\Service`
+  for `src/Service/`; `UnitTestFiles\Test\Core` for `unitary-tests/core/`; `UnitTestFiles\Test\Integration` for
+  `integration-tests/`. Exception: the collectors of `src/Collector/` and of the fixtures stay in the global
+  namespace, like real collectors, because the framework finds their JSON definition and configuration section by
+  class name (`get_class()`).
+- New tests extend `UnitTestFiles\Test\BaseTestCase`
   (`require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';` from `unitary-tests/core/`).
   Around each test it restores the global state (every static property of the `core/` classes, and `$argv`),
   empties `collectors/`, records logs in `$this->oLogger` (`HasMessage()`, `GetMessages()`) instead of printing them,
@@ -284,8 +290,7 @@ The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/par
   `expected_generated.csv`, compared with `data/<Class>-1.csv`.
 - `ScriptableCollector` (and its sub-classes `One`, `Two`, `Three`) is a collector whose behaviour a test scripts
   (rows, optional attributes, reprocessing, return values) and which records the calls it receives.
-- Test classes live in `unitary-tests/<source path>/<Subject>Test.php`, namespace `UnitTestFiles\Test`; helpers in
-  `src/`, namespace `UnitTestFiles\Test\Support`.
+- Test classes live in `unitary-tests/<source path>/<Subject>Test.php`, in the namespace of their folder.
 - A test that changes or "fixes" a known quirk (§10) must say so: these tests assert today's behaviour on purpose.
 - Older tests extend PHPUnit's `TestCase` directly and reset the state themselves; `CollectorSynchroTest` adds a
   `--config_file` to `$argv` that persists until a `BaseTestCase` test restores it. Prefer `BaseTestCase` for new tests.

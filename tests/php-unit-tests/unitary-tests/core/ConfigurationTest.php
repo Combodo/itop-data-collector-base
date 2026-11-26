@@ -1,13 +1,13 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use Exception;
 use InvalidParameterException;
 use Parameters;
 use ScriptableCollector;
 use ScriptableCollectorOne;
-use UnitTestFiles\Test\Support\BaseTestCase;
+use UnitTestFiles\Test\BaseTestCase;
 use Utils;
 
 require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';

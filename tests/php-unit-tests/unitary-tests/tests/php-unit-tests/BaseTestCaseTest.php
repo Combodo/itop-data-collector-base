@@ -4,7 +4,6 @@ namespace UnitTestFiles\Test;
 
 use DoPostRequestService;
 use Orchestrator;
-use UnitTestFiles\Test\Support\BaseTestCase;
 use Utils;
 
 require_once dirname(__DIR__, 3).'/src/BaseTestCase/BaseTestCase.php';

@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test\Support;
+namespace UnitTestFiles\Test\Service;
 
 use DoPostRequestService;
 use IOException;

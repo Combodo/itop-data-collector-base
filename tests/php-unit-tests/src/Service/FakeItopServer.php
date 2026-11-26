@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test\Support;
+namespace UnitTestFiles\Test\Service;
 
 use RuntimeException;
 
@@ -78,7 +78,7 @@ class FakeItopServer
 	}
 
 	/**
-	 * @return \UnitTestFiles\Test\Support\FakeItop The current state of the fake iTop (a copy: call SetItop() to change it)
+	 * @return \UnitTestFiles\Test\Service\FakeItop The current state of the fake iTop (a copy: call SetItop() to change it)
 	 */
 	public function GetItop(): FakeItop
 	{

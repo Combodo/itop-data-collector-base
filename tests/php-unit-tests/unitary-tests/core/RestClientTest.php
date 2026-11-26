@@ -1,12 +1,12 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use Exception;
 use LookupTable;
 use RestClient;
-use UnitTestFiles\Test\Support\BaseTestCase;
-use UnitTestFiles\Test\Support\FakeItop;
+use UnitTestFiles\Test\BaseTestCase;
+use UnitTestFiles\Test\Service\FakeItop;
 
 require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';
 

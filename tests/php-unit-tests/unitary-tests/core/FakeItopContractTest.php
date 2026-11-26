@@ -1,8 +1,8 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
-use UnitTestFiles\Test\Support\ItopContractTestCase;
+use UnitTestFiles\Test\ItopContractTestCase;
 
 require_once dirname(__DIR__, 2).'/src/BaseTestCase/ItopContractTestCase.php';
 

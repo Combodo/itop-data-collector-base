@@ -36,5 +36,5 @@ require_once APPROOT.'core/polyfill.inc.php';
 require_once __DIR__.'/src/Service/WorkingCopyGuard.php';
 require_once __DIR__.'/src/Service/GlobalState.php';
 
-\UnitTestFiles\Test\Support\WorkingCopyGuard::Protect();
-\UnitTestFiles\Test\Support\GlobalState::Capture();
+\UnitTestFiles\Test\Service\WorkingCopyGuard::Protect();
+\UnitTestFiles\Test\Service\GlobalState::Capture();

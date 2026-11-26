@@ -2,9 +2,8 @@
 
 namespace UnitTestFiles\Test;
 
-use UnitTestFiles\Test\Support\ExecTestCase;
-use UnitTestFiles\Test\Support\FakeItop;
-use UnitTestFiles\Test\Support\FakeItopServer;
+use UnitTestFiles\Test\Service\FakeItop;
+use UnitTestFiles\Test\Service\FakeItopServer;
 
 require_once dirname(__DIR__).'/src/BaseTestCase/ExecTestCase.php';
 require_once dirname(__DIR__).'/src/Service/FakeItopServer.php';
@@ -15,7 +14,7 @@ require_once dirname(__DIR__).'/src/Service/FakeItopServer.php';
  */
 class FakeItopExecTest extends ExecTestCase
 {
-	/** @var \UnitTestFiles\Test\Support\FakeItopServer|null */
+	/** @var \UnitTestFiles\Test\Service\FakeItopServer|null */
 	private $oServer = null;
 
 	protected function ConnectToItop(): array

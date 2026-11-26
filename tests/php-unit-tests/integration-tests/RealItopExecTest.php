@@ -2,7 +2,7 @@
 
 namespace UnitTestFiles\Test\Integration;
 
-use UnitTestFiles\Test\Support\ExecTestCase;
+use UnitTestFiles\Test\ExecTestCase;
 
 require_once dirname(__DIR__).'/src/BaseTestCase/ExecTestCase.php';
 require_once __DIR__.'/RealItop.php';

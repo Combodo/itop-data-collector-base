@@ -1,13 +1,13 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Core;
 
 use IgnoredRowException;
 use InvalidConfigException;
 use ScriptableCollector;
 use ScriptableCollectorOne;
-use UnitTestFiles\Test\Support\BaseTestCase;
-use UnitTestFiles\Test\Support\FakeItop;
+use UnitTestFiles\Test\BaseTestCase;
+use UnitTestFiles\Test\Service\FakeItop;
 use Utils;
 
 require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';

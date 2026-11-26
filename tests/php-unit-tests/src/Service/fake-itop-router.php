@@ -14,7 +14,7 @@ require_once __DIR__.'/FakeItop.php';
 $sStateFile = getenv('FAKE_ITOP_STATE');
 $oItop = unserialize(file_get_contents($sStateFile));
 
-$sPathPrefix = (string)parse_url(\UnitTestFiles\Test\Support\FakeItop::URL, PHP_URL_PATH);
+$sPathPrefix = (string)parse_url(\UnitTestFiles\Test\Service\FakeItop::URL, PHP_URL_PATH);
 $sRequestUri = $_SERVER['REQUEST_URI'];
 if (strpos($sRequestUri, $sPathPrefix.'/') !== 0) {
 	http_response_code(404);
@@ -22,7 +22,7 @@ if (strpos($sRequestUri, $sPathPrefix.'/') !== 0) {
 
 	return true;
 }
-$sUrl = \UnitTestFiles\Test\Support\FakeItop::URL.substr($sRequestUri, strlen($sPathPrefix));
+$sUrl = \UnitTestFiles\Test\Service\FakeItop::URL.substr($sRequestUri, strlen($sPathPrefix));
 
 $sBody = $oItop->Handle($sUrl, $_POST);
 file_put_contents($sStateFile, serialize($oItop), LOCK_EX);
