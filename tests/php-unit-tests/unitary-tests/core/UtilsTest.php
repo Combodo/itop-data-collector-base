@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test\Core;
+namespace UnitTestFiles\Test\Unitary\Core;
 
 use PHPUnit\Framework\TestCase;
 use RestClient;

@@ -1,6 +1,6 @@
 <?php
 
-namespace UnitTestFiles\Test\Core;
+namespace UnitTestFiles\Test\Unitary\Core;
 
 use iTopPersonCollector;
 use PHPUnit\Framework\TestCase;

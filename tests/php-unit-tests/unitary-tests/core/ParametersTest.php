@@ -5,7 +5,7 @@
  * @license     http://opensource.org/licenses/AGPL-3.0
  */
 
-namespace UnitTestFiles\Test\Core;
+namespace UnitTestFiles\Test\Unitary\Core;
 
 use Parameters;
 use PHPUnit\Framework\TestCase;

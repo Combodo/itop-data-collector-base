@@ -1,9 +1,10 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Unitary\Tests\PhpUnitTests;
 
 use DoPostRequestService;
 use Orchestrator;
+use UnitTestFiles\Test\BaseTestCase;
 use Utils;
 
 require_once dirname(__DIR__, 3).'/src/BaseTestCase/BaseTestCase.php';

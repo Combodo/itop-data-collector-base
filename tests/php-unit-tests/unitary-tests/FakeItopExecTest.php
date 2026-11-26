@@ -1,7 +1,8 @@
 <?php
 
-namespace UnitTestFiles\Test;
+namespace UnitTestFiles\Test\Unitary;
 
+use UnitTestFiles\Test\ExecTestCase;
 use UnitTestFiles\Test\Service\FakeItop;
 use UnitTestFiles\Test\Service\FakeItopServer;
 

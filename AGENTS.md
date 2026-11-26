@@ -248,12 +248,15 @@ The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/par
   - `src/BaseTestCase/`: the abstract test cases. `src/Service/`: the working copy guard, the global state, the
     recording logger and the fakes. `src/Collector/`: the collectors the tests run.
   - `bootstrap.php` is the PHPUnit bootstrap; `bootstrap.inc.php` is a legacy file that nothing uses.
-- Namespaces follow the folders, as in iTop (where `src/BaseTestCase/` is the root namespace): `UnitTestFiles\Test`
-  for `src/BaseTestCase/`, `unitary-tests/` and `unitary-tests/tests/php-unit-tests/`; `UnitTestFiles\Test\Service`
-  for `src/Service/`; `UnitTestFiles\Test\Core` for `unitary-tests/core/`; `UnitTestFiles\Test\Integration` for
-  `integration-tests/`. Exception: the collectors of `src/Collector/` and of the fixtures stay in the global
-  namespace, like real collectors, because the framework finds their JSON definition and configuration section by
-  class name (`get_class()`).
+- Namespaces follow the folders, each sub-folder in PascalCase:
+  - `UnitTestFiles\Test` for `src/BaseTestCase/` (the root namespace, as in iTop), `UnitTestFiles\Test\Service` for
+    `src/Service/`;
+  - `UnitTestFiles\Test\Unitary` for `unitary-tests/`, so `UnitTestFiles\Test\Unitary\Core` for
+    `unitary-tests/core/` and `UnitTestFiles\Test\Unitary\Tests\PhpUnitTests` for `unitary-tests/tests/php-unit-tests/`;
+  - `UnitTestFiles\Test\Integration` for `integration-tests/`;
+  - exception: the collectors of `src/Collector/` and of the fixtures stay in the global namespace, like real
+    collectors, because the framework finds their JSON definition and configuration section by class name
+    (`get_class()`).
 - New tests extend `UnitTestFiles\Test\BaseTestCase`
   (`require_once dirname(__DIR__, 2).'/src/BaseTestCase/BaseTestCase.php';` from `unitary-tests/core/`).
   Around each test it restores the global state (every static property of the `core/` classes, and `$argv`),
