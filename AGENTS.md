@@ -14,8 +14,9 @@ This repository contains **only the framework**. Concrete collectors (LDAP, vSph
 live in separate repositories and are dropped into `collectors/` at runtime (see §3).
 
 - Plain PHP, no runtime Composer dependency: `vendor/` holds dev tools only (PHPUnit 9, PHPStan 2).
-- Supported PHP: `>=8.1 <8.4` (`composer.json`; CI runs PHP 8.1). Extensions: `simplexml` and `dom` (checked at
-  startup), `curl` strongly recommended, `pdo_*` for SQL collectors.
+- Supported PHP versions: read `require.php` in `composer.json`, the only reference; do not copy them into other files
+  (the CI chooses the PHP versions it runs). Code must work on the whole range, its lowest version included.
+- PHP extensions: `simplexml` and `dom` (checked at startup), `curl` strongly recommended, `pdo_*` for SQL collectors.
 
 ## 2. Golden rule: do not break downstream collectors
 
@@ -172,7 +173,7 @@ test/php-code-style/vendor/bin/php-cs-fixer check --config test/php-code-style/.
 - PHPUnit: the unit suite (about 240 tests, 2 seconds, no network). Add or update tests for every behaviour change
   or bug fix.
 - PHPStan: level 1 with `phpstan-baseline.neon`. Introduce no new error; never grow the baseline to hide one.
-- PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps on PHP 8.1.
+- PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps.
 
 ### Two levels of tests
 
