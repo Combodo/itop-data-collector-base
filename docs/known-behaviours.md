@@ -43,4 +43,3 @@ silently.
 - `MappingTable` replacements go through `vsprintf()` with the `preg_match()` matches: `%1$s` is the whole match,
   `%2$s` the first group. The replacement cannot contain the delimiter.
 - `LookupTable` writes the found id into the line as an int.
-- PHPStan reports one pre-existing error in `collector.class.inc.php` (`$sModuleFileContents` might be undefined).
