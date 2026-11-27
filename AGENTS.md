@@ -1,10 +1,10 @@
 # AGENTS.md — iTop Data Collector Base
 
-Guidance for AI coding agents (and humans) working on this repository.
-Read it entirely before changing code, and update it when you change a behaviour it describes.
-When asked to review code, also follow `REVIEW.md`.
+Guidance for AI coding agents (and humans) working on this repository. Read it entirely before changing code.
+The reference documentation of the framework is in `docs/`: read the files that match the code you touch (see
+"Where to read"), not all of `docs/` at once. When asked to review code, also follow `REVIEW.md`.
 
-## 1. What this repository is
+## What this repository is
 
 `itop-data-collector-base` is a small PHP CLI framework for building **data collectors** for
 [iTop](https://github.com/Combodo/iTop). A collector extracts data from a third-party system, writes it as CSV and
@@ -19,10 +19,7 @@ live in separate repositories and are dropped into `collectors/` at runtime (see
   (the CI chooses the PHP versions it runs). Code must work on the whole range, its lowest version included.
 - PHP extensions: `simplexml` and `dom` (checked at startup), `curl` strongly recommended, `pdo_*` for SQL collectors.
 
-How the framework works (layout, execution flow, configuration, data contract with iTop, known behaviours, tests) is
-documented in `docs/`.
-
-## 2. Golden rule: do not break downstream collectors
+## Golden rule: do not break downstream collectors
 
 About 25 Combodo collectors, plus third-party collectors, subclass these classes. **None of them is tested by this
 repository's CI.** Every `public` **and** `protected` member of the `core/` classes is de facto public API.
@@ -54,31 +51,57 @@ Therefore:
 - Odd-looking behaviour is often relied upon (`docs/known-behaviours.md`). Do not "clean it up" as a side effect of
   an unrelated change.
 
-## 3. Development workflow
+## Before changing code
 
-### Setup
+1. Read the `docs/` files that match the code you touch (table below), and the tests of the class you change: the
+   tests in `tests/php-unit-tests/` are the executable specification.
+2. Check `docs/known-behaviours.md` for the code you touch: a behaviour listed there must not change as a side
+   effect.
+3. If the code and `docs/` disagree, say so instead of silently changing either one.
+
+### Where to read
+
+| Code touched | Read |
+|---|---|
+| `exec.php`, `core/orchestrator.class.inc.php`, `core/collectionplan.class.inc.php` | `docs/architecture.md` |
+| `core/parameters.class.inc.php`, configuration and CLI functions of `core/utils.class.inc.php`, `conf/` | `docs/configuration.md` |
+| `core/collector.class.inc.php`, `core/restclient.class.inc.php`, `core/callitopservice.class.inc.php`, HTTP functions of `core/utils.class.inc.php` | `docs/itop-contract.md` |
+| `core/csvcollector.class.inc.php`, `core/jsoncollector.class.inc.php`, `core/sqlcollector.class.inc.php`, `core/lookuptable.class.inc.php`, `core/mappingtable.class.inc.php` | `docs/architecture.md` ("Map of core/"), `docs/configuration.md` |
+| Any behaviour of `core/` or `exec.php` | `docs/known-behaviours.md` |
+| `tests/` | `docs/testing.md` |
+
+## Quality gates: all three must pass before a change is done
 
 ```bash
-composer install                                  # dev tools only
-(cd tests/php-code-style && composer install)      # PHP-CS-Fixer
-```
+composer install                                  # once: dev tools only
+(cd tests/php-code-style && composer install)      # once: PHP-CS-Fixer
 
-### Quality gates: all three must pass before a change is done
-
-```bash
 php vendor/bin/phpunit --configuration tests/php-unit-tests/phpunit.xml
 php vendor/bin/phpstan analyse
 tests/php-code-style/vendor/bin/php-cs-fixer check --config tests/php-code-style/.php-cs-fixer.dist.php
 ```
 
-- PHPUnit: the unit suite (about 240 tests, 2 seconds, no network). Add or update tests for every behaviour change
-  or bug fix.
+- PHPUnit: the unit suite (about 240 tests, 2 seconds, no network).
 - PHPStan: level 1 with `phpstan-baseline.neon`. Introduce no new error; never grow the baseline to hide one.
 - PHP-CS-Fixer: `fix` instead of `check` reformats. The Jenkinsfile runs the same three steps.
 
-Code coverage, the two levels of tests, the protection of local files and how to write tests: `docs/testing.md`.
+## Tests
 
-## 4. Conventions
+How to write and run them, with the helpers and fakes: `docs/testing.md`. The rules:
+- Add or update tests for every behaviour change or bug fix.
+- New tests extend `UnitTestFiles\Test\BaseTestCase` and live in
+  `tests/php-unit-tests/unitary-tests/<source path>/<Subject>Test.php`, in the namespace of their folder
+  (`UnitTestFiles\Test\Unitary\Core` for `unitary-tests/core/`). The collectors they run stay in the global
+  namespace, like real collectors.
+- **No network, no real iTop, no real third-party system** in the unit suite: use `$this->StartFakeItop()` and
+  `$this->GetFakeHttpServer()`.
+- When iTop's behaviour matters, add a scenario to `ItopContractTestCase` or `ExecTestCase`: they run against the fake
+  and against a real iTop. When a scenario passes on the real iTop and fails on the fake, fix the fake; never weaken
+  a scenario to suit it.
+- A test that changes what a known behaviour asserts must say so.
+- The tests set `conf/params.local.xml` and the content of `collectors/` aside during the run, and restore them.
+
+## Conventions
 
 - Code style: PSR-12 with **tabs**, short array syntax, trailing commas in multi-line arrays. Hungarian prefixes
   (`$sName`, `$iCount`, `$bFlag`, `$aList`, `$oObject`, `$hHandle`), PascalCase method names, no namespaces in
@@ -86,5 +109,11 @@ Code coverage, the two levels of tests, the protection of local files and how to
 - `Utils::Log($iLevel, $sFormat, ...$aArgs)`: with arguments, the message goes through `vsprintf`. String and array
   arguments are JSON-encoded and their outer quotes or brackets stripped. Prefer positional placeholders (`%1$s`).
 - Keep Combodo copyright headers unchanged.
+
+## Delivering a change
+
+- In the same change: the code, its tests, and the update of the `docs/` files that describe the changed behaviour.
+  An odd-looking behaviour found on the way goes to `docs/known-behaviours.md`.
+- Update this file when a rule it states changes.
 - Commits: `N°<ticket> - <imperative summary>` or a gitmoji code prefix (`:bug:`, `:white_check_mark:`…), first line
   72 characters at most. Development happens on `master`; releases are git tags (e.g. `1.5.1`).
