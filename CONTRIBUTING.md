@@ -57,6 +57,7 @@ Please follow [our guidelines](https://www.itophub.io/wiki/page?id=latest%3Acust
 Please create tests that covers as much as possible the code you're submitting.
 
 Our tests are located in the `tests/php-unit-tests/` directory, containing a PHPUnit config file : `phpunit.xml`.
+How they are organized and how to write them is described in [docs/testing.md](docs/testing.md).
 
 ### Git Commit Messages
 

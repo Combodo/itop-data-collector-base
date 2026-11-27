@@ -1,7 +1,9 @@
 # REVIEW.md: AI code review instructions for iTop Data Collector Base
 
-For automated reviewers (GitHub Copilot code review, Greptile, ...). How the framework works, its de facto public API
-and its known quirks are in `AGENTS.md`: read it first. This file says what to comment on and how.
+For automated reviewers (GitHub Copilot code review, Greptile, ...). The rules for changing the code, including the de
+facto public API, are in `AGENTS.md`: read it first. How the framework works and its known behaviours are in `docs/`:
+read the files that match the changed code (the "Where to read" table of `AGENTS.md`). This file says what to comment
+on and how.
 
 The tests are how pull requests get validated here: about 25 collectors subclass this framework and none of them is
 tested by this repository's CI, and the maintainers have little time to check each change by hand. Review the tests of
@@ -20,19 +22,21 @@ a PR as carefully as its code.
    verification weakened by the PR (e.g. `CURLOPT_SSL_VERIFYPEER` set to 0 in the defaults); a shell command built
    from values not escaped with `escapeshellarg()`; unsafe file or path handling; XML parsing that loads external
    entities (`LIBXML_NOENT`, `LIBXML_DTDLOAD`); a new use of `eval()`.
-2. **P2 Compatibility**: any breach of the "Golden rule" (`AGENTS.md` §2), which protects the collectors that this CI
+2. **P2 Compatibility**: any breach of the "Golden rule" of `AGENTS.md`, which protects the collectors that this CI
    does not test: a public or protected member of a `core/` class renamed, removed, or changed in signature,
    visibility, return type or meaning; a new parameter that is not last, optional and defaulting to the old
    behaviour; a changed configuration key, file lookup path or order, or CSV format sent to iTop; a behaviour change
    that is not opt-in; a member replaced without deprecation; a new public or protected member without `@since`; a
-   known quirk (`AGENTS.md` §10) changed as a side effect.
+   known behaviour (`docs/known-behaviours.md`) changed as a side effect, or changed on purpose without citing its id
+   (`KB-<nn>`) or against what its status allows (see "Before changing code" in `AGENTS.md`).
 3. **P2 Bug**: logic error, wrong condition, unhandled `null`/`false` return or exception, a failure that does not
    change the exit code when it should, code incompatible with the lowest PHP version of `require.php` in
    `composer.json`, leftover debug output (`var_dump()`, `print_r()`, a temporary `echo`).
 4. **P2 Tests**: see "Tests" below.
-5. **P3 Other**: deviation from the conventions of `AGENTS.md` §9 (Hungarian prefixes, PascalCase methods, no
-   namespace in `core/`, `Utils::Log()` rather than direct output), `AGENTS.md` not updated when the PR changes a
-   behaviour it describes, unclear names, typos in identifiers, comments and log messages, duplicated logic or
+5. **P3 Other**: deviation from the "Conventions" of `AGENTS.md` (Hungarian prefixes, PascalCase methods, no
+   namespace in `core/`, `Utils::Log()` rather than direct output), a file of `docs/` not updated when the PR changes
+   a behaviour it describes (for a known behaviour: its text, status and tests), `AGENTS.md` not updated when the PR
+   changes a rule it states, unclear names, typos in identifiers, comments and log messages, duplicated logic or
    re-implementation of an existing helper (`Utils`, `LookupTable`, `MappingTable`, `RestClient`), dead or
    commented-out code, function too long or too nested to read.
 
@@ -45,13 +49,14 @@ Every PR must keep the tests in line with the code it changes, as far as it is r
   mirrors the sources).
 - Not relevant: documentation, comments, formatting, CI configuration, or a refactoring whose behaviour the existing
   tests already cover. Do not ask for tests there.
-- Check the new tests against "Writing tests" (`AGENTS.md` §8): they extend `BaseTestCase`; the unit suite uses no
-  network, no real iTop and no real third-party system (`StartFakeItop()`, `GetFakeHttpServer()`); namespaces follow
-  the folders; collectors stay in the global namespace.
+- Check the new tests against the "Tests" rules of `AGENTS.md` (details in `docs/testing.md`): they extend
+  `BaseTestCase`; the unit suite uses no network, no real iTop and no real third-party system (`StartFakeItop()`,
+  `GetFakeHttpServer()`); namespaces follow the folders; collectors stay in the global namespace.
 - A new or changed request to iTop must be emulated by `FakeItop` as the iTop 3.2 sources behave, never bent to make a
   test pass. When it relies on an iTop behaviour no scenario covers yet, it also needs a scenario in
   `ItopContractTestCase`, which the integration suite runs against a real iTop.
-- A test that changes what a known quirk (`AGENTS.md` §10) asserts must say so, and §10 must be updated.
+- A test that changes what a known behaviour asserts must say so and cite its id (`KB-<nn>`), and the entry in
+  `docs/known-behaviours.md` must be updated. The tests that freeze a behaviour say so ("Known behaviour KB-02: ...").
 - Flag weakened tests: a test removed or skipped without a reason, a loosened assertion, a test that passes whatever
   the code does.
 - Integration tests must delete everything they create in iTop, and must not depend on what iTop already holds.
@@ -60,7 +65,7 @@ Every PR must keep the tests in line with the code it changes, as far as it is r
 - Formatting: indentation, spacing, line breaks, brace placement. PHP-CS-Fixer handles it.
 - Third-party code in `vendor/` and `tests/php-code-style/vendor/`.
 - Code the PR does not touch, unless the change breaks it or it needs to be adjusted accordingly.
-- The known quirks of `AGENTS.md` §10 in code the PR does not touch: they are kept on purpose.
+- The known behaviours of `docs/known-behaviours.md` in code the PR does not touch: they are kept on purpose.
 
 ## Vulnerabilities
 - A vulnerability introduced by the PR is always a `[P1-Security]` comment: explain the risk and how to fix it.
