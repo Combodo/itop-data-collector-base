@@ -34,6 +34,10 @@ class Utils
 	protected static $iMockLogLevel = LOG_ERR;
 
 	protected static $oMockedLogger;
+	public static ?OAuth2Service $oItopOAuth2Service = null;
+
+	//below variable required for reentrance protection
+	public static bool $bDisabledEventIssueNotification = false;
 
 	/**
 	 * @since 1.3.0 N°6012
@@ -224,7 +228,7 @@ class Utils
 			closelog();
 		}
 
-		if ($iPriority <= self::$iEventIssueLogLevel) {
+		if (! self::$bDisabledEventIssueNotification && $iPriority <= self::$iEventIssueLogLevel) {
 			Utils::CreateEventIssue($sMessage);
 		}
 	}
@@ -322,7 +326,6 @@ class Utils
 
 		$value = self::$oConfig->Get($sCode, $defaultValue);
 		$value = self::Substitute($value);
-
 		return $value;
 	}
 
@@ -344,6 +347,20 @@ class Utils
 		];
 	}
 
+	public static function GetItopOauth2Service(): ?OAuth2Service
+	{
+
+		$sUseOauth2Val = Utils::GetConfigurationValue('use_oauth2_with_itop', 'no');
+		if (true !== $sUseOauth2Val && "yes" !== $sUseOauth2Val) {
+			return null;
+		}
+
+		if (is_null(self::$oItopOAuth2Service)) {
+			self::$oItopOAuth2Service = new OAuth2Service("Itop");
+		}
+		return self::$oItopOAuth2Service;
+	}
+
 	/**
 	 * @since 1.3.0 N°6012
 	 */
@@ -352,6 +369,10 @@ class Utils
 		$sLoginform = Utils::GetConfigurationValue('itop_login_mode', '');
 		if (strlen($sLoginform) > 0) {
 			return $sLoginform;
+		}
+
+		if (! is_null(self::GetItopOauth2Service())) {
+			return 'oauth2-server';
 		}
 
 		$sToken = Utils::GetConfigurationValue('itop_token', '');
@@ -484,7 +505,7 @@ class Utils
 				CURLOPT_TIMEOUT        => 120,      // timeout on response
 				CURLOPT_MAXREDIRS      => 10,       // stop after 10 redirects
 				CURLOPT_SSL_VERIFYHOST => 0,     // Disabled SSL Cert checks
-				CURLOPT_SSL_VERIFYPEER => 0,     // Disabled SSL Cert checks
+				CURLOPT_SSL_VERIFYPEER => false,     // Disabled SSL Cert checks
 				// SSLV3 (CURL_SSLVERSION_SSLv3 = 3) is now considered as obsolete/dangerous: http://disablessl3.com/#why
 				// but it used to be a MUST to prevent a strange SSL error: http://stackoverflow.com/questions/18191672/php-curl-ssl-routinesssl23-get-server-helloreason1112
 				// CURLOPT_SSLVERSION		=> 3,

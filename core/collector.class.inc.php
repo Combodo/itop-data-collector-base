@@ -57,7 +57,7 @@ abstract class Collector
 	protected $aNullifiedAttributes;
 	protected $sSourceName;
 
-	/** @var \CallItopService  $oCallItopService */
+	/** @var ?\CallItopService  $oCallItopService */
 	protected static $oCallItopService;
 
 	/**
@@ -80,7 +80,7 @@ abstract class Collector
 	/**
 	 * @since 1.3.0
 	 */
-	public static function SetCallItopService(CallItopService $oCurrentCallItopService)
+	public static function SetCallItopService(?CallItopService $oCurrentCallItopService)
 	{
 		static::$oCallItopService = $oCurrentCallItopService;
 	}
@@ -385,6 +385,7 @@ abstract class Collector
 		// Defined before the try, as the catch logs it
 		$sModuleFileContents = '';
 		try {
+			$sModuleFileContents = '';
 			$sModuleFile = reset($aFiles);
 
 			$this->SetProjectNameFromFileName($sModuleFile);
@@ -721,9 +722,11 @@ abstract class Collector
 			];
 
 			$sLoginform = Utils::GetLoginMode();
+
 			$sResult = self::CallItopViaHttp(
 				"/synchro/synchro_import.php?login_mode=$sLoginform",
-				$aData
+				$aData,
+				(int)Utils::GetConfigurationValue('itop_synchro_timeout', 600)
 			);
 
 			$sTrimmedOutput = trim(strip_tags($sResult));
@@ -752,7 +755,8 @@ abstract class Collector
 		$sLoginform = Utils::GetLoginMode();
 		$sResult = self::CallItopViaHttp(
 			"/synchro/synchro_exec.php?login_mode=$sLoginform",
-			$aData
+			$aData,
+			(int)Utils::GetConfigurationValue('itop_synchro_timeout', 600)
 		);
 
 		$iErrorsCount = $this->ParseSynchroExecOutput($sResult);
@@ -822,7 +826,7 @@ abstract class Collector
 					return $aMatches[1];
 				}
 			}
-			return -1;
+			return "-1";
 		}
 
 		// Read the status code from the last line
@@ -841,12 +845,12 @@ abstract class Collector
 		return static::ParseSynchroImportOutput($sTrimmedOutput, $bDetailedOutput);
 	}
 
-	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1)
+	public static function CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut = -1, &$aResponseHeaders = null)
 	{
 		if (null === static::$oCallItopService) {
 			static::$oCallItopService = new CallItopService();
 		}
-		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut);
+		return static::$oCallItopService->CallItopViaHttp($sUri, $aAdditionalData, $iTimeOut, $aResponseHeaders);
 	}
 
 	protected function CreateSynchroDataSource($aSourceDefinition, $sComment)

@@ -19,6 +19,37 @@ class CollectorSynchroTest extends TestCase
 {
 	private $oMockedCallItopService;
 
+	public function setUp(): void
+	{
+		global $argv;
+		array_push($argv, "--config_file=".__DIR__."/utils/params.test.xml");
+
+		parent::setUp();
+		Utils::LoadConfig();
+
+		$this->oMockedCallItopService = $this->createMock("CallItopService");
+		Collector::SetCallItopService($this->oMockedCallItopService);
+
+		$dataFilePath = Utils::GetDataFilePath('FakeCollector-*.csv');
+		foreach (glob($dataFilePath) as $file) {
+			unlink($file);
+		}
+
+		file_put_contents(APPROOT.'data/FakeCollector-1.csv', 'FAKECSVCONTENT');
+	}
+
+	public function tearDown(): void
+	{
+		parent::tearDown();
+		Collector::SetCallItopService(null);
+
+		$reflection = new \ReflectionProperty(Utils::class, 'oConfig');
+		$reflection->setAccessible(true);
+		$reflection->setValue(null, null);
+
+		Utils::$oItopOAuth2Service = null;
+	}
+
 	public function SynchroOutputProvider()
 	{
 		$sRetcodeOutput = <<<OUTPUT
@@ -72,36 +103,12 @@ OUTPUT;
 			->method('CallItopViaHttp')
 			->withConsecutive(
 				['/synchro/synchro_import.php?login_mode=form', $aAdditionalData],
-				['/synchro/synchro_exec.php?login_mode=form', ['data_sources' => 666], -1]
+				['/synchro/synchro_exec.php?login_mode=form', ['data_sources' => 666], 600]
 			)
 			->willReturn($sCallItopViaHttpOutput)
 		;
 
 		$oCollector->Synchronize();
-	}
-
-	public function setUp(): void
-	{
-		global $argv;
-		array_push($argv, "--config_file=".__DIR__."/utils/params.test.xml");
-
-		parent::setUp();
-		Utils::LoadConfig();
-
-		$this->oMockedCallItopService = $this->createMock("CallItopService");
-		Collector::SetCallItopService($this->oMockedCallItopService);
-
-		$dataFilePath = Utils::GetDataFilePath('FakeCollector-*.csv');
-		foreach (glob($dataFilePath) as $file) {
-			unlink($file);
-		}
-
-		file_put_contents(APPROOT.'data/FakeCollector-1.csv', 'FAKECSVCONTENT');
-	}
-
-	public function tearDown(): void
-	{
-		parent::tearDown();
 	}
 
 	public function ParseSynchroImportOutputProvider()

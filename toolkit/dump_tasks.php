@@ -27,6 +27,7 @@ require_once(APPROOT.'core/parameters.class.inc.php');
 require_once(APPROOT.'core/ioexception.class.inc.php');
 require_once(APPROOT.'core/utils.class.inc.php');
 require_once(APPROOT.'core/restclient.class.inc.php');
+require_once(APPROOT.'core/collector.class.inc.php');
 
 $sTaskName = Utils::ReadParameter('task_name', '*');
 Utils::InitConsoleLogLevel();
