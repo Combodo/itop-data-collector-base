@@ -74,6 +74,7 @@ Therefore:
 | `core/csvcollector.class.inc.php`, `core/jsoncollector.class.inc.php`, `core/sqlcollector.class.inc.php`, `core/lookuptable.class.inc.php`, `core/mappingtable.class.inc.php` | `docs/architecture.md` ("Map of core/"), `docs/configuration.md` |
 | Any behaviour of `core/` or `exec.php` | `docs/known-behaviours.md` |
 | `tests/` | `docs/testing.md` |
+| A term you do not know (SDS, replica, placeholder, nullified attribute…) | `docs/glossary.md` |
 
 ## Quality gates: all three must pass before a change is done
 

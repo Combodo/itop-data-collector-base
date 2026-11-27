@@ -9,6 +9,7 @@ those rules rely on.
 
 | File | Content |
 |---|---|
+| [glossary.md](glossary.md) | Terms of the framework and of iTop, and their names in the code |
 | [architecture.md](architecture.md) | Runtime layout, execution flow of `exec.php`, map of `core/` |
 | [configuration.md](configuration.md) | Configuration files and their merge order, XML semantics, placeholders, credentials |
 | [itop-contract.md](itop-contract.md) | What the framework sends to iTop, and how it reads the answers |
