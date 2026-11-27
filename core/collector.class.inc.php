@@ -382,6 +382,8 @@ abstract class Collector
 			return;
 		}
 
+		// Defined before the try, as the catch logs it
+		$sModuleFileContents = '';
 		try {
 			$sModuleFile = reset($aFiles);
 
@@ -393,11 +395,11 @@ abstract class Collector
 			$bRet = eval($sModuleFileContents);
 
 			if ($bRet === false) {
-				Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' returned false");
+				Utils::Log(LOG_WARNING, "Eval of '$sModuleFile' module contents '$sModuleFileContents' returned false");
 			}
 		} catch (Exception $e) {
 			// Continue...
-			Utils::Log(LOG_WARNING, "Eval of '$sModuleFileContents' caused an exception: ".$e->getMessage());
+			Utils::Log(LOG_WARNING, "Eval of '$sModuleFile' module contents '$sModuleFileContents' caused an exception: ".$e->getMessage());
 		}
 	}
 
