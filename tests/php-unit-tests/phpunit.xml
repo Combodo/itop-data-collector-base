@@ -1,0 +1,31 @@
+<phpunit bootstrap="bootstrap.php" backupGlobals="false" verbose="true">
+  <testsuites>
+    <testsuite name="testsU">
+      <directory suffix="Test.php">unitary-tests</directory>
+    </testsuite>
+  </testsuites>
+  <!--
+    Code coverage scope. This section measures nothing by itself: coverage is computed only when a coverage option is
+    passed (coverage-text, coverage-html for a browsable report, coverage-clover for the CI) and a coverage driver is
+    loaded (Xdebug in coverage mode, or PCOV). The full command is in AGENTS.md, section "Code coverage" (it cannot be
+    written here: XML comments forbid double hyphens).
+    Without this section, PHPUnit 9 refuses to measure ("No filter is configured") unless coverage-filter is passed.
+
+    - includeUncoveredFiles: a file of the scope that no test loads counts as 0% (found by static analysis), instead of
+      being left out and making the ratio look better than it is.
+    - processUncoveredFiles must stay false: it runs include_once on every uncovered file to analyse it, and including
+      exec.php would launch a whole collector run.
+    - No report section, on purpose: with one, PHPUnit would build the reports at every run as soon as Xdebug is in
+      coverage mode (as in the Combodo development containers), which slows every run and writes files.
+  -->
+  <coverage includeUncoveredFiles="true" processUncoveredFiles="false">
+    <include>
+      <!-- The framework only: not the tests, vendor/, nor the collector fixtures that the tests copy into collectors/.
+           toolkit/ is left out too: standalone scripts that no test runs. -->
+      <directory suffix=".php">../../core</directory>
+      <!-- Shows 0%: the end-to-end tests (FakeItopExecTest) run exec.php in a child PHP process, which coverage does
+           not follow. Kept in the scope so that the report does not hide it. -->
+      <file>../../exec.php</file>
+    </include>
+  </coverage>
+</phpunit>

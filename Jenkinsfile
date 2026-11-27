@@ -20,7 +20,7 @@ pipeline {
       steps {
         script {
             catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-              sh 'bash test/php-code-style/validate.sh'
+              sh 'bash tests/php-code-style/validate.sh'
             }
           }
       }
@@ -44,7 +44,7 @@ pipeline {
       steps {
         script {
               sh 'mkdir -p logs'
-              sh '/usr/bin/php8.1 vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration test/phpunit.xml --teamcity '
+              sh '/usr/bin/php8.1 vendor/bin/phpunit  --log-junit logs/phpunit_results.xml --configuration tests/php-unit-tests/phpunit.xml --teamcity '
           }
       }
     }

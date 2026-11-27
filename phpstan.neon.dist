@@ -9,11 +9,11 @@ parameters:
         - vendor
 
     excludePaths:
-        - test/php-code-style
+        - tests/php-code-style
 
     paths:
         - core
-        - test
+        - tests
         - toolkit
         - exec.php
 

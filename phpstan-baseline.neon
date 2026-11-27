@@ -4,4 +4,4 @@ parameters:
 			message: '#^Call to static method AddModule\(\) on an unknown class SetupWebPage\.$#'
 			identifier: class.notFound
 			count: 1
-			path: test/getproject/module/module.myproject.php
+			path: tests/php-unit-tests/unitary-tests/core/getproject/module/module.myproject.php
