@@ -78,7 +78,7 @@ class OrchestratorPhasesTest extends BaseTestCase
 
 	public function testDeclaredPhpRequirementIsOnlyPhp7(): void
 	{
-		// Known quirk: the code needs PHP 8, but only PHP 7.0 is declared (by Orchestrator itself)
+		// Known behaviour KB-01: the code needs PHP 8, but only PHP 7.0 is declared (by Orchestrator itself)
 		$this->assertSame(['PHP' => '7.0', 'simplexml' => '7.0', 'dom' => '1'], Orchestrator::$aMinVersions);
 		$this->assertTrue(Orchestrator::CheckRequirements());
 	}
@@ -149,7 +149,7 @@ class OrchestratorPhasesTest extends BaseTestCase
 
 	public function testUnknownSynchroUserRaisesAPhpWarning(): void
 	{
-		// Known quirk: unlike the contact, an unknown synchro_user is not checked (foreach on a null "objects")
+		// Known behaviour KB-07: unlike the contact, an unknown synchro_user is not checked (foreach on a null "objects")
 		$this->StartFakeItop();
 		$this->SetConfigurationOverrides(['synchro_user' => 'ghost']);
 		$aCollectors = $this->RegisterCollectors([[1, ScriptableCollectorOne::class, ['init_sds_result' => true]]]);
@@ -208,7 +208,7 @@ class OrchestratorPhasesTest extends BaseTestCase
 		$this->assertFalse((new Orchestrator())->Collect($aCollectors, 10, true));
 
 		$this->assertSame(['ScriptableCollectorOne::Collect', 'ScriptableCollectorTwo::Collect'], ScriptableCollector::GetCalls());
-		// Known quirk: the second argument ($bCollectOnly) is passed but Collector::Collect() ignores it
+		// Known behaviour KB-03: the second argument ($bCollectOnly) is passed but Collector::Collect() ignores it
 		$this->assertSame([10, true], ScriptableCollector::$aCalls[0][2]);
 	}
 
@@ -222,7 +222,7 @@ class OrchestratorPhasesTest extends BaseTestCase
 		$this->assertTrue((new Orchestrator())->Synchronize($aCollectors), 'stop_on_synchro_error=no: the failure does not change the exit code');
 
 		$this->assertSame(['ScriptableCollectorOne::Synchronize', 'ScriptableCollectorTwo::Synchronize'], ScriptableCollector::GetCalls());
-		// Known quirk: no chunk size is passed, so max_chunk_size never reaches synchro_exec.php
+		// Known behaviour KB-02: no chunk size is passed, so max_chunk_size never reaches synchro_exec.php
 		$this->assertSame([], ScriptableCollector::$aCalls[0][2]);
 	}
 

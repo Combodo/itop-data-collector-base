@@ -144,7 +144,7 @@ abstract class ExecTestCase extends BaseTestCase
 
 		$aRun = $this->RunExec();
 
-		$this->assertSame(0, $aRun['exit_code'], 'Known quirk: no collector at all is not a failure');
+		$this->assertSame(0, $aRun['exit_code'], 'Known behaviour KB-05: no collector at all is not a failure');
 		$this->assertStringContainsString("The file '".APPROOT."collectors/main.php' is missing (or unreadable).", $aRun['output']);
 	}
 

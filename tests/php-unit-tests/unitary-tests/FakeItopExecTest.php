@@ -59,6 +59,6 @@ class FakeItopExecTest extends ExecTestCase
 		$this->assertCount(1, $oItop->GetRequests('synchro_import'));
 		$aExec = $oItop->GetRequests('synchro_exec');
 		$this->assertCount(1, $aExec);
-		$this->assertArrayNotHasKey('max_chunk_size', $aExec[0]['data'], 'Known quirk: max_chunk_size is not forwarded');
+		$this->assertArrayNotHasKey('max_chunk_size', $aExec[0]['data'], 'Known behaviour KB-02: max_chunk_size is not forwarded');
 	}
 }

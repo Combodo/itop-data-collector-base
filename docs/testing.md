@@ -121,8 +121,8 @@ The tests copy fixtures into `collectors/`, wipe it, and must not read `conf/par
 - `ScriptableCollector` (and its sub-classes `One`, `Two`, `Three`) is a collector whose behaviour a test scripts
   (rows, optional attributes, reprocessing, return values) and which records the calls it receives.
 - Test classes live in `unitary-tests/<source path>/<Subject>Test.php`, in the namespace of their folder.
-- A test that changes or "fixes" a known behaviour ([known-behaviours.md](known-behaviours.md)) must say so: these
-  tests assert today's behaviour on purpose.
+- A test that changes or "fixes" a known behaviour ([known-behaviours.md](known-behaviours.md)) must say so and cite
+  its id, as the existing ones do ("Known behaviour KB-02: ..."): these tests assert today's behaviour on purpose.
 - Older tests extend PHPUnit's `TestCase` directly and reset the state themselves; `CollectorSynchroTest` adds a
   `--config_file` to `$argv` that persists until a `BaseTestCase` test restores it. Prefer `BaseTestCase` for new tests.
 - Files must use LF line endings: a CRLF working copy makes heredoc-based expectations fail.

@@ -55,8 +55,13 @@ Therefore:
 
 1. Read the `docs/` files that match the code you touch (table below), and the tests of the class you change: the
    tests in `tests/php-unit-tests/` are the executable specification.
-2. Check `docs/known-behaviours.md` for the code you touch: a behaviour listed there must not change as a side
-   effect.
+2. Check `docs/known-behaviours.md` for the code you touch. A behaviour listed there must not change as a side
+   effect; to change one on purpose, cite its id (`KB-<nn>`) in your plan and in the pull request. Its status says
+   what you may do:
+   - `observed`: read in the code, not decided yet. Do not change it without an explicit request.
+   - `validated`: intended. Change it only on an explicit request, and update its entry.
+   - `to fix`: a known defect: a change is expected, opt-in when collectors may rely on it.
+   - `obsolete`: gone, or code to remove.
 3. If the code and `docs/` disagree, say so instead of silently changing either one.
 
 ### Where to read
@@ -98,7 +103,7 @@ How to write and run them, with the helpers and fakes: `docs/testing.md`. The ru
 - When iTop's behaviour matters, add a scenario to `ItopContractTestCase` or `ExecTestCase`: they run against the fake
   and against a real iTop. When a scenario passes on the real iTop and fails on the fake, fix the fake; never weaken
   a scenario to suit it.
-- A test that changes what a known behaviour asserts must say so.
+- A test that changes what a known behaviour asserts must say so, and cite its id.
 - The tests set `conf/params.local.xml` and the content of `collectors/` aside during the run, and restore them.
 
 ## Conventions
@@ -112,8 +117,9 @@ How to write and run them, with the helpers and fakes: `docs/testing.md`. The ru
 
 ## Delivering a change
 
-- In the same change: the code, its tests, and the update of the `docs/` files that describe the changed behaviour.
-  An odd-looking behaviour found on the way goes to `docs/known-behaviours.md`.
+- In the same change: the code, its tests, and the update of the `docs/` files that describe the changed behaviour
+  (for a known behaviour: its text, status and tests). An odd-looking behaviour found on the way goes to
+  `docs/known-behaviours.md` with the next free id and the status `observed`.
 - Update this file when a rule it states changes.
 - Commits: `N°<ticket> - <imperative summary>` or a gitmoji code prefix (`:bug:`, `:white_check_mark:`…), first line
   72 characters at most. Development happens on `master`; releases are git tags (e.g. `1.5.1`).

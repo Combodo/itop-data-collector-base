@@ -98,7 +98,7 @@ class ConfigurationTest extends BaseTestCase
 		$this->assertSame('override', $oBase->Get('replaced'));
 		$this->assertSame('override', $oBase->Get('added'));
 		$this->assertSame(['a' => 'base', 'b' => 'override'], $oBase->Get('section'));
-		// Known quirk: lists are merged by index, so a shorter list does not replace a longer one
+		// Known behaviour KB-21: lists are merged by index, so a shorter list does not replace a longer one
 		$this->assertSame(['z', 'y'], $oBase->Get('a_list'));
 	}
 
@@ -172,7 +172,7 @@ class ConfigurationTest extends BaseTestCase
 
 	public function testEachLoadAppendsToTheListOfLoadedFiles(): void
 	{
-		// Known quirk: Utils::LoadConfig() never resets the list it appends to
+		// Known behaviour KB-22: Utils::LoadConfig() never resets the list it appends to
 		$this->SetNonPublicProperty(Utils::class, 'aConfigFiles', []);
 		Utils::LoadConfig();
 		Utils::LoadConfig();
@@ -227,7 +227,7 @@ class ConfigurationTest extends BaseTestCase
 
 	public function testAnEmptyCurlOptionsElementCrashesTheHttpCalls(): void
 	{
-		// Known quirk: <curl_options/> gives '' (not an empty hash), which replaces the default options
+		// Known behaviour KB-20: <curl_options/> gives '' (not an empty hash), which replaces the default options
 		$this->SetConfigurationOverrides(['curl_options' => '']);
 
 		$this->expectException(\TypeError::class);
